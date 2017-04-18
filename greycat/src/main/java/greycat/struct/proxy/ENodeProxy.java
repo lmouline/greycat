@@ -144,12 +144,11 @@ public final class ENodeProxy implements ENode {
             return elem;
         } else {
             byte type = typeAt(index);
-            //temporary proxy
             switch (type) {
                 case Type.LMATRIX:
-                    return new LMatrixProxy(index, this, (LMatrixProxy) elem);
+                    return new LMatrixProxy(index, this, (LMatrix) elem);
                 case Type.DMATRIX:
-                    return new DMatrixProxy(index, this, (DMatrixProxy) elem);
+                    return new DMatrixProxy(index, this, (DMatrix) elem);
                 case Type.ERELATION:
                     return new ERelationProxy(index, this, (ERelation) elem);
                 case Type.RELATION:
