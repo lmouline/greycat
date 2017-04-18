@@ -80,7 +80,7 @@ final class HeapStringArray implements StringArray {
     @Override
     public final synchronized String[] extract() {
         if (_backend == null) {
-            return null;
+            return new String[0];
         }
         final String[] extracted = new String[_backend.length];
         System.arraycopy(_backend, 0, extracted, 0, _backend.length);

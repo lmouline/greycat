@@ -80,7 +80,7 @@ final class HeapLongArray implements LongArray {
     @Override
     public final synchronized long[] extract() {
         if(_backend == null){
-            return null;
+            return new long[0];
         }
         final long[] extracted = new long[_backend.length];
         System.arraycopy(_backend, 0, extracted, 0, _backend.length);
