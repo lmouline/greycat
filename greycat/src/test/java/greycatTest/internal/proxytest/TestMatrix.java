@@ -1,4 +1,4 @@
-package greycatMLTest.neuralnet;
+package greycatTest.internal.proxytest;
 
 import greycat.*;
 import greycat.struct.DMatrix;
@@ -10,7 +10,7 @@ import org.junit.Test;
 public class TestMatrix {
 
     @Test
-    public void testTime() {
+    public void testMatrix() {
         Graph graph= GraphBuilder
                 .newBuilder()
                 .build();

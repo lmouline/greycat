@@ -1,4 +1,4 @@
-package greycatMLTest.neuralnet;
+package greycatTest.internal.proxytest;
 
 import greycat.*;
 import greycat.struct.DMatrix;
@@ -11,7 +11,7 @@ import org.junit.Test;
  */
 public class TestTemporalStruct {
     @Test
-    public void testTime() {
+    public void testMatrixEnode() {
         Graph graph= GraphBuilder
                 .newBuilder()
                 .build();
@@ -31,46 +31,38 @@ public class TestTemporalStruct {
                 matrix.set(0,0,0);
                 matrix.set(1,1,1);
                 matrix.set(2,2,2);
-                System.out.println("at t0 before set: "+matrix.get(0,0)+" , "+matrix.get(1,1)+" , "+matrix.get(2,2)+" node time: "+node.time());
+                System.out.println("at time "+node.time() +": "+matrix.get(0,0)+" , "+matrix.get(1,1)+" , "+matrix.get(2,2));
 
                 node.travelInTime(1, new Callback<Node>() {
                     @Override
-                    public void on(Node result) {
-                        EGraph eg= (EGraph) result.getOrCreate("egraph", Type.EGRAPH);
+                    public void on(Node result1) {
+                        EGraph eg= (EGraph) result1.getOrCreate("egraph", Type.EGRAPH);
                         ENode en =eg.root();
                         DMatrix matrix= (DMatrix)en.getOrCreate("matrix", Type.DMATRIX);
-                        System.out.println("at t1 before set: "+matrix.get(0,0)+" , "+matrix.get(1,1)+" , "+matrix.get(2,2)+" node time: "+result.time());
+                        System.out.println("at time "+result1.time()+" before set: "+matrix.get(0,0)+" , "+matrix.get(1,1)+" , "+matrix.get(2,2));
                         matrix.set(0,0,10);
                         matrix.set(1,1,11);
                         matrix.set(2,2,12);
-                        graph.save(new Callback<Boolean>() {
+
+
+                        result1.travelInTime(0, new Callback<Node>() {
                             @Override
-                            public void on(Boolean saved) {
-                                result.travelInTime(0, new Callback<Node>() {
+                            public void on(Node result2) {
+                                EGraph eg= (EGraph) result2.getOrCreate("egraph", Type.EGRAPH);
+                                ENode en =eg.root();
+                                DMatrix matrix= (DMatrix)en.getOrCreate("matrix", Type.DMATRIX);
+                                System.out.println("at time "+result2.time()+" after set: "+matrix.get(0,0)+" , "+matrix.get(1,1)+" , "+matrix.get(2,2));
+
+                                result2.travelInTime(1, new Callback<Node>() {
                                     @Override
-                                    public void on(Node result) {
-                                        EGraph eg= (EGraph) result.getOrCreate("egraph", Type.EGRAPH);
+                                    public void on(Node result3) {
+                                        EGraph eg= (EGraph) result3.getOrCreate("egraph", Type.EGRAPH);
                                         ENode en =eg.root();
                                         DMatrix matrix= (DMatrix)en.getOrCreate("matrix", Type.DMATRIX);
-                                        System.out.println("at t0 after set: "+matrix.get(0,0)+" , "+matrix.get(1,1)+" , "+matrix.get(2,2)+" node time: "+result.time());
-
-                                        result.travelInTime(1, new Callback<Node>() {
-                                            @Override
-                                            public void on(Node result) {
-                                                EGraph eg= (EGraph) result.getOrCreate("egraph", Type.EGRAPH);
-                                                ENode en =eg.root();
-                                                DMatrix matrix= (DMatrix)en.getOrCreate("matrix", Type.DMATRIX);
-                                                System.out.println("at t1 after set: "+matrix.get(0,0)+" , "+matrix.get(1,1)+" , "+matrix.get(2,2)+" node time: "+result.time());
-
-                                            }
-                                        });
-
+                                        System.out.println("at time "+result3.time()+" after set: "+matrix.get(0,0)+" , "+matrix.get(1,1)+" , "+matrix.get(2,2));
 
                                     }
                                 });
-
-
-
                             }
                         });
 
