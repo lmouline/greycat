@@ -32,7 +32,7 @@ public final class DMatrixProxy implements DMatrix {
 
     private void check() {
         if (_target != null) {
-            _elem = (DMatrix) _target.getRawAt(_index);
+            _elem = (DMatrix) _target.rephase().getRawAt(_index);
             _target = null;
         }
     }
