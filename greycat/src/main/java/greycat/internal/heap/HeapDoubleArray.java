@@ -25,7 +25,7 @@ final class HeapDoubleArray implements DoubleArray {
     private double[] _backend = null;
     private final HeapContainer _parent;
 
-    public HeapDoubleArray(final HeapContainer parent) {
+    HeapDoubleArray(final HeapContainer parent) {
         this._parent = parent;
     }
 
