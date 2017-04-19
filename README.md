@@ -9,12 +9,15 @@ For any questions please contact us via our Gitter:
 
 # Changelog
 
-## Version 7 (planned for 20/04/2017)
+- Version 7 (planned for 20/04/2017)
     - fix bug in global dictionary
     - add option in builder to desactivate global dictionary and introspection ability
     - fix potential NPE into dephased struct proxy for EGraph
-
-## Version 6 (11/04/2017)
+    - fix potential dephasing problem for DMatrix
+    - API change: add name into Action interface
+    - API change: add common arrays interface ArrayStruct
+    - add clear method to all arrays chunk
+- Version 6 (11/04/2017)
     - Introducing Hash to check Remote Cache Consistency
     - New API for React Remote Graph usage
     - New API for Remote Task Context usage
@@ -24,36 +27,31 @@ For any questions please contact us via our Gitter:
     - NPE protection in Task API
     - Fix missing declaration of standard actions
     - add typed API to access complex elements such as Map, Relation...
-
-## Version 5 (20/03/2017) 
+- Version 5 (20/03/2017) 
     - New API for Arrays (now defined as complex sub objects such as Map or Relationships)
     - New Proxy approach to seamlessly manage temporal semantic of complex objects (Relationships...)
-    - Temporary desactivation of OffHeap module (some bug remaining before the release)
-
-## Version 4 (13/03/17)
+    - Temporary unload of OffHeap module (some bug remaining before the release)
+- Version 4 (13/03/17)
     - Replaced declaration() in ActionRegistry and NodeRegistry by getOrCreateDeclaration. declaration() now acts like a simple get.
     - fix free bug in flat task action
-    - define interfaces for Blas plugin
+    - define interfaces for BLAS plugin
     - cleanup build scripts
     - implement multi-get within RocksDB plugin
-    
-## Version 3 (27/02/17)
-    - fix apriori dirty element on get
+- Version 3 (27/02/17)
+    - fix a-priori dirty element on get
     - fix dirty flag after remote state chunk load *(need global check)*
-    - fix dirty flag after remote timetree chunk load *(need global check)*
+    - fix dirty flag after remote timeTree chunk load *(need global check)*
     - switch test execution with full NPM management
     - use J2TS-JUNIT (https://www.npmjs.com/search?q=j2ts-junit)
-    - rename sub test package as greycatTest to avoid conflict for NPM
+    - rename sub test package as GreyCatTest to avoid conflict for NPM
     - new RocksDB support for ARM-V7 processor
     - closing issue #3 add TypeScript correct typing header to NPM
-    - alignement of interface NodeState, StateChunk and Node (all inherit from container)
-    
-## Version 2 (17/02/17)
+    - alignment of interface NodeState, StateChunk and Node (all inherit from container)
+- Version 2 (17/02/17)
     - introduce new NPM packaging (https://www.npmjs.com/package/greycat)
     - use J2TS-JRE (https://www.npmjs.com/search?q=j2ts-junit)
     - rename base package as greycat
     - closing #2
-
-## Version 1
+- Version 1
     - first release with the GreyCat name, mostly renamed from ManyWorldGraph project
     
