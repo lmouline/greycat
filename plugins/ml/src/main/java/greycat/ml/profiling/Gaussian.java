@@ -41,15 +41,20 @@ public class Gaussian {
     public static final String HISTOGRAM_CENTER = "histogram_center";
     public static final String HISTOGRAM_VALUES = "histogram_values";
 
-    public static void profile(Node host, Double value, Double boundMin, Double boundMax) {
+    public static final int STATUS_NULL=0;
+    public static final int STATUS_ACCEPTED=1;
+    public static final int STATUS_REJECTED=2;
+
+
+    public static int profile(Node host, Double value, Double boundMin, Double boundMax) {
         if (value == null) {
             host.set(NULL, Type.LONG, host.getWithDefault(NULL, 0l) + 1);
-            return;
+            return STATUS_NULL;
         }
 
         if (boundMin != null && value < boundMin || boundMax != null && value > boundMax) {
             host.set(REJECT, Type.LONG, host.getWithDefault(REJECT, 0l) + 1);
-            return;
+            return STATUS_REJECTED;
         }
 
         Double min = host.getWithDefault(MIN, null);
@@ -77,6 +82,7 @@ public class Gaussian {
             host.set(COV, Type.DOUBLE, cov);
             host.set(STD, Type.DOUBLE, Math.sqrt(cov));
         }
+        return STATUS_ACCEPTED;
     }
 
     public static void clearProfile(Node host) {
