@@ -19,7 +19,6 @@ import greycat.Action;
 import greycat.Graph;
 import greycat.Node;
 import greycat.Type;
-import greycat.ml.actions.ActionBuildProfile;
 import greycat.ml.profiling.GaussianNode;
 import greycat.ml.profiling.GaussianSlotsNode;
 import greycat.ml.regression.PolynomialNode;
@@ -30,9 +29,6 @@ import greycat.plugin.NodeFactory;
 import greycat.plugin.Plugin;
 
 public class MLPlugin  implements Plugin  {
-
-    public static final String BUILD_PROFILE="buildProfile";
-
 
     @Override
     public void start(Graph graph) {
@@ -80,13 +76,6 @@ public class MLPlugin  implements Plugin  {
                         return new GaussianSlotsNode(world, time, id, graph);
                     }
                 });
-
-        graph.actionRegistry().getOrCreateDeclaration(BUILD_PROFILE).setParams(Type.INT).setFactory(new ActionFactory() {
-            @Override
-            public Action create(Object[] params) {
-                return new ActionBuildProfile((int) params[0]);
-            }
-        });
     }
 
     @Override
