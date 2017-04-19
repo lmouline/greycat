@@ -16,14 +16,12 @@
 package greycat.base;
 
 import greycat.*;
-import greycat.chunk.ChunkSpace;
 import greycat.chunk.StateChunk;
-import greycat.plugin.NodeStateCallback;
-import greycat.scheduler.NoopScheduler;
-import greycat.struct.*;
 import greycat.plugin.NodeDeclaration;
 import greycat.plugin.NodeState;
+import greycat.plugin.NodeStateCallback;
 import greycat.plugin.Resolver;
+import greycat.struct.*;
 import greycat.struct.proxy.*;
 
 import java.lang.reflect.Field;
@@ -221,6 +219,8 @@ public class BaseNode implements Node {
                     return new DoubleArrayProxy(index, this, (DoubleArray) elem);
                 case Type.STRING_ARRAY:
                     return new StringArrayProxy(index, this, (StringArray) elem);
+                case Type.INT_TO_INT_MAP:
+                    return new IntIntMapProxy(index, this, (IntIntMap) elem);
                 default:
                     return elem;
             }
@@ -381,6 +381,7 @@ public class BaseNode implements Node {
             case Type.STRING_TO_INT_MAP:
             case Type.LONG_TO_LONG_MAP:
             case Type.LONG_TO_LONG_ARRAY_MAP:
+            case Type.INT_TO_INT_MAP:
                 throw new RuntimeException("Bad API usage: set can't be used with complex type, please use getOrCreate instead.");
             default:
                 throw new RuntimeException("Not managed type " + type);
@@ -727,6 +728,30 @@ public class BaseNode implements Node {
                                 builder.append("}");
                                 break;
                             }
+                            case Type.INT_TO_INT_MAP: {
+                                builder.append(",\"");
+                                builder.append(resolveName);
+                                builder.append("\":");
+                                builder.append("{");
+                                IntIntMap castedMapI2I = (IntIntMap) elem;
+                                isFirst[0] = true;
+                                castedMapI2I.each(new IntIntMapCallBack() {
+                                    @Override
+                                    public void on(int key, int value) {
+                                        if (!isFirst[0]) {
+                                            builder.append(",");
+                                        } else {
+                                            isFirst[0] = false;
+                                        }
+                                        builder.append("\"");
+                                        builder.append(key);
+                                        builder.append("\":");
+                                        builder.append(value);
+                                    }
+                                });
+                                builder.append("}");
+                                break;
+                            }
                             case Type.RELATION_INDEXED:
                             case Type.LONG_TO_LONG_ARRAY_MAP: {
                                 builder.append(",\"");
@@ -851,6 +876,11 @@ public class BaseNode implements Node {
     @Override
     public final LongLongMap getLongLongMap(String name) {
         return (LongLongMap) get(name);
+    }
+
+    @Override
+    public final IntIntMap getIntIntMap(String name) {
+        return (IntIntMap) get(name);
     }
 
     @Override

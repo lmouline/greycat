@@ -19,7 +19,6 @@ import greycat.Constants;
 import greycat.Container;
 import greycat.Graph;
 import greycat.Type;
-import greycat.base.BaseNode;
 import greycat.internal.CoreConstants;
 import greycat.plugin.NodeStateCallback;
 import greycat.plugin.Resolver;
@@ -66,6 +65,11 @@ class HeapENode implements ENode, HeapContainer {
                         case Type.LONG_TO_LONG_MAP:
                             if (origin._v[i] != null) {
                                 _v[i] = ((HeapLongLongMap) origin._v[i]).cloneFor(this);
+                            }
+                            break;
+                        case Type.INT_TO_INT_MAP:
+                            if (origin._v[i] != null) {
+                                _v[i] = ((HeapIntIntMap) origin._v[i]).cloneFor(this);
                             }
                             break;
                         case Type.RELATION_INDEXED:
@@ -317,6 +321,9 @@ class HeapENode implements ENode, HeapContainer {
                         break;
                     case Type.LONG_TO_LONG_MAP:
                         param_elem = (LongLongMap) p_unsafe_elem;
+                        break;
+                    case Type.INT_TO_INT_MAP:
+                        param_elem = (IntIntMap) p_unsafe_elem;
                         break;
                     case Type.LONG_TO_LONG_ARRAY_MAP:
                         param_elem = (LongLongArrayMap) p_unsafe_elem;
@@ -796,6 +803,30 @@ class HeapENode implements ENode, HeapContainer {
                         builder.append("}");
                         break;
                     }
+                    case Type.INT_TO_INT_MAP: {
+                        builder.append("\"");
+                        builder.append(resolveName);
+                        builder.append("\":");
+                        builder.append("{");
+                        IntIntMap castedMapI2I = (IntIntMap) elem;
+                        isFirst[0] = true;
+                        castedMapI2I.each(new IntIntMapCallBack() {
+                            @Override
+                            public void on(int key, int value) {
+                                if (!isFirst[0]) {
+                                    builder.append(",");
+                                } else {
+                                    isFirst[0] = false;
+                                }
+                                builder.append("\"");
+                                builder.append(key);
+                                builder.append("\":");
+                                builder.append(value);
+                            }
+                        });
+                        builder.append("}");
+                        break;
+                    }
                     case Type.RELATION_INDEXED:
                     case Type.LONG_TO_LONG_ARRAY_MAP: {
                         builder.append("\"");
@@ -998,6 +1029,19 @@ class HeapENode implements ENode, HeapContainer {
                                 }
                             });
                             break;
+                        case Type.INT_TO_INT_MAP:
+                            HeapIntIntMap castedIntIntMap = (HeapIntIntMap) loopValue;
+                            Base64.encodeIntToBuffer(castedIntIntMap.size(), buffer);
+                            castedIntIntMap.unsafe_each(new IntIntMapCallBack() {
+                                @Override
+                                public void on(final int key, final int value) {
+                                    buffer.write(CoreConstants.CHUNK_VAL_SEP);
+                                    Base64.encodeIntToBuffer(key, buffer);
+                                    buffer.write(CoreConstants.CHUNK_VAL_SEP);
+                                    Base64.encodeIntToBuffer(value, buffer);
+                                }
+                            });
+                            break;
                         case Type.RELATION_INDEXED:
                         case Type.LONG_TO_LONG_ARRAY_MAP:
                             HeapLongLongArrayMap castedLongLongArrayMap = (HeapLongLongArrayMap) loopValue;
@@ -1172,6 +1216,20 @@ class HeapENode implements ENode, HeapContainer {
                                 cursor++;
                                 cursor = l2lmap.load(buffer, cursor, payloadSize);
                                 internal_set(read_key, read_type, l2lmap, true, initial);
+                                if (cursor < payloadSize) {
+                                    current = buffer.read(cursor);
+                                    if (current == Constants.CHUNK_ESEP && cursor < payloadSize) {
+                                        state = LOAD_WAITING_TYPE;
+                                        cursor++;
+                                        previous = cursor;
+                                    }
+                                }
+                                break;
+                            case Type.INT_TO_INT_MAP:
+                                HeapIntIntMap i2imap = new HeapIntIntMap(this);
+                                cursor++;
+                                cursor = i2imap.load(buffer, cursor, payloadSize);
+                                internal_set(read_key, read_type, i2imap, true, initial);
                                 if (cursor < payloadSize) {
                                     current = buffer.read(cursor);
                                     if (current == Constants.CHUNK_ESEP && cursor < payloadSize) {
@@ -1362,6 +1420,11 @@ class HeapENode implements ENode, HeapContainer {
     @Override
     public final LongLongMap getLongLongMap(String name) {
         return (LongLongMap) get(name);
+    }
+
+    @Override
+    public IntIntMap getIntIntMap(String name) {
+        return (IntIntMap) get(name);
     }
 
     @Override
