@@ -21,6 +21,7 @@ import greycat.chunk.ChunkType;
 import greycat.chunk.StateChunk;
 import greycat.internal.CoreConstants;
 import greycat.plugin.MemoryFactory;
+import greycat.struct.Buffer;
 import greycat.struct.IntIntMap;
 import greycat.struct.IntIntMapCallBack;
 import org.junit.Assert;
@@ -89,19 +90,19 @@ public abstract class AbstractIntIntMapTest {
             Assert.assertTrue(map.get(i) == i);
         }
 
-        /** Buffer buffer = factory.newBuffer();
+         Buffer buffer = factory.newBuffer();
          chunk.save(buffer);
-         Assert.assertEquals("C|U|A|Q:A:A:C:C:E:E:G:G:I:I:K:K:M:M:O:O", buffer.toString());
+         Assert.assertEquals("C|0|A|Q:A:A:C:C:E:E:G:G:I:I:K:K:M:M:O:O", buffer.toString());
          StateChunk loaded = (StateChunk) space.createAndMark(ChunkType.STATE_CHUNK, 10, 10, 10);
          loaded.load(buffer);
          Buffer buffer2 = factory.newBuffer();
          chunk.save(buffer2);
-         Assert.assertEquals("C|U|A|Q:A:A:C:C:E:E:G:G:I:I:K:K:M:M:O:O", buffer2.toString());*/
+         Assert.assertEquals("C|0|A|Q:A:A:C:C:E:E:G:G:I:I:K:K:M:M:O:O", buffer2.toString());
 
-        /**buffer.free();
+        buffer.free();
          buffer2.free();
          space.free(chunk);
-         space.free(loaded);*/
+         space.free(loaded);
         space.freeAll();
 
     }
