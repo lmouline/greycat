@@ -106,8 +106,7 @@ public class ActionBuildProfile implements Action {
 
                                             )
                             )
-                    ).log("profiling done")
-            ;
+                    );
 
     @Override
     public void eval(TaskContext ctx) {
@@ -126,8 +125,6 @@ public class ActionBuildProfile implements Action {
         newctx.setTime(ctx.time());
         newctx.setWorld(ctx.world());
         newctx.setVariable("histogram", _histogramBins);
-
-        //ctx.setVariable("histogram", _histogramBins);
         updateProfile.executeUsing(newctx);
     }
 
