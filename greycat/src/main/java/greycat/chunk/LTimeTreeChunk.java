@@ -15,9 +15,9 @@
  */
 package greycat.chunk;
 
-public interface TimeTreeChunk extends Chunk {
+public interface LTimeTreeChunk extends Chunk {
 
-    void insert(long key);
+    void insert(long key, long value);
 
     void unsafe_insert(long key);
 
