@@ -21,7 +21,6 @@ import org.junit.Assert;
 import org.junit.Test;
 
 public class TestDMatrix {
-
     @Test
     public void testMatrix() {
         Graph graph = GraphBuilder
@@ -71,7 +70,6 @@ public class TestDMatrix {
                                                 Assert.assertTrue(matrix_t3.get(0,0)==10);
                                                 Assert.assertTrue(matrix_t3.get(1,1)==11);
                                                 Assert.assertTrue(matrix_t3.get(2,2)==12);
-
                                             }
                                         });
 
