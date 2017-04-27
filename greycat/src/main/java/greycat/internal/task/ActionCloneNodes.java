@@ -31,15 +31,18 @@ class ActionCloneNodes implements Action {
 
         TaskResult previousResult = ctx.result();
         TaskResult nextResult = ctx.newResult();
-        TaskResultIterator it = previousResult.iterator();
-        while(it.hasNext()) {
-            Object source = it.next();
+
+
+        for(int i = 0; i < previousResult.size(); i++) {
+            Object source = previousResult.get(i);
             if(source instanceof BaseNode) {
                 nextResult.add(((BaseNode) source).createClone());
             } else {
                 nextResult.add(source);
             }
         }
+
+        previousResult.free();
         ctx.continueWith(nextResult);
     }
 
