@@ -641,6 +641,15 @@ public class CoreTask implements Task {
                         return new ActionTravelInTime((String) params[0]);
                     }
                 });
+        registry.getOrCreateDeclaration(CoreActionNames.TIMEPOINTS)
+                .setParams(Type.STRING, Type.STRING)
+                .setDescription("Collects all timepoints existing for a node between a start and an end time.")
+                .setFactory(new ActionFactory() {
+                    @Override
+                    public Action create(Object[] params) {
+                        return new ActionTimepoints((String)params[0], (String)params[1]);
+                    }
+                });
         registry.getOrCreateDeclaration(CoreActionNames.DEFINE_AS_GLOBAL_VAR)
                 .setParams(Type.STRING)
                 .setDescription("Stores the task result as a global variable in the task context and starts a new scope (for sub tasks).")
@@ -845,15 +854,6 @@ public class CoreTask implements Task {
                     @Override
                     public Action create(Object[] params) {
                         return new ActionPrint((String) params[0], true);
-                    }
-                });
-        registry.getOrCreateDeclaration(CoreActionNames.ATTRIBUTES)
-                .setParams()
-                .setDescription("Retrieves all attribute names of nodes present in the previous task result.")
-                .setFactory(new ActionFactory() {
-                    @Override
-                    public Action create(Object[] params) {
-                        return new ActionAttributes(null);
                     }
                 });
         registry.getOrCreateDeclaration(CoreActionNames.ATTRIBUTES)
