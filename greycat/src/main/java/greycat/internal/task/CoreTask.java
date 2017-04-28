@@ -36,8 +36,7 @@ public class CoreTask implements Task {
     public Action[] actions = new Action[insertCapacity];
     public int insertCursor = 0;
     TaskHook[] _hooks = null;
-
-
+    
     @Override
     public final Task addHook(final TaskHook p_hook) {
         if (_hooks == null) {
@@ -1461,6 +1460,16 @@ public class CoreTask implements Task {
     @Override
     public final Task save() {
         return then(CoreActions.save());
+    }
+
+    @Override
+    public final Task startTransaction() {
+        return then(CoreActions.startTransaction());
+    }
+
+    @Override
+    public final Task stopTransaction() {
+        return then(CoreActions.stopTransaction());
     }
 
     @Override

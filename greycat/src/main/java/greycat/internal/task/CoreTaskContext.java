@@ -17,6 +17,7 @@ package greycat.internal.task;
 
 import greycat.*;
 import greycat.base.BaseTaskResult;
+import greycat.chunk.StateChunk;
 import greycat.internal.CoreConstants;
 import greycat.internal.task.math.CoreMathExpressionEngine;
 import greycat.internal.task.math.MathExpressionEngine;
@@ -25,6 +26,7 @@ import greycat.struct.Buffer;
 import greycat.utility.Base64;
 import greycat.utility.BufferView;
 import greycat.TaskProgressType;
+import greycat.utility.LMap;
 import greycat.utility.Tuple;
 
 import java.util.HashMap;
@@ -51,6 +53,7 @@ class CoreTaskContext implements TaskContext {
     private Buffer _silent;
     private Callback<String> _printHook = null;
     private Callback<TaskProgressReport> _progressHook = null;
+    private LMap _transactionTracker = null;
 
     CoreTaskContext(final CoreTask origin, final TaskHook[] p_hooks, final TaskContext parentContext, final TaskResult initial, final Graph p_graph, final Callback<TaskResult> p_callback) {
         this._origin = origin;
@@ -68,9 +71,11 @@ class CoreTaskContext implements TaskContext {
         if (parentContext == null) {
             this._globalVariables = new ConcurrentHashMap<String, TaskResult>();
             this._silent = null;
+            this._transactionTracker = null;
         } else {
             this._globalVariables = castedParentContext.globalVariables();
             this._silent = castedParentContext._silent;
+            this._transactionTracker = castedParentContext._transactionTracker;
         }
         this._result = initial;
         this._callback = p_callback;
@@ -103,8 +108,9 @@ class CoreTaskContext implements TaskContext {
         return this;
     }
 
+
     @Override
-    public Tuple<String, TaskResult>[] variables() {
+    public final Tuple<String, TaskResult>[] variables() {
         Map<String, TaskResult> collected = new HashMap<String, TaskResult>();
         String[] globalKeys = _globalVariables.keySet().toArray(new String[_globalVariables.size()]);
         for (int i = 0; i < globalKeys.length; i++) {
@@ -434,6 +440,9 @@ class CoreTaskContext implements TaskContext {
             for (int i = 0; i < globalHooks.length; i++) {
                 globalHooks[i].afterAction(currentAction, this);
             }
+        }
+        if (_transactionTracker != null) {
+            internal_track_result((BaseTaskResult) _result);
         }
         cursor++;
         final Action nextAction;
@@ -880,6 +889,7 @@ class CoreTaskContext implements TaskContext {
         } else {
             hooks = new TaskHook[1];
         }
+        //TODO huge warning for performance, we need a log granularity
         hooks[0] = new TaskHook() {
             @Override
             public void start(TaskContext initialContext) {
@@ -938,8 +948,45 @@ class CoreTaskContext implements TaskContext {
         if (this._hooks != null) {
             System.arraycopy(this._hooks, 0, hooks, 1, this._hooks.length);
         }
-
         this._hooks = hooks;
+    }
+
+    @Override
+    public final void initTracker() {
+        this._transactionTracker = new LMap(false);
+    }
+
+    @Override
+    public void removeTracker() {
+        this._transactionTracker = null;
+    }
+
+    private void internal_track_result(BaseTaskResult p_res) {
+        if (p_res != null) {
+            for (int i = 0; i < p_res.size(); i++) {
+                Object o = p_res.get(i);
+                if (o instanceof BaseNode) {
+                    track((Node) o);
+                } else if (o instanceof BaseTaskResult) {
+                    internal_track_result((BaseTaskResult) o);
+                }
+            }
+        }
+    }
+
+    @Override
+    public final LMap tracker() {
+        return _transactionTracker;
+    }
+
+    @Override
+    public final void track(final Node ptr) {
+        if (_transactionTracker != null) {
+            final StateChunk chunk = (StateChunk) graph().resolver().resolveState(ptr);
+            if (!chunk.inSync()) {
+                _transactionTracker.add(ptr.id());
+            }
+        }
     }
 
     @Override

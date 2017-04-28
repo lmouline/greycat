@@ -139,6 +139,14 @@ public class CoreGraph implements Graph {
         return newNode;
     }
 
+    /**
+     * @ignore ts
+     */
+    @Override
+    public <A extends Node> A newTypedNode(long world, long time, String nodeType, Class<A> type) {
+        return (A) newTypedNode(world,time,nodeType);
+    }
+
     @Override
     public Node cloneNode(Node origin) {
         if (origin == null) {
@@ -268,10 +276,10 @@ public class CoreGraph implements Graph {
 
     @Override
     public final void save(Callback<Boolean> callback) {
-        if(callback == null){
-            _space.save(false, false, null);
+        if (callback == null) {
+            _space.save(false, false, null, null);
         } else {
-            _space.save(false, false, new Callback<Buffer>() {
+            _space.save(false, false, null, new Callback<Buffer>() {
                 @Override
                 public void on(Buffer result) {
                     callback.on(true);
@@ -282,10 +290,10 @@ public class CoreGraph implements Graph {
 
     @Override
     public void savePartial(Callback<Boolean> callback) {
-        if(callback == null){
-            _space.save(false, true, null);
+        if (callback == null) {
+            _space.save(false, true, null, null);
         } else {
-            _space.save(false, true, new Callback<Buffer>() {
+            _space.save(false, true, null, new Callback<Buffer>() {
                 @Override
                 public void on(Buffer result) {
                     callback.on(true);
@@ -296,12 +304,12 @@ public class CoreGraph implements Graph {
 
     @Override
     public final void saveSilent(Callback<Buffer> callback) {
-        _space.save(true, false, callback);
+        _space.save(true, false, null, callback);
     }
 
     @Override
     public final void savePartialSilent(Callback<Buffer> callback) {
-        _space.save(true, true, callback);
+        _space.save(true, true, null, callback);
     }
 
     @Override
