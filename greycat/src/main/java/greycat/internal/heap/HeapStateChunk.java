@@ -1116,10 +1116,16 @@ class HeapStateChunk implements StateChunk, HeapContainer {
                                     }
                                     break;
                                 case Type.STRING_TO_INT_MAP:
-                                    HeapStringIntMap s2lmap = new HeapStringIntMap(this);
+                                    Object previouStored = this.internal_get(read_key);
+                                    HeapStringIntMap s2lmap;
+                                    if (previouStored instanceof HeapStringIntMap) {
+                                        s2lmap = (HeapStringIntMap) previouStored;
+                                    } else {
+                                        s2lmap = new HeapStringIntMap(this);
+                                        internal_set(read_key, read_type, s2lmap, true, initial);
+                                    }
                                     cursor++;
                                     cursor = s2lmap.load(buffer, cursor, payloadSize);
-                                    internal_set(read_key, read_type, s2lmap, true, initial);
                                     if (cursor < payloadSize) {
                                         current = buffer.read(cursor);
                                         if (current == Constants.CHUNK_SEP && cursor < payloadSize) {
