@@ -306,6 +306,14 @@ public class BaseTaskResult<A> implements TaskResult<A> {
                     Base64.encodeIntToBuffer((int) Type.STRING, buffer);
                     buffer.write(CoreConstants.CHUNK_SEP);
                     Base64.encodeStringToBuffer((String) it, buffer);
+                } else if (it instanceof Long) {
+                    Base64.encodeIntToBuffer((int) Type.LONG, buffer);
+                    buffer.write(CoreConstants.CHUNK_SEP);
+                    Base64.encodeLongToBuffer((Long) it, buffer);
+                } else if (it instanceof Double) {
+                    Base64.encodeIntToBuffer((int) Type.DOUBLE, buffer);
+                    buffer.write(CoreConstants.CHUNK_SEP);
+                    Base64.encodeDoubleToBuffer((Double) it, buffer);
                 } else if (it instanceof double[]) {
                     final double[] castedDA = (double[]) it;
                     Base64.encodeIntToBuffer((int) Type.DOUBLE_ARRAY, buffer);
@@ -379,6 +387,12 @@ public class BaseTaskResult<A> implements TaskResult<A> {
                 break;
             case Type.STRING:
                 loaded = Base64.decodeToStringWithBounds(buffer, previous, cursor);
+                break;
+            case Type.DOUBLE:
+                loaded = Base64.decodeToDoubleWithBounds(buffer, previous, cursor);
+                break;
+            case Type.LONG:
+                loaded = Base64.decodeToLongWithBounds(buffer, previous, cursor);
                 break;
         }
         if (loaded != null) {
