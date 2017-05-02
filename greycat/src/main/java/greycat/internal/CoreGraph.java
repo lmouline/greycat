@@ -485,7 +485,7 @@ public class CoreGraph implements Graph {
     private void internal_index(long world, long time, String name, boolean ifExists, Callback<NodeIndex> callback) {
         final CoreGraph selfPointer = this;
         final long indexNameCoded = this._resolver.stringToHash(name, true);
-        this._resolver.lookup(world, time, CoreConstants.END_OF_TIME, new Callback<Node>() {
+        this._resolver.lookup(world, CoreConstants.BEGINNING_OF_TIME, CoreConstants.END_OF_TIME, new Callback<Node>() {
             @Override
             public void on(Node globalIndexNodeUnsafe) {
                 if (ifExists && globalIndexNodeUnsafe == null) {
@@ -493,26 +493,28 @@ public class CoreGraph implements Graph {
                 } else {
                     LongLongMap globalIndexContent;
                     if (globalIndexNodeUnsafe == null) {
-                        globalIndexNodeUnsafe = new BaseNode(world, time, CoreConstants.END_OF_TIME, selfPointer);
+                        globalIndexNodeUnsafe = new BaseNode(world, CoreConstants.BEGINNING_OF_TIME, CoreConstants.END_OF_TIME, selfPointer);
                         selfPointer._resolver.initNode(globalIndexNodeUnsafe, CoreConstants.NULL_LONG);
                         globalIndexContent = (LongLongMap) globalIndexNodeUnsafe.getOrCreate(CoreConstants.INDEX_ATTRIBUTE, Type.LONG_TO_LONG_MAP);
                     } else {
                         globalIndexContent = (LongLongMap) globalIndexNodeUnsafe.get(CoreConstants.INDEX_ATTRIBUTE);
                     }
                     long indexId = globalIndexContent.get(indexNameCoded);
-                    globalIndexNodeUnsafe.free();
                     if (indexId == CoreConstants.NULL_LONG) {
                         //insert null
                         if (ifExists) {
+                            globalIndexNodeUnsafe.free();
                             callback.on(null);
                         } else {
                             NodeIndex newIndexNode = (NodeIndex) selfPointer.newTypedNode(world, time, CoreNodeIndex.NAME);
                             //newIndexNode.getOrCreate(CoreConstants.INDEX_ATTRIBUTE, Type.RELATION_INDEXED);
                             indexId = newIndexNode.id();
                             globalIndexContent.put(indexNameCoded, indexId);
+                            globalIndexNodeUnsafe.free();
                             callback.on(newIndexNode);
                         }
                     } else {
+                        globalIndexNodeUnsafe.free();
                         selfPointer._resolver.lookup(world, time, indexId, callback);
                     }
                 }
