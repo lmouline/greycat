@@ -832,7 +832,9 @@ class CoreTaskContext implements TaskContext {
                 } else {
                     defineVariable(finalName, subResult);
                 }
-                loaded.on(true);
+                if(loaded != null){
+                    loaded.on(true);
+                }
             });
         } else {
             if (index == 1) {
@@ -847,7 +849,9 @@ class CoreTaskContext implements TaskContext {
                         _result.free();
                     }
                     _result = subResult;
-                    loaded.on(true);
+                    if(loaded != null){
+                        loaded.on(true);
+                    }
                 });
             }
         }

@@ -291,8 +291,8 @@ public class BaseTaskResult<A> implements TaskResult<A> {
         Base64.encodeIntToBuffer(_size, buffer);
         for (int i = 0; i < _size; i++) {
             final Object it = _backend[i];
+            buffer.write(CoreConstants.CHUNK_SEP);
             if (it != null) {
-                buffer.write(CoreConstants.CHUNK_SEP);
                 if (it instanceof BaseNode) {
                     Node castedNode = (Node) it;
                     Base64.encodeIntToBuffer((int) Type.NODE, buffer);
@@ -421,12 +421,17 @@ public class BaseTaskResult<A> implements TaskResult<A> {
                         index++;
                         break;
                     default:
-                        if (type == -1) {
-                            type = (byte) Base64.decodeToIntWithBounds(buffer, previous, cursor);
-                        } else {
-                            internal_load_element(buffer, previous, cursor, type, index - 4);
+                        if(previous == cursor){
+                            _backend[index-4] = null;
                             index++;
-                            type = -1;
+                        } else {
+                            if (type == -1) {
+                                type = (byte) Base64.decodeToIntWithBounds(buffer, previous, cursor);
+                            } else {
+                                internal_load_element(buffer, previous, cursor, type, index - 4);
+                                index++;
+                                type = -1;
+                            }
                         }
                 }
                 previous = cursor + 1;
