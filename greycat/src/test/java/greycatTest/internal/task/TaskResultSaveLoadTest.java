@@ -20,7 +20,6 @@ import greycat.GraphBuilder;
 import greycat.TaskContext;
 import greycat.TaskResult;
 import greycat.base.BaseTaskResult;
-import greycat.internal.CoreGraph;
 import greycat.internal.heap.HeapBuffer;
 import greycat.internal.task.CoreTask;
 import greycat.struct.Buffer;

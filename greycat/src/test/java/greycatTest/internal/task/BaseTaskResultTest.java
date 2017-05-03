@@ -27,7 +27,7 @@ import org.junit.Test;
 
 public class BaseTaskResultTest {
 
-/*
+
     @Test
     public void loadSaveTest() {
 
@@ -41,7 +41,7 @@ public class BaseTaskResultTest {
             result.saveToBuffer(buffer);
 
             BaseTaskResult resultBack = new BaseTaskResult(null, false);
-            resultBack.load(buffer, graph);
+            resultBack.load(buffer,0, graph);
             resultBack.loadRefs(graph, done->{
                 Assert.assertEquals(result.size(), resultBack.size());
                 Assert.assertEquals(((Node)result.get(0)).id(), ((Node)resultBack.get(0)).id());
@@ -50,6 +50,6 @@ public class BaseTaskResultTest {
         });
 
 
-    }*/
+    }
 
 }

@@ -25,7 +25,7 @@ import org.junit.Test;
 
 public class BaseTaskResultTest {
 
-    /*
+
     @Test
     public void saveLoadTest() {
         Graph graph = GraphBuilder.newBuilder().build();
@@ -38,7 +38,7 @@ public class BaseTaskResultTest {
                 taskResultOrigin.saveToBuffer(buffer);
 
                 BaseTaskResult taskResultLoaded = new BaseTaskResult(null, false);
-                taskResultLoaded.load(buffer, graph);
+                taskResultLoaded.load(buffer,0, graph);
 
             } catch (Throwable t) {
                 Assert.fail("Exception raised !");
@@ -47,7 +47,6 @@ public class BaseTaskResultTest {
             graph.disconnect(null);
         });
     }
-    */
 
 
 }
