@@ -758,24 +758,83 @@ class CoreTaskContext implements TaskContext {
     @Override
     public final void saveToBuffer(Buffer buffer) {
         Base64.encodeLongToBuffer(_world, buffer);
-        buffer.write(CoreConstants.CHUNK_ESEP);
+        buffer.write(CoreConstants.CHUNK_SEP);
         Base64.encodeLongToBuffer(_time, buffer);
+        buffer.write(CoreConstants.CHUNK_SEP);
         if (_result != null) {
-            buffer.write(CoreConstants.CHUNK_ESEP);
-            buffer.write(CoreConstants.CHUNK_ESEP);
             _result.saveToBuffer(buffer);
         }
         Tuple<String, TaskResult>[] variables = variables();
         for (int i = 0; i < variables.length; i++) {
-            buffer.write(CoreConstants.CHUNK_ESEP);
             Base64.encodeStringToBuffer(variables[i].left(), buffer);
-            buffer.write(CoreConstants.CHUNK_ESEP);
             variables[i].right().saveToBuffer(buffer);
         }
     }
 
+    private int readLong(final Buffer buffer, final int begin, final boolean world) {
+        int cursor = begin;
+        while (cursor < buffer.length()) {
+            byte current = buffer.read(cursor);
+            if (current == Constants.CHUNK_SEP) {
+                if (begin != cursor) {
+                    if (world) {
+                        _world = Base64.decodeToLongWithBounds(buffer, begin, cursor);
+                        break;
+                    } else {
+                        _time = Base64.decodeToLongWithBounds(buffer, begin, cursor);
+                        break;
+                    }
+                }
+            } else {
+                cursor++;
+            }
+        }
+        return cursor;
+    }
+
+    private int readResult(final Buffer buffer, final int begin) {
+        int cursor = begin;
+        String name = null;
+        while (cursor < buffer.length()) {
+            byte current = buffer.read(cursor);
+            if (current == Constants.BLOCK_OPEN) {
+                if (begin != cursor) {
+                    name = Base64.decodeToStringWithBounds(buffer, begin, cursor);
+                }
+                //read result
+                BaseTaskResult loadedResult = new BaseTaskResult(null, false);
+                cursor = loadedResult.load(buffer, cursor, graph());
+                if (name == null) {
+                    _result = loadedResult;
+                } else {
+                    //TODO improve to manage global variable
+                    _localVariables.put(name, loadedResult);
+                }
+                return cursor;
+            } else {
+                cursor++;
+            }
+        }
+        return cursor;
+    }
+
     @Override
     public final void loadFromBuffer(Buffer buffer, Callback<Boolean> loaded) {
+        int cursor = 0;
+        cursor = readLong(buffer, cursor, true);
+        cursor++;
+        cursor = readLong(buffer, cursor, false);
+        cursor++;
+        while (cursor < buffer.length()) {
+            cursor = readResult(buffer, cursor);
+            cursor++;
+        }
+    }
+
+    /*
+    @Override
+    public final void loadFromBuffer(Buffer buffer, Callback<Boolean> loaded) {
+
         int cursor = 0;
         int previous = 0;
         String name = null;
@@ -856,7 +915,7 @@ class CoreTaskContext implements TaskContext {
             }
         }
     }
-
+*/
 
     @Override
     public final Callback<String> printHook() {

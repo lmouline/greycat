@@ -23,11 +23,9 @@ import greycat.struct.Buffer;
 import org.junit.Assert;
 import org.junit.Test;
 
-/**
- * Created by Gregory NAIN on 16/04/17.
- */
 public class BaseTaskResultTest {
 
+    /*
     @Test
     public void saveLoadTest() {
         Graph graph = GraphBuilder.newBuilder().build();
@@ -49,6 +47,7 @@ public class BaseTaskResultTest {
             graph.disconnect(null);
         });
     }
+    */
 
 
 }

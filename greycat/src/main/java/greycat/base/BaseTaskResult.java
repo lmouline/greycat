@@ -274,8 +274,10 @@ public class BaseTaskResult<A> implements TaskResult<A> {
         return toJson(true);
     }
 
+    /* { NOTIF | OUTPUT | EXCEPTION | SIZE | T | V | T | V ... } */
     @Override
     public synchronized final void saveToBuffer(Buffer buffer) {
+        buffer.write(CoreConstants.BLOCK_OPEN);
         if (_notifications != null) {
             buffer.writeAll(_notifications.data());//this could be optimize
         }
@@ -328,6 +330,7 @@ public class BaseTaskResult<A> implements TaskResult<A> {
                 }
             }
         }
+        buffer.write(CoreConstants.BLOCK_CLOSE);
     }
 
     /**
@@ -340,7 +343,7 @@ public class BaseTaskResult<A> implements TaskResult<A> {
         _exception.printStackTrace(new PrintStream(new OutputStream() {
             @Override
             public void write(int b) throws IOException {
-                sb.append((char)b);
+                sb.append((char) b);
             }
         }));
         Base64.encodeStringToBuffer(sb.toString(), buffer);
@@ -400,8 +403,8 @@ public class BaseTaskResult<A> implements TaskResult<A> {
         }
     }
 
-    public void load(final Buffer buffer, final Graph graph) {
-        int cursor = 0;
+    public int load(final Buffer buffer, final int begin, final Graph graph) {
+        int cursor = begin;
         int previous = 0;
         int index = 0;
         byte type = -1;
@@ -435,8 +438,8 @@ public class BaseTaskResult<A> implements TaskResult<A> {
                         index++;
                         break;
                     default:
-                        if(previous == cursor){
-                            _backend[index-4] = null;
+                        if (previous == cursor) {
+                            _backend[index - 4] = null;
                             index++;
                         } else {
                             if (type == -1) {
@@ -449,12 +452,25 @@ public class BaseTaskResult<A> implements TaskResult<A> {
                         }
                 }
                 previous = cursor + 1;
+            } else if (current == Constants.BLOCK_CLOSE) {
+                if (previous == cursor) {
+                    _backend[index - 4] = null;
+                } else {
+                    if (type != -1) {
+                        internal_load_element(buffer, previous, cursor, type, index - 4);
+                    }
+                }
+                return cursor;
+            } else if (current == Constants.BLOCK_OPEN) {
+                //TODO
+                //TODO
             }
             cursor++;
         }
         if (type != -1) {
             internal_load_element(buffer, previous, cursor, type, index - 4);
         }
+        return cursor;
     }
 
     public final void loadRefs(final Graph graph, final Callback<Boolean> callback) {

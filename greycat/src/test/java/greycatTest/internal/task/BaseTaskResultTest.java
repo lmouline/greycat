@@ -25,12 +25,9 @@ import greycat.struct.Buffer;
 import org.junit.Assert;
 import org.junit.Test;
 
-/**
- * Created by Gregory NAIN on 17/04/17.
- */
 public class BaseTaskResultTest {
 
-
+/*
     @Test
     public void loadSaveTest() {
 
@@ -53,6 +50,6 @@ public class BaseTaskResultTest {
         });
 
 
-    }
+    }*/
 
 }
