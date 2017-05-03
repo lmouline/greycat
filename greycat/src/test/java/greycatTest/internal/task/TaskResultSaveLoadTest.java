@@ -15,6 +15,8 @@
  */
 package greycatTest.internal.task;
 
+import greycat.Graph;
+import greycat.GraphBuilder;
 import greycat.TaskContext;
 import greycat.TaskResult;
 import greycat.base.BaseTaskResult;
@@ -28,6 +30,7 @@ public class TaskResultSaveLoadTest {
 
     @Test
     public void test() {
+        Graph graph = GraphBuilder.newBuilder().build();
         CoreTask task = new CoreTask();
 
         BaseTaskResult res = new BaseTaskResult(null, false);
@@ -35,11 +38,11 @@ public class TaskResultSaveLoadTest {
         res.add(null);
         res.add("end");
 
-        TaskContext ctx = task.prepare(null, res, null);
+        TaskContext ctx = task.prepare(graph, res, null);
         Buffer buf = new HeapBuffer();
         ctx.saveToBuffer(buf);
 
-        TaskContext ctx2 = task.prepare(null, null, null);
+        TaskContext ctx2 = task.prepare(graph, null, null);
         ctx2.loadFromBuffer(buf, null);
 
         TaskResult res2 = ctx2.result();

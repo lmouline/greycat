@@ -374,12 +374,12 @@ class HeapStateChunk implements StateChunk, HeapContainer {
         Base64.encodeIntToBuffer(_size, buffer);
         for (int i = 0; i < _size; i++) {
             final Object loopValue = _v[i]; //there is a real value
+            buffer.write(CoreConstants.CHUNK_SEP);
+            Base64.encodeIntToBuffer((int) _type[i], buffer);
+            buffer.write(CoreConstants.CHUNK_SEP);
+            Base64.encodeIntToBuffer(_k[i], buffer);
+            buffer.write(CoreConstants.CHUNK_SEP);
             if (loopValue != null) {
-                buffer.write(CoreConstants.CHUNK_SEP);
-                Base64.encodeIntToBuffer((int) _type[i], buffer);
-                buffer.write(CoreConstants.CHUNK_SEP);
-                Base64.encodeIntToBuffer(_k[i], buffer);
-                buffer.write(CoreConstants.CHUNK_SEP);
                 switch (_type[i]) {
                     case Type.STRING:
                         Base64.encodeStringToBuffer((String) loopValue, buffer);
@@ -598,84 +598,88 @@ class HeapStateChunk implements StateChunk, HeapContainer {
         if (casted._v != null) {
             _v = new Object[_capacity];
             for (int i = 0; i < _size; i++) {
-                switch (casted._type[i]) {
-                    case Type.LONG_TO_LONG_MAP:
-                        if (casted._v[i] != null) {
-                            _v[i] = ((HeapLongLongMap) casted._v[i]).cloneFor(this);
+                    if (casted._v[i] == null) {
+                        _v[i] = null;
+                    } else {
+                        switch (casted._type[i]) {
+                            case Type.LONG_TO_LONG_MAP:
+                                if (casted._v[i] != null) {
+                                    _v[i] = ((HeapLongLongMap) casted._v[i]).cloneFor(this);
+                                }
+                                break;
+                            case Type.RELATION_INDEXED:
+                                if (casted._v[i] != null) {
+                                    _v[i] = ((HeapRelationIndexed) casted._v[i]).cloneIRelFor(this, casted.graph());
+                                }
+                                break;
+                            case Type.LONG_TO_LONG_ARRAY_MAP:
+                                if (casted._v[i] != null) {
+                                    _v[i] = ((HeapLongLongArrayMap) casted._v[i]).cloneFor(this);
+                                }
+                                break;
+                            case Type.STRING_TO_INT_MAP:
+                                if (casted._v[i] != null) {
+                                    _v[i] = ((HeapStringIntMap) casted._v[i]).cloneFor(this);
+                                }
+                                break;
+                            case Type.INT_TO_INT_MAP:
+                                if (casted._v[i] != null) {
+                                    _v[i] = ((HeapIntIntMap) casted._v[i]).cloneFor(this);
+                                }
+                                break;
+                            case Type.INT_TO_STRING_MAP:
+                                if (casted._v[i] != null) {
+                                    _v[i] = ((HeapIntStringMap) casted._v[i]).cloneFor(this);
+                                }
+                                break;
+                            case Type.RELATION:
+                                if (casted._v[i] != null) {
+                                    _v[i] = new HeapRelation(this, (HeapRelation) casted._v[i]);
+                                }
+                                break;
+                            case Type.DMATRIX:
+                                if (casted._v[i] != null) {
+                                    _v[i] = new HeapDMatrix(this, (HeapDMatrix) casted._v[i]);
+                                }
+                                break;
+                            case Type.LMATRIX:
+                                if (casted._v[i] != null) {
+                                    _v[i] = new HeapLMatrix(this, (HeapLMatrix) casted._v[i]);
+                                }
+                                break;
+                            case Type.EGRAPH:
+                                if (casted._v[i] != null) {
+                                    _v[i] = new HeapEGraph(this, (HeapEGraph) casted._v[i], _space.graph());
+                                }
+                                break;
+                            case Type.LONG_ARRAY:
+                                if (casted._v[i] != null) {
+                                    _v[i] = ((HeapLongArray) casted._v[i]).cloneFor(this);
+                                }
+                                break;
+                            case Type.DOUBLE_ARRAY:
+                                if (casted._v[i] != null) {
+                                    _v[i] = ((HeapDoubleArray) casted._v[i]).cloneFor(this);
+                                }
+                                break;
+                            case Type.INT_ARRAY:
+                                if (casted._v[i] != null) {
+                                    _v[i] = ((HeapIntArray) casted._v[i]).cloneFor(this);
+                                }
+                                break;
+                            case Type.STRING_ARRAY:
+                                if (casted._v[i] != null) {
+                                    _v[i] = ((HeapStringArray) casted._v[i]).cloneFor(this);
+                                }
+                                break;
+                            default:
+                                _v[i] = casted._v[i];
+                                break;
                         }
-                        break;
-                    case Type.INT_TO_INT_MAP:
-                        if (casted._v[i] != null) {
-                            _v[i] = ((HeapIntIntMap) casted._v[i]).cloneFor(this);
-                        }
-                        break;
-                    case Type.INT_TO_STRING_MAP:
-                        if (casted._v[i] != null) {
-                            _v[i] = ((HeapIntStringMap) casted._v[i]).cloneFor(this);
-                        }
-                        break;
-                    case Type.RELATION_INDEXED:
-                        if (casted._v[i] != null) {
-                            _v[i] = ((HeapRelationIndexed) casted._v[i]).cloneIRelFor(this, casted.graph());
-                        }
-                        break;
-                    case Type.LONG_TO_LONG_ARRAY_MAP:
-                        if (casted._v[i] != null) {
-                            _v[i] = ((HeapLongLongArrayMap) casted._v[i]).cloneFor(this);
-                        }
-                        break;
-                    case Type.STRING_TO_INT_MAP:
-                        if (casted._v[i] != null) {
-                            _v[i] = ((HeapStringIntMap) casted._v[i]).cloneFor(this);
-                        }
-                        break;
-                    case Type.RELATION:
-                        if (casted._v[i] != null) {
-                            _v[i] = new HeapRelation(this, (HeapRelation) casted._v[i]);
-                        }
-                        break;
-                    case Type.DMATRIX:
-                        if (casted._v[i] != null) {
-                            _v[i] = new HeapDMatrix(this, (HeapDMatrix) casted._v[i]);
-                        }
-                        break;
-                    case Type.LMATRIX:
-                        if (casted._v[i] != null) {
-                            _v[i] = new HeapLMatrix(this, (HeapLMatrix) casted._v[i]);
-                        }
-                        break;
-                    case Type.EGRAPH:
-                        if (casted._v[i] != null) {
-                            _v[i] = new HeapEGraph(this, (HeapEGraph) casted._v[i], _space.graph());
-                        }
-                        break;
-                    case Type.LONG_ARRAY:
-                        if (casted._v[i] != null) {
-                            _v[i] = ((HeapLongArray) casted._v[i]).cloneFor(this);
-                        }
-                        break;
-                    case Type.DOUBLE_ARRAY:
-                        if (casted._v[i] != null) {
-                            _v[i] = ((HeapDoubleArray) casted._v[i]).cloneFor(this);
-                        }
-                        break;
-                    case Type.INT_ARRAY:
-                        if (casted._v[i] != null) {
-                            _v[i] = ((HeapIntArray) casted._v[i]).cloneFor(this);
-                        }
-                        break;
-                    case Type.STRING_ARRAY:
-                        if (casted._v[i] != null) {
-                            _v[i] = ((HeapStringArray) casted._v[i]).cloneFor(this);
-                        }
-                        break;
-                    default:
-                        _v[i] = casted._v[i];
-                        break;
+                    }
                 }
             }
         }
-    }
 
     private void internal_set(final int p_key, final byte p_type, final Object p_unsafe_elem, boolean replaceIfPresent, boolean initial) {
         Object param_elem = null;
@@ -817,7 +821,7 @@ class HeapStateChunk implements StateChunk, HeapContainer {
             return;
         }
         int entry = -1;
-        int p_entry = -1;
+        //int p_entry = -1;
         int hashIndex = -1;
         if (next_and_hash == null) {
             for (int i = 0; i < _size; i++) {
@@ -837,7 +841,7 @@ class HeapStateChunk implements StateChunk, HeapContainer {
                     entry = m;
                     break;
                 }
-                p_entry = m;
+                //p_entry = m;
                 m = next_and_hash[m];
             }
         }
@@ -1254,22 +1258,26 @@ class HeapStateChunk implements StateChunk, HeapContainer {
     }
 
     private void load_primitive(final int read_key, final byte read_type, final Buffer buffer, final long previous, final long cursor, final boolean initial) {
-        switch (read_type) {
-            case Type.BOOL:
-                internal_set(read_key, read_type, (((byte) Base64.decodeToIntWithBounds(buffer, previous, cursor)) == CoreConstants.BOOL_TRUE), true, initial);
-                break;
-            case Type.INT:
-                internal_set(read_key, read_type, Base64.decodeToIntWithBounds(buffer, previous, cursor), true, initial);
-                break;
-            case Type.DOUBLE:
-                internal_set(read_key, read_type, Base64.decodeToDoubleWithBounds(buffer, previous, cursor), true, initial);
-                break;
-            case Type.LONG:
-                internal_set(read_key, read_type, Base64.decodeToLongWithBounds(buffer, previous, cursor), true, initial);
-                break;
-            case Type.STRING:
-                internal_set(read_key, read_type, Base64.decodeToStringWithBounds(buffer, previous, cursor), true, initial);
-                break;
+        if (previous == cursor) {
+            internal_set(read_key, read_type, null, true, initial);
+        } else {
+            switch (read_type) {
+                case Type.BOOL:
+                    internal_set(read_key, read_type, (((byte) Base64.decodeToIntWithBounds(buffer, previous, cursor)) == CoreConstants.BOOL_TRUE), true, initial);
+                    break;
+                case Type.INT:
+                    internal_set(read_key, read_type, Base64.decodeToIntWithBounds(buffer, previous, cursor), true, initial);
+                    break;
+                case Type.DOUBLE:
+                    internal_set(read_key, read_type, Base64.decodeToDoubleWithBounds(buffer, previous, cursor), true, initial);
+                    break;
+                case Type.LONG:
+                    internal_set(read_key, read_type, Base64.decodeToLongWithBounds(buffer, previous, cursor), true, initial);
+                    break;
+                case Type.STRING:
+                    internal_set(read_key, read_type, Base64.decodeToStringWithBounds(buffer, previous, cursor), true, initial);
+                    break;
+            }
         }
     }
 

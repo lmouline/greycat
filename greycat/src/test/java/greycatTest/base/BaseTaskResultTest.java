@@ -23,10 +23,8 @@ import greycat.struct.Buffer;
 import org.junit.Assert;
 import org.junit.Test;
 
-/**
- * Created by Gregory NAIN on 16/04/17.
- */
 public class BaseTaskResultTest {
+
 
     @Test
     public void saveLoadTest() {
@@ -40,7 +38,7 @@ public class BaseTaskResultTest {
                 taskResultOrigin.saveToBuffer(buffer);
 
                 BaseTaskResult taskResultLoaded = new BaseTaskResult(null, false);
-                taskResultLoaded.load(buffer, graph);
+                taskResultLoaded.load(buffer,0, graph);
 
             } catch (Throwable t) {
                 Assert.fail("Exception raised !");
