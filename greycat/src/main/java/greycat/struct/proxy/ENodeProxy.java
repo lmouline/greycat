@@ -109,6 +109,11 @@ public final class ENodeProxy implements ENode {
     }
 
     @Override
+    public IntStringMap getIntStringMap(String name) {
+        return (IntStringMap) get(name);
+    }
+
+    @Override
     public final LongLongArrayMap getLongLongArrayMap(String name) {
         return (LongLongArrayMap) get(name);
     }

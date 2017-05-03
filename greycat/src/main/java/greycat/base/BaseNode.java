@@ -221,6 +221,8 @@ public class BaseNode implements Node {
                     return new StringArrayProxy(index, this, (StringArray) elem);
                 case Type.INT_TO_INT_MAP:
                     return new IntIntMapProxy(index, this, (IntIntMap) elem);
+                case Type.INT_TO_STRING_MAP:
+                    return new IntStringMapProxy(index, this, (IntStringMap) elem);
                 default:
                     return elem;
             }
@@ -382,6 +384,7 @@ public class BaseNode implements Node {
             case Type.LONG_TO_LONG_MAP:
             case Type.LONG_TO_LONG_ARRAY_MAP:
             case Type.INT_TO_INT_MAP:
+            case Type.INT_TO_STRING_MAP:
                 throw new RuntimeException("Bad API usage: set can't be used with complex type, please use getOrCreate instead.");
             default:
                 throw new RuntimeException("Not managed type " + type);
@@ -752,6 +755,30 @@ public class BaseNode implements Node {
                                 builder.append("}");
                                 break;
                             }
+                            case Type.INT_TO_STRING_MAP: {
+                                builder.append(",\"");
+                                builder.append(resolveName);
+                                builder.append("\":");
+                                builder.append("{");
+                                IntStringMap castedMapI2I = (IntStringMap) elem;
+                                isFirst[0] = true;
+                                castedMapI2I.each(new IntStringMapCallBack() {
+                                    @Override
+                                    public void on(int key, String value) {
+                                        if (!isFirst[0]) {
+                                            builder.append(",");
+                                        } else {
+                                            isFirst[0] = false;
+                                        }
+                                        builder.append("\"");
+                                        builder.append(key);
+                                        builder.append("\":");
+                                        builder.append(value);
+                                    }
+                                });
+                                builder.append("}");
+                                break;
+                            }
                             case Type.RELATION_INDEXED:
                             case Type.LONG_TO_LONG_ARRAY_MAP: {
                                 builder.append(",\"");
@@ -882,6 +909,9 @@ public class BaseNode implements Node {
     public final IntIntMap getIntIntMap(String name) {
         return (IntIntMap) get(name);
     }
+
+    @Override
+    public final IntStringMap getIntStringMap(String name){ return (IntStringMap) get(name);}
 
     @Override
     public final LongLongArrayMap getLongLongArrayMap(String name) {

@@ -327,6 +327,10 @@ class HeapStateChunk implements StateChunk, HeapContainer {
                 toSet = new HeapIntIntMap(this);
                 toGet = toSet;
                 break;
+            case Type.INT_TO_STRING_MAP:
+                toSet = new HeapIntStringMap(this);
+                toGet = toSet;
+                break;
             case Type.LONG_TO_LONG_ARRAY_MAP:
                 toSet = new HeapLongLongArrayMap(this);
                 toGet = toSet;
@@ -497,6 +501,19 @@ class HeapStateChunk implements StateChunk, HeapContainer {
                             }
                         });
                         break;
+                    case Type.INT_TO_STRING_MAP:
+                        HeapIntStringMap castedIntStringMap = (HeapIntStringMap) loopValue;
+                        Base64.encodeIntToBuffer(castedIntStringMap.size(), buffer);
+                        castedIntStringMap.unsafe_each(new IntStringMapCallBack() {
+                            @Override
+                            public void on(final int key, final String value) {
+                                buffer.write(CoreConstants.CHUNK_VAL_SEP);
+                                Base64.encodeIntToBuffer(key, buffer);
+                                buffer.write(CoreConstants.CHUNK_VAL_SEP);
+                                Base64.encodeStringToBuffer(value, buffer);
+                            }
+                        });
+                        break;
                     case Type.RELATION_INDEXED:
                     case Type.LONG_TO_LONG_ARRAY_MAP:
                         HeapLongLongArrayMap castedLongLongArrayMap = (HeapLongLongArrayMap) loopValue;
@@ -590,6 +607,11 @@ class HeapStateChunk implements StateChunk, HeapContainer {
                     case Type.INT_TO_INT_MAP:
                         if (casted._v[i] != null) {
                             _v[i] = ((HeapIntIntMap) casted._v[i]).cloneFor(this);
+                        }
+                        break;
+                    case Type.INT_TO_STRING_MAP:
+                        if (casted._v[i] != null) {
+                            _v[i] = ((HeapIntStringMap) casted._v[i]).cloneFor(this);
                         }
                         break;
                     case Type.RELATION_INDEXED:
@@ -753,6 +775,9 @@ class HeapStateChunk implements StateChunk, HeapContainer {
                         break;
                     case Type.INT_TO_INT_MAP:
                         param_elem = (IntIntMap) p_unsafe_elem;
+                        break;
+                    case Type.INT_TO_STRING_MAP:
+                        param_elem = (IntStringMap) p_unsafe_elem;
                         break;
                     case Type.LONG_TO_LONG_ARRAY_MAP:
                         param_elem = (LongLongArrayMap) p_unsafe_elem;
@@ -1126,6 +1151,20 @@ class HeapStateChunk implements StateChunk, HeapContainer {
                                         }
                                     }
                                     break;
+                                case Type.INT_TO_STRING_MAP:
+                                    HeapIntStringMap i2smap = new HeapIntStringMap(this);
+                                    cursor++;
+                                    cursor = i2smap.load(buffer, cursor, payloadSize);
+                                    internal_set(read_key, read_type, i2smap, true, initial);
+                                    if (cursor < payloadSize) {
+                                        current = buffer.read(cursor);
+                                        if (current == Constants.CHUNK_SEP && cursor < payloadSize) {
+                                            state = LOAD_WAITING_TYPE;
+                                            cursor++;
+                                            previous = cursor;
+                                        }
+                                    }
+                                    break;
                                 case Type.LONG_TO_LONG_ARRAY_MAP:
                                     HeapLongLongArrayMap l2lrmap = new HeapLongLongArrayMap(this);
                                     cursor++;
@@ -1306,6 +1345,11 @@ class HeapStateChunk implements StateChunk, HeapContainer {
     @Override
     public IntIntMap getIntIntMap(String name) {
         return (IntIntMap) get(name);
+    }
+
+    @Override
+    public IntStringMap getIntStringMap(String name) {
+        return (IntStringMap) get(name);
     }
 
     @Override

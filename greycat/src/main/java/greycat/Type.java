@@ -59,6 +59,8 @@ public class Type {
     public static final byte NODE_ARRAY = 25;
 
     public static final byte INT_TO_INT_MAP = 26;
+    public static final byte INT_TO_STRING_MAP = 27;
+
     /**
      * Convert a type that represent a byte to a readable String representation
      *
@@ -118,6 +120,8 @@ public class Type {
                 return "NDTREE";
             case Type.INT_TO_INT_MAP:
                 return "INT_TO_INT_MAP";
+            case Type.INT_TO_STRING_MAP:
+                return "INT_TO_STRING_MAP";
             default:
                 return "unknown";
         }
@@ -173,6 +177,8 @@ public class Type {
                 return Type.NDTREE;
             case "INT_TO_INT_MAP":
                 return Type.INT_TO_INT_MAP;
+            case "INT_TO_STRING_MAP":
+                return Type.INT_TO_STRING_MAP;
             default:
                 return -1;
         }

@@ -220,5 +220,4 @@ public interface Node extends Container {
     Node setTimeSensitivity(long deltaTime, long offset);
 
     long[] timeSensitivity();
-
 }

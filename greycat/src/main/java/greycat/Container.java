@@ -52,6 +52,8 @@ public interface Container {
 
     IntIntMap getIntIntMap(String name);
 
+    IntStringMap getIntStringMap(String name);
+
     LongLongArrayMap getLongLongArrayMap(String name);
 
     /**
