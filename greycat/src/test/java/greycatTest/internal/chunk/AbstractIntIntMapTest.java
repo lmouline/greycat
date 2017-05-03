@@ -37,7 +37,7 @@ public abstract class AbstractIntIntMapTest {
     @Test
     public void genericTest() {
 
-        ChunkSpace space = factory.newSpace(100, null, false);
+        ChunkSpace space = factory.newSpace(100, -1, null, false);
         StateChunk chunk = (StateChunk) space.createAndMark(ChunkType.STATE_CHUNK, 0, 0, 0);
         IntIntMap map = (IntIntMap) chunk.getOrCreateAt(0, Type.INT_TO_INT_MAP);
 
@@ -90,19 +90,19 @@ public abstract class AbstractIntIntMapTest {
             Assert.assertTrue(map.get(i) == i);
         }
 
-         Buffer buffer = factory.newBuffer();
-         chunk.save(buffer);
-         Assert.assertEquals("C|0|A|Q:A:A:C:C:E:E:G:G:I:I:K:K:M:M:O:O", buffer.toString());
-         StateChunk loaded = (StateChunk) space.createAndMark(ChunkType.STATE_CHUNK, 10, 10, 10);
-         loaded.load(buffer);
-         Buffer buffer2 = factory.newBuffer();
-         chunk.save(buffer2);
-         Assert.assertEquals("C|0|A|Q:A:A:C:C:E:E:G:G:I:I:K:K:M:M:O:O", buffer2.toString());
+        Buffer buffer = factory.newBuffer();
+        chunk.save(buffer);
+        Assert.assertEquals("C|0|A|Q:A:A:C:C:E:E:G:G:I:I:K:K:M:M:O:O", buffer.toString());
+        StateChunk loaded = (StateChunk) space.createAndMark(ChunkType.STATE_CHUNK, 10, 10, 10);
+        loaded.load(buffer);
+        Buffer buffer2 = factory.newBuffer();
+        chunk.save(buffer2);
+        Assert.assertEquals("C|0|A|Q:A:A:C:C:E:E:G:G:I:I:K:K:M:M:O:O", buffer2.toString());
 
         buffer.free();
-         buffer2.free();
-         space.free(chunk);
-         space.free(loaded);
+        buffer2.free();
+        space.free(chunk);
+        space.free(loaded);
         space.freeAll();
 
     }
