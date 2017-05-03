@@ -28,7 +28,6 @@ import org.rocksdb.*;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 public class RocksDBStorage implements Storage {
 
@@ -46,9 +45,9 @@ public class RocksDBStorage implements Storage {
     private final String _storagePath;
 
     public RocksDBStorage(String storagePath) {
-        if (System.getProperty("os.arch").equals("arm")) {
-            LibraryLoader.loadArmLibrary("librocksdbjni-linux32");
-        }
+//        if (System.getProperty("os.arch").equals("arm")) {
+//            LibraryLoader.loadArmLibrary("librocksdbjni-linux32");
+//        }
         RocksDB.loadLibrary();
         this._storagePath = storagePath;
     }
