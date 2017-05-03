@@ -36,8 +36,7 @@ public class CoreTask implements Task {
     public Action[] actions = new Action[insertCapacity];
     public int insertCursor = 0;
     TaskHook[] _hooks = null;
-
-
+    
     @Override
     public final Task addHook(final TaskHook p_hook) {
         if (_hooks == null) {
@@ -571,7 +570,7 @@ public class CoreTask implements Task {
                             break;
                         case Type.TASK_ARRAY:
                             if (varargs_index == 0) {
-                                final Task[] parsedSubParamTask = new Task[resultSize - i];
+                                final Task[] parsedSubParamTask = new Task[params.length - i];
                                 parsedSubParamTask[varargs_index] = getOrCreate(contextTasks, params[i]);
                                 varargs_index = 1;
                                 parsedParams[i] = parsedSubParamTask;
@@ -640,6 +639,15 @@ public class CoreTask implements Task {
                     @Override
                     public Action create(Object[] params) {
                         return new ActionTravelInTime((String) params[0]);
+                    }
+                });
+        registry.getOrCreateDeclaration(CoreActionNames.TIMEPOINTS)
+                .setParams(Type.STRING, Type.STRING)
+                .setDescription("Collects all timepoints existing for a node between a start and an end time.")
+                .setFactory(new ActionFactory() {
+                    @Override
+                    public Action create(Object[] params) {
+                        return new ActionTimepoints((String)params[0], (String)params[1]);
                     }
                 });
         registry.getOrCreateDeclaration(CoreActionNames.DEFINE_AS_GLOBAL_VAR)
@@ -846,15 +854,6 @@ public class CoreTask implements Task {
                     @Override
                     public Action create(Object[] params) {
                         return new ActionPrint((String) params[0], true);
-                    }
-                });
-        registry.getOrCreateDeclaration(CoreActionNames.ATTRIBUTES)
-                .setParams()
-                .setDescription("Retrieves all attribute names of nodes present in the previous task result.")
-                .setFactory(new ActionFactory() {
-                    @Override
-                    public Action create(Object[] params) {
-                        return new ActionAttributes(null);
                     }
                 });
         registry.getOrCreateDeclaration(CoreActionNames.ATTRIBUTES)
@@ -1461,6 +1460,16 @@ public class CoreTask implements Task {
     @Override
     public final Task save() {
         return then(CoreActions.save());
+    }
+
+    @Override
+    public final Task startTransaction() {
+        return then(CoreActions.startTransaction());
+    }
+
+    @Override
+    public final Task stopTransaction() {
+        return then(CoreActions.stopTransaction());
     }
 
     @Override

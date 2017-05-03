@@ -13,16 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package greycat.plugin;
+package greycat.internal.task;
 
-import greycat.Graph;
+import greycat.Action;
+import greycat.Constants;
+import greycat.TaskContext;
 import greycat.struct.Buffer;
-import greycat.chunk.ChunkSpace;
 
-public interface MemoryFactory {
+class ActionStartTransaction implements Action {
 
-    ChunkSpace newSpace(long memorySize, long batchSize, Graph graph, boolean deepPriority);
+    @Override
+    public final void eval(TaskContext ctx) {
+        ctx.initTracker();
+    }
 
-    Buffer newBuffer();
+    @Override
+    public final void serialize(Buffer builder) {
+        builder.writeString(CoreActionNames.START_TRANSACTION);
+        builder.writeChar(Constants.TASK_PARAM_OPEN);
+        builder.writeChar(Constants.TASK_PARAM_CLOSE);
+    }
 
+    @Override
+    public final String name() {
+        return CoreActionNames.START_TRANSACTION;
+    }
+    
 }

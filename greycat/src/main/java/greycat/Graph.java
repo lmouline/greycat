@@ -45,6 +45,11 @@ public interface Graph {
     Node newTypedNode(long world, long time, String nodeType);
 
     /**
+     * @ignore ts
+     */
+    <A extends Node> A newTypedNode(long world, long time, String nodeType, Class<A> type);
+
+    /**
      * Create a copy of this node that can be freed independently
      *
      * @param origin node to be cloned
@@ -123,6 +128,14 @@ public interface Graph {
 
     /**
      * Triggers a save task for the current graph.<br>
+     * This method synchronizes the physical storage with the current in-memory graph, for the last n used elements.
+     *
+     * @param callback called when the save is finished. The parameter specifies whether or not the task succeeded.
+     */
+    void savePartial(Callback<Boolean> callback);
+
+    /**
+     * Triggers a save task for the current graph.<br>
      * This method synchronizes the physical storage with the current in-memory graph.
      *
      * @param callback called when the save is finished. The parameter specifies whether or not the task succeeded.
@@ -136,6 +149,8 @@ public interface Graph {
      * @param callback called when the save is finished. The parameter specifies whether or not the task succeeded.
      */
     void saveSilent(Callback<Buffer> callback);
+
+    void savePartialSilent(Callback<Buffer> callback);
 
     /**
      * Connects the current graph to its storage (mandatory before any other method call)

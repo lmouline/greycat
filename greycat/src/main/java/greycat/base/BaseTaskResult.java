@@ -179,7 +179,7 @@ public class BaseTaskResult<A> implements TaskResult<A> {
 
     @Override
     public TaskResultIterator iterator() {
-        return new BaseTaskResultIterator(_backend);
+        return new BaseTaskResultIterator(_backend, _size);
     }
 
     @Override
@@ -291,8 +291,8 @@ public class BaseTaskResult<A> implements TaskResult<A> {
         Base64.encodeIntToBuffer(_size, buffer);
         for (int i = 0; i < _size; i++) {
             final Object it = _backend[i];
+            buffer.write(CoreConstants.CHUNK_SEP);
             if (it != null) {
-                buffer.write(CoreConstants.CHUNK_SEP);
                 if (it instanceof BaseNode) {
                     Node castedNode = (Node) it;
                     Base64.encodeIntToBuffer((int) Type.NODE, buffer);
@@ -306,6 +306,14 @@ public class BaseTaskResult<A> implements TaskResult<A> {
                     Base64.encodeIntToBuffer((int) Type.STRING, buffer);
                     buffer.write(CoreConstants.CHUNK_SEP);
                     Base64.encodeStringToBuffer((String) it, buffer);
+                } else if (it instanceof Long) {
+                    Base64.encodeIntToBuffer((int) Type.LONG, buffer);
+                    buffer.write(CoreConstants.CHUNK_SEP);
+                    Base64.encodeLongToBuffer((Long) it, buffer);
+                } else if (it instanceof Double) {
+                    Base64.encodeIntToBuffer((int) Type.DOUBLE, buffer);
+                    buffer.write(CoreConstants.CHUNK_SEP);
+                    Base64.encodeDoubleToBuffer((Double) it, buffer);
                 } else if (it instanceof double[]) {
                     final double[] castedDA = (double[]) it;
                     Base64.encodeIntToBuffer((int) Type.DOUBLE_ARRAY, buffer);
@@ -380,6 +388,12 @@ public class BaseTaskResult<A> implements TaskResult<A> {
             case Type.STRING:
                 loaded = Base64.decodeToStringWithBounds(buffer, previous, cursor);
                 break;
+            case Type.DOUBLE:
+                loaded = Base64.decodeToDoubleWithBounds(buffer, previous, cursor);
+                break;
+            case Type.LONG:
+                loaded = Base64.decodeToLongWithBounds(buffer, previous, cursor);
+                break;
         }
         if (loaded != null) {
             _backend[index] = loaded;
@@ -421,12 +435,17 @@ public class BaseTaskResult<A> implements TaskResult<A> {
                         index++;
                         break;
                     default:
-                        if (type == -1) {
-                            type = (byte) Base64.decodeToIntWithBounds(buffer, previous, cursor);
-                        } else {
-                            internal_load_element(buffer, previous, cursor, type, index - 4);
+                        if(previous == cursor){
+                            _backend[index-4] = null;
                             index++;
-                            type = -1;
+                        } else {
+                            if (type == -1) {
+                                type = (byte) Base64.decodeToIntWithBounds(buffer, previous, cursor);
+                            } else {
+                                internal_load_element(buffer, previous, cursor, type, index - 4);
+                                index++;
+                                type = -1;
+                            }
                         }
                 }
                 previous = cursor + 1;

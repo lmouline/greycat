@@ -819,7 +819,7 @@ class HeapStateChunk implements StateChunk, HeapContainer {
         //case already present
         if (entry != -1) {
             if (replaceIfPresent || (p_type != _type[entry])) {
-                if (param_elem == null) {
+                /*if (param_elem == null) {
                     if (next_and_hash != null) {
                         //unHash previous
                         if (p_entry != -1) {
@@ -865,12 +865,12 @@ class HeapStateChunk implements StateChunk, HeapContainer {
                         _type[indexVictim] = -1;
                     }
                     _size--;
-                } else {
-                    _v[entry] = param_elem;
-                    if (_type[entry] != p_type) {
-                        _type[entry] = p_type;
-                    }
-                }
+                } else {*/
+                _v[entry] = param_elem;
+                //if (_type[entry] != p_type) {
+                _type[entry] = p_type;
+                //}
+                //}
             }
             if (!initial) {
                 declareDirty();
@@ -1155,10 +1155,16 @@ class HeapStateChunk implements StateChunk, HeapContainer {
                                     }
                                     break;
                                 case Type.STRING_TO_INT_MAP:
-                                    HeapStringIntMap s2lmap = new HeapStringIntMap(this);
+                                    final int previousFound = internal_find(read_key);
+                                    HeapStringIntMap s2lmap;
+                                    if (previousFound != -1 && _type[previousFound] == Type.STRING_TO_INT_MAP) {
+                                        s2lmap = (HeapStringIntMap) _v[previousFound];
+                                    } else {
+                                        s2lmap = new HeapStringIntMap(this);
+                                        internal_set(read_key, read_type, s2lmap, true, initial);
+                                    }
                                     cursor++;
                                     cursor = s2lmap.load(buffer, cursor, payloadSize);
-                                    internal_set(read_key, read_type, s2lmap, true, initial);
                                     if (cursor < payloadSize) {
                                         current = buffer.read(cursor);
                                         if (current == Constants.CHUNK_SEP && cursor < payloadSize) {
