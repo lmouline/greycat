@@ -794,7 +794,7 @@ class HeapStateChunk implements StateChunk, HeapContainer {
         //case already present
         if (entry != -1) {
             if (replaceIfPresent || (p_type != _type[entry])) {
-                if (param_elem == null) {
+                /*if (param_elem == null) {
                     if (next_and_hash != null) {
                         //unHash previous
                         if (p_entry != -1) {
@@ -840,12 +840,12 @@ class HeapStateChunk implements StateChunk, HeapContainer {
                         _type[indexVictim] = -1;
                     }
                     _size--;
-                } else {
-                    _v[entry] = param_elem;
-                    if (_type[entry] != p_type) {
-                        _type[entry] = p_type;
-                    }
-                }
+                } else {*/
+                _v[entry] = param_elem;
+                //if (_type[entry] != p_type) {
+                _type[entry] = p_type;
+                //}
+                //}
             }
             if (!initial) {
                 declareDirty();
