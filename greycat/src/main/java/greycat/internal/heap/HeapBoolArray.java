@@ -20,7 +20,7 @@ import greycat.struct.BoolArray;
 import greycat.struct.Buffer;
 import greycat.utility.Base64;
 
-public class HeapBoolArray implements BoolArray {
+final class HeapBoolArray implements BoolArray {
     private boolean[] _backend = null;
     private final HeapContainer _parent;
 
@@ -46,13 +46,19 @@ public class HeapBoolArray implements BoolArray {
         }
 
         if(index <0 || index>= _backend.length) {
-            throw new RuntimeException("Array Out of Bounds");
+            throw new RuntimeException("Array Out of Bounds. Index: " + index + ". Range: [0," + _backend.length + "[");
         }
 
         _backend[index] = value;
         _parent.declareDirty();
     }
 
+    /**
+     *   @native ts
+     *   this._backend = new Array<boolean>(values.length);
+     *   java.lang.System.arraycopy(values, 0, this._backend, 0, values.length);
+     *   this._parent.declareDirty();
+     */
     @Override
     public synchronized final void initWith(final boolean[] values) {
         _backend = new boolean[values.length];
@@ -60,6 +66,15 @@ public class HeapBoolArray implements BoolArray {
         _parent.declareDirty();
     }
 
+    /**
+     *  @native ts
+     *  if (this._backend == null) {
+     *  return new Array<boolean>(0);
+     *  }
+     *  let extracted: boolean[] = new Array<boolean>(this._backend.length);
+     *  java.lang.System.arraycopy(this._backend, 0, extracted, 0, this._backend.length);
+     *  return extracted;
+     */
     @Override
     public synchronized final boolean[] extract() {
         if(_backend == null){
@@ -87,6 +102,14 @@ public class HeapBoolArray implements BoolArray {
 
     }
 
+    /**
+     * @native ts
+     * let newBackend: boolean[] = new Array<boolean>(this._backend.length - 1);
+     * java.lang.System.arraycopy(this._backend, 0, newBackend, 0, index);
+     * java.lang.System.arraycopy(this._backend, index + 1, newBackend, index, this._backend.length - index - 1);
+     * this._backend = newBackend;
+     * this._parent.declareDirty();
+     */
     private void removeElementByIndexInternal(int index) {
         boolean[] newBackend = new boolean[_backend.length - 1];
         System.arraycopy(_backend, 0, newBackend, 0, index);
@@ -107,6 +130,18 @@ public class HeapBoolArray implements BoolArray {
         return true;
     }
 
+    /**
+     * @native ts
+     *  if (this._backend == null) {
+     *  this._backend = [value];
+     *  } else {
+     *  let newBackend: boolean[] = new Array<boolean>(this._backend.length + 1);
+     *  java.lang.System.arraycopy(this._backend, 0, newBackend, 0, this._backend.length);
+     *  newBackend[this._backend.length] = value;
+     *  this._backend = newBackend;
+     *  }
+     *  this._parent.declareDirty();
+     */
     @Override
     public synchronized final void addElement(boolean value) {
         if (_backend == null) {
@@ -120,6 +155,22 @@ public class HeapBoolArray implements BoolArray {
         _parent.declareDirty();
     }
 
+    /**
+     * @native ts
+     *  if (this._backend == null) {
+     *  return false;
+     *  }
+     *  if (position < 0 || position >= this._backend.length) {
+     *  return false;
+     *  }
+     *  let newBackend: boolean[] = new Array<boolean>(this._backend.length + 1);
+     *  java.lang.System.arraycopy(this._backend, 0, newBackend, 0, position);
+     *  newBackend[position] = value;
+     *  java.lang.System.arraycopy(this._backend, position, newBackend, position + 1, this._backend.length - position);
+     *  this._backend = newBackend;
+     *  this._parent.declareDirty();
+     *  return true;
+     */
     @Override
     public synchronized final boolean insertElementAt(int position, boolean value) {
         if (_backend == null) {
@@ -153,6 +204,18 @@ public class HeapBoolArray implements BoolArray {
         return false;
     }
 
+    /**
+     * @native ts
+     * if (this._backend == null) {
+     * this.initWith(values);
+     * } else {
+     * let newBackend: boolean[] = new Array<boolean>(this._backend.length + values.length);
+     * java.lang.System.arraycopy(this._backend, 0, newBackend, 0, this._backend.length);
+     * java.lang.System.arraycopy(values, 0, newBackend, this._backend.length, values.length);
+     * this._backend = newBackend;
+     * this._parent.declareDirty();
+     * }
+     */
     @Override
     public synchronized final void addAll(boolean[] values) {
         if (_backend == null) {
@@ -180,6 +243,11 @@ public class HeapBoolArray implements BoolArray {
         _parent.declareDirty();
     }
 
+    /**
+     *  @native ts
+     *  this._backend = new Array<boolean>(size);
+     *  this._parent.declareDirty();
+     */
     @Override
     public synchronized final void init(int size) {
         _backend = new boolean[size];
@@ -204,4 +272,6 @@ public class HeapBoolArray implements BoolArray {
         }
         return cloned;
     }
+
+
 }

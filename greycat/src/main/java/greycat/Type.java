@@ -87,6 +87,8 @@ public class Type {
                 return "INT_ARRAY";
             case Type.STRING_ARRAY:
                 return "STRING_ARRAY";
+            case Type.BOOL_ARRAY:
+                return "BOOL_ARRAY";
             /* Maps */
             case Type.LONG_TO_LONG_MAP:
                 return "LONG_TO_LONG_MAP";
