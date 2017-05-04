@@ -33,6 +33,7 @@ public class Type {
     public static final byte LONG_ARRAY = 7;
     public static final byte INT_ARRAY = 8;
     public static final byte STRING_ARRAY = 9;
+    public static final byte BOOL_ARRAY = 26;
 
     public static final byte LONG_TO_LONG_MAP = 10;
     public static final byte LONG_TO_LONG_ARRAY_MAP = 11;
