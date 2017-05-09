@@ -134,7 +134,9 @@ public class HeapLTimeTreeChunk implements LTimeTreeChunk {
         Base64.encodeIntToBuffer(_size, buffer);
         for (int i = 0; i < _size; i++) {
             buffer.write(CoreConstants.CHUNK_VAL_SEP);
-            Base64.encodeLongToBuffer(this._kv[i], buffer);
+            Base64.encodeLongToBuffer(this._kv[i * 2], buffer);
+            buffer.write(CoreConstants.CHUNK_VAL_SEP);
+            Base64.encodeLongToBuffer(this._kv[(i * 2) + 1], buffer);
         }
         _hash = HashHelper.hashBuffer(buffer, beginIndex, buffer.writeIndex());
         /*if (_diff != null) {
@@ -199,6 +201,8 @@ public class HeapLTimeTreeChunk implements LTimeTreeChunk {
         long payloadSize = buffer.length();
         boolean isFirst = true;
         boolean isFirstExtra = true;
+        long key = -1;
+        boolean waitingValue = false;
         while (cursor < payloadSize) {
             final byte current = buffer.read(cursor);
             switch (current) {
@@ -220,16 +224,24 @@ public class HeapLTimeTreeChunk implements LTimeTreeChunk {
                         previous = cursor + 1;
                         isFirst = false;
                     } else {
-                        boolean insertResult = internal_insert(Base64.decodeToLongWithBounds(buffer, previous, cursor), initial);
-                        isDirty = isDirty || insertResult;
+                        if (!waitingValue) {
+                            key = Base64.decodeToLongWithBounds(buffer, previous, cursor);
+                            waitingValue = true;
+                        } else {
+                            boolean insertResult = internal_insert(key, Base64.decodeToLongWithBounds(buffer, previous, cursor), initial);
+                            isDirty = isDirty || insertResult;
+                            waitingValue = false;
+                        }
                         previous = cursor + 1;
                     }
                     break;
             }
             cursor++;
         }
-        boolean insertResult = internal_insert(Base64.decodeToLongWithBounds(buffer, previous, cursor), initial);
-        isDirty = isDirty || insertResult;
+        if (waitingValue) {
+            boolean insertResult = internal_insert(key, Base64.decodeToLongWithBounds(buffer, previous, cursor), initial);
+            isDirty = isDirty || insertResult;
+        }
         return isDirty;
     }
 
@@ -287,44 +299,19 @@ public class HeapLTimeTreeChunk implements LTimeTreeChunk {
 
     @Override
     public synchronized final void insert(final long p_key, final long p_value) {
-        if (internal_insert(p_key, false)) {
+        if (internal_insert(p_key, p_value, false)) {
             internal_set_dirty();
         }
     }
 
     @Override
-    public synchronized final void unsafe_insert(final long p_key) {
-        internal_insert(p_key, false);
+    public synchronized final void unsafe_insert(final long p_key, final long p_value) {
+        internal_insert(p_key, p_value, false);
     }
 
     @Override
     public final byte chunkType() {
         return ChunkType.TIME_TREE_CHUNK;
-    }
-
-    @Override
-    public synchronized final void clearAt(long max) {
-        /*
-        //TODO save clear element too, to for the incremental storage
-        //lock and load fromVar main memory
-        long[] previousValue = _k;
-        //reset the state
-        _k = new long[_k.length];
-        _back_meta = new int[_k.length * META_SIZE];
-        _colors = new boolean[_k.length];
-        _diff = new boolean[_k.length];
-        CoreConstants.fillBooleanArray(_diff, false);
-        _root = -1;
-        int _previousSize = _size;
-        _size = 0;
-        for (int i = 0; i < _previousSize; i++) {
-            if (previousValue[i] != CoreConstants.NULL_LONG && previousValue[i] < max) {
-                internal_insert(previousValue[i], false);
-            }
-        }
-        //dirty
-        internal_set_dirty();
-        */
     }
 
     private void reallocate(int newCapacity) {

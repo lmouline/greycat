@@ -19,11 +19,9 @@ public interface LTimeTreeChunk extends Chunk {
 
     void insert(long key, long value);
 
-    void unsafe_insert(long key);
+    void unsafe_insert(long key, long value);
 
     long previousOrEqual(long key);
-
-    void clearAt(long max);
 
     void range(long startKey, long endKey, long maxElements, TreeWalker walker);
 
