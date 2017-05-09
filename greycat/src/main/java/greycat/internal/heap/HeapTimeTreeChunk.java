@@ -47,6 +47,7 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
     //extra temporal element
     private volatile long _extra;
     private volatile long _extra2;
+    private volatile long _extra3;
 
     HeapTimeTreeChunk(final HeapChunkSpace p_space, final long p_index) {
         _space = p_space;
@@ -55,6 +56,7 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
         _hash = 0;
         _extra = 0;
         _extra2 = 0;
+        _extra3 = 0;
         _inSync = true;
     }
 
@@ -76,6 +78,16 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
     @Override
     public final void setExtra2(long extraValue) {
         _extra2 = extraValue;
+    }
+
+    @Override
+    public final long extra3() {
+        return _extra3;
+    }
+
+    @Override
+    public final void setExtra3(long extraValue) {
+        _extra3 = extraValue;
     }
 
     @Override
