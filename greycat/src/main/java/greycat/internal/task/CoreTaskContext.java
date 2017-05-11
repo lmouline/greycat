@@ -808,10 +808,7 @@ class CoreTaskContext implements TaskContext {
                     _result = loadedResult;
                 } else {
                     //TODO improve to manage global variable
-                    if (this._localVariables == null) {
-                        this._localVariables = new HashMap<String, TaskResult>();
-                    }
-                    this._localVariables.put(name, loadedResult);
+                    _localVariables.put(name, loadedResult);
                 }
                 return cursor;
             } else {
