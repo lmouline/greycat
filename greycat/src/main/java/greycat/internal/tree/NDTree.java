@@ -212,7 +212,7 @@ public class NDTree implements NDIndexer {
         if (res) {
             parent.setAt(E_TOTAL, Type.LONG, (long) parent.getAt(E_TOTAL) + 1);
             if (manager.parentsHaveNodes()) {
-                manager.updateParent((long) parent.getAt(E_VALUE), key, value);
+                parent.setAt(E_VALUE, Type.LONG, manager.updateParent((long) parent.getAt(E_VALUE), key, value));
             }
         }
         return res;
@@ -237,9 +237,9 @@ public class NDTree implements NDIndexer {
                             LongArray bufferValue = (LongArray) node.getOrCreateAt(E_BUFFER_VALUES, Type.LONG_ARRAY);
                             bufferValue.set(i, manager.updateExistingLeafNode(bufferValue.get(i), value));
 
-                            if(manager.updateParentsOnExisting()  && manager.parentsHaveNodes()){
+                            if (manager.updateParentsOnExisting() && manager.parentsHaveNodes()) {
                                 node.setAt(E_TOTAL, Type.LONG, (long) node.getAt(E_TOTAL) + 1);
-                                manager.updateParent((long) node.getAt(E_VALUE), key, value);
+                                node.setAt(E_VALUE, Type.LONG, manager.updateParent((long) node.getAt(E_VALUE), key, value));
                             }
 
                             return manager.updateParentsOnExisting();
@@ -253,8 +253,8 @@ public class NDTree implements NDIndexer {
                     if (!bufferupdate) {
                         bufferValue.addElement(manager.getNewLeafNode(value));
                         node.setAt(E_TOTAL, Type.LONG, (long) node.getAt(E_TOTAL) + 1);
-                        if(manager.updateParentsOnNewValue() && manager.parentsHaveNodes()){
-                            manager.updateParent((long) node.getAt(E_VALUE), key, value);
+                        if (manager.updateParentsOnNewValue() && manager.parentsHaveNodes()) {
+                            node.setAt(E_VALUE, Type.LONG, manager.updateParent((long) node.getAt(E_VALUE), key, value));
                         }
                         return manager.updateParentsOnNewValue();
                     } else {

@@ -58,8 +58,8 @@ public class IndexManager implements NDManager {
     }
 
     @Override
-    public void updateParent(long parentkey, double[] key, Object valueToInsert) {
-
+    public long updateParent(long parentkey, double[] key, Object valueToInsert) {
+        return parentkey;
     }
 }
 

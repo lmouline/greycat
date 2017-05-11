@@ -39,5 +39,5 @@ public interface NDManager {
 
     long getNewParentNode();
 
-    void updateParent(long parentkey, double[] key, Object valueToInsert);
+    long updateParent(long parentkey, double[] key, Object valueToInsert);
 }
