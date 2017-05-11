@@ -91,12 +91,12 @@ public class NDTreeNode extends BaseNode implements Profile {
 
     @Override
     public final void profile(final double[] keys) {
-        getTree().insert(keys,1);
+        getTree().profile(keys);
     }
 
     @Override
     public final void profileWith(final double[] keys, final long occurrence) {
-        getTree().insert(keys,occurrence);
+        getTree().profileWith(keys, occurrence);
     }
 
     @Override
