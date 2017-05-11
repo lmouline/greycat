@@ -16,7 +16,6 @@
 package greycat.internal.tree;
 
 import greycat.Type;
-import greycat.internal.tree.ndmanager.IndexManager;
 import greycat.struct.*;
 
 public class VolatileTreeResult implements ProfileResult {
@@ -98,7 +97,7 @@ public class VolatileTreeResult implements ProfileResult {
             }
         }
 
-        NDTree tempTree = new NDTree(node.egraph().graph().space().newVolatileGraph(), new IndexManager());
+        NDTree tempTree = new NDTree(node.egraph().graph().space().newVolatileGraph());
         tempTree.setResolution(resolutions);
         tempTree.setMinBound(newmin);
         tempTree.setMaxBound(newmax);
@@ -109,7 +108,7 @@ public class VolatileTreeResult implements ProfileResult {
             for (t = 0; t < count; t++) {
                 k[indexCollapse[t]] = 0;
             }
-            tempTree.insert(k, _values.get(0, i));
+            tempTree.profileWith(k, _values.get(0, i));
         }
 
         return tempTree.queryArea(newmin, newmax);
