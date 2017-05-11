@@ -70,10 +70,8 @@ public class Environment {
     public static String getJniLibraryFileName(final String name) {
         String libName = getJniLibraryName(name);
         if(isx86()) {
-            System.out.println("Try to load normal lib");
             return appendLibOsSuffix("lib" + libName, false);
         } else {
-            System.out.println("Try to arm normal lib");
             return appendLibOsSuffix("arm/lib" + libName, false);
         }
     }

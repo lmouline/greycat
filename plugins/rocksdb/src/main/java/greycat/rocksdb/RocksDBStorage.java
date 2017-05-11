@@ -45,9 +45,6 @@ public class RocksDBStorage implements Storage {
     private final String _storagePath;
 
     public RocksDBStorage(String storagePath) {
-//        if (System.getProperty("os.arch").equals("arm")) {
-//            LibraryLoader.loadArmLibrary("librocksdbjni-linux32");
-//        }
         RocksDB.loadLibrary();
         this._storagePath = storagePath;
     }
