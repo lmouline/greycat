@@ -327,12 +327,12 @@ public class BaseTaskResult<A> implements TaskResult<A> {
                         buffer.write(CoreConstants.CHUNK_VAL_SEP);
                         Base64.encodeDoubleToBuffer(castedDA[j], buffer);
                     }
-                } else if(it instanceof boolean[]) {
+                } /*else if(it instanceof boolean[]) {
                     final boolean[] castedDA = (boolean[]) it;
                     Base64.encodeIntToBuffer((int) Type.BOOL_ARRAY, buffer);
                     buffer.write(CoreConstants.CHUNK_SEP);
                     Base64.encodeBoolArrayToBuffer(castedDA,buffer);
-                } else if (it instanceof int[]) {
+                }*/ else if (it instanceof int[]) {
                     final int[] castedDA = (int[]) it;
                     Base64.encodeIntToBuffer((int) Type.INT_ARRAY, buffer);
                     buffer.write(CoreConstants.CHUNK_SEP);
@@ -350,7 +350,7 @@ public class BaseTaskResult<A> implements TaskResult<A> {
                         buffer.write(CoreConstants.CHUNK_VAL_SEP);
                         Base64.encodeLongToBuffer(castedDA[j], buffer);
                     }
-                } else if (it instanceof String[]) {
+                } /*else if (it instanceof String[]) {
                     final String[] castedDA = (String[]) it;
                     Base64.encodeIntToBuffer((int) Type.STRING_ARRAY, buffer);
                     buffer.write(CoreConstants.CHUNK_SEP);
@@ -359,7 +359,7 @@ public class BaseTaskResult<A> implements TaskResult<A> {
                         buffer.write(CoreConstants.CHUNK_VAL_SEP);
                         Base64.encodeStringToBuffer(castedDA[j], buffer);
                     }
-                } else {
+                }*/ else {
                     throw new RuntimeException("Unsupported yet!");
                 }
             }
