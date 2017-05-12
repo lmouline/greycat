@@ -50,7 +50,7 @@ public class TestNDIndexer {
                 for(int i=0;i<dim;i++){
                     min[i]=0;
                     max[i]=1.0;
-                    res[i]=0.1;
+                    res[i]=0.001;
                 }
 
                 ntree.setMinBound(min);
