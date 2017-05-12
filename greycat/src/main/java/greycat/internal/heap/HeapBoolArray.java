@@ -259,6 +259,9 @@ final class HeapBoolArray implements BoolArray {
         byte current = buffer.read(cursor);
         while (cursor < max && current != Constants.CHUNK_SEP && current != Constants.CHUNK_ENODE_SEP && current != Constants.CHUNK_ESEP) {
             cursor++;
+            if(cursor < max) {
+                current = buffer.read(cursor);
+            }
         }
 
         _backend = Base64.decodeToBoolArrayWithBounds(buffer,offset,cursor);
