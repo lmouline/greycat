@@ -382,18 +382,6 @@ public class HeapSuperTimeTreeChunk implements SuperTimeTreeChunk {
         return _keys[p_currentIndex];
     }
 
-    private long value(int p_currentIndex) {
-        if (p_currentIndex == -1) {
-            return -1;
-        }
-        return _values[p_currentIndex];
-    }
-
-    private void setKeyValue(int p_currentIndex, long p_key, long p_value, boolean initial) {
-        _keys[p_currentIndex] = p_key;
-        _values[p_currentIndex] = p_value;
-    }
-
     private int left(int p_currentIndex) {
         if (p_currentIndex == -1) {
             return -1;
@@ -711,10 +699,16 @@ public class HeapSuperTimeTreeChunk implements SuperTimeTreeChunk {
             int n = _root;
             while (true) {
                 if (p_key == key(n)) {
-                    return false;
+                    if (_values[n] == p_value) {
+                        return false;
+                    } else {
+                        _values[n] = p_value;
+                        return true;
+                    }
                 } else if (p_key < key(n)) {
                     if (left(n) == -1) {
-                        setKeyValue(newIndex, p_key, p_value, initial);
+                        _keys[newIndex] = p_key;
+                        _values[newIndex] = p_value;
                         setColor(newIndex, false);
                         setLeft(newIndex, -1);
                         setRight(newIndex, -1);
@@ -727,7 +721,8 @@ public class HeapSuperTimeTreeChunk implements SuperTimeTreeChunk {
                     }
                 } else {
                     if (right(n) == -1) {
-                        setKeyValue(newIndex, p_key, p_value, initial);
+                        _keys[newIndex] = p_key;
+                        _values[newIndex] = p_value;
                         setColor(newIndex, false);
                         setLeft(newIndex, -1);
                         setRight(newIndex, -1);

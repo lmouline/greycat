@@ -262,11 +262,6 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
     }
 
     @Override
-    public synchronized final void unsafe_insert(final long p_key) {
-        internal_insert(p_key, false);
-    }
-
-    @Override
     public final byte chunkType() {
         return ChunkType.TIME_TREE_CHUNK;
     }

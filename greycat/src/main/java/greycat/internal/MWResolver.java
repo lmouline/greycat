@@ -1216,55 +1216,41 @@ final class MWResolver implements Resolver {
         if (previousWorld == nodeWorld || nodeWorldOrder.get(nodeWorld) != CoreConstants.NULL_LONG) {
             //final TimeTreeChunk superTimeTree = (TimeTreeChunk) this._space.get(castedNode._index_superTimeTree);
             final TimeTreeChunk timeTree = (TimeTreeChunk) this._space.get(castedNode._index_timeTree);
-            //manage super tree here
-            long threshold = superTimeTree.subTreeCapacity();
-            timeTree.insert(nodeTime);
-            if (timeTree.size() == threshold) {
-                final long[] medianPoint = {-1};
-                //we iterate over the tree without boundaries for values, but with boundaries for number of collected times
-                timeTree.range(CoreConstants.BEGINNING_OF_TIME, CoreConstants.END_OF_TIME, timeTree.size() / 2, new TreeWalker() {
-                    @Override
-                    public void elem(long t) {
-                        medianPoint[0] = t;
-                    }
-                });
-                TimeTreeChunk rightTree = (TimeTreeChunk) this._space.createAndMark(ChunkType.TIME_TREE_CHUNK, nodeWorld, medianPoint[0], nodeId);
-                //TODO second iterate that can be avoided, however we need the median point to create the right tree
-                //we iterate over the tree without boundaries for values, but with boundaries for number of collected times
-                final TimeTreeChunk finalRightTree = rightTree;
-                //rang iterate readVar the end of the tree
-                timeTree.range(CoreConstants.BEGINNING_OF_TIME, CoreConstants.END_OF_TIME, timeTree.size() / 2, new TreeWalker() {
-                    @Override
-                    public void elem(long t) {
-                        finalRightTree.unsafe_insert(t);
-                    }
-                });
-                _space.notifyUpdate(finalRightTree.index());
-                superTimeTree.insert(medianPoint[0], 0);//TODO
-                //remove times insert in the right tree
-                timeTree.clearAt(medianPoint[0]);
-                //ok ,now manage marks
-                if (nodeTime < medianPoint[0]) {
-                    _space.unmark(rightTree.index());
+            final long subTreeCapacity = timeTree.capacity();
+            if (timeTree.size() < subTreeCapacity) {
+                //easy, just insert the new timeslot
+                timeTree.insert(nodeTime);
+            } else {
+                //are we the last last one?
+                if (superTimeTree.next(timeTree.time()) == Constants.NULL_LONG) {
+                    TimeTreeChunk newTimeTree = (TimeTreeChunk) this._space.createAndMark(ChunkType.TIME_TREE_CHUNK, nodeWorld, nodeTime, nodeId);
+                    long allowedSubTreeCapacity = superTimeTree.subTreeCapacity();
+                    newTimeTree.insert(nodeTime);
+                    newTimeTree.setCapacity(allowedSubTreeCapacity);
+                    superTimeTree.insert(nodeTime, allowedSubTreeCapacity);
+                    _space.unmark(castedNode._index_timeTree);
+                    castedNode._index_timeTree = newTimeTree.index();
                 } else {
-                    castedNode._index_timeTree = finalRightTree.index();
-                    _space.unmark(timeTree.index());
+                    //insertion in past, oversize tree
+                    timeTree.insert(nodeTime);
+                    timeTree.setCapacity(subTreeCapacity + 1);
+                    superTimeTree.insert(timeTree.time(), subTreeCapacity + 1);
                 }
             }
         } else {
             //create a new node superTimeTree
-            TimeTreeChunk newSuperTimeTree = (TimeTreeChunk) this._space.createAndMark(ChunkType.TIME_TREE_CHUNK, nodeWorld, CoreConstants.NULL_LONG, nodeId);
-            newSuperTimeTree.insert(nodeTime);
+            SuperTimeTreeChunk newSuperTimeTree = (SuperTimeTreeChunk) this._space.createAndMark(ChunkType.SUPER_TIME_TREE_CHUNK, nodeWorld, 0, nodeId);
+            long subTreeCapacity = superTimeTree.subTreeCapacity();
+            newSuperTimeTree.insert(nodeTime, subTreeCapacity);
             //create a new node timeTree
             TimeTreeChunk newTimeTree = (TimeTreeChunk) this._space.createAndMark(ChunkType.TIME_TREE_CHUNK, nodeWorld, nodeTime, nodeId);
             newTimeTree.insert(nodeTime);
+            newTimeTree.setCapacity(subTreeCapacity);
             //insert into node world order
             nodeWorldOrder.put(nodeWorld, nodeTime);
             //let's store the new state if necessary
-
             _space.unmark(castedNode._index_timeTree);
             _space.unmark(castedNode._index_superTimeTree);
-
             castedNode._index_timeTree = newTimeTree.index();
             castedNode._index_superTimeTree = newSuperTimeTree.index();
         }
@@ -1317,6 +1303,7 @@ final class MWResolver implements Resolver {
                     return;
                 }
                 final WorldOrderChunk objectWorldOrder = (WorldOrderChunk) resolved;
+                final long offset = objectWorldOrder.offset();
                 //worlds collector
                 final int[] collectionSize = {CoreConstants.MAP_INITIAL_CAPACITY};
                 final long[][] collectedWorlds = {new long[collectionSize[0]]};
@@ -1325,12 +1312,12 @@ final class MWResolver implements Resolver {
                 while (currentWorld != CoreConstants.NULL_LONG) {
                     long divergenceTimepoint = objectWorldOrder.get(currentWorld);
                     if (divergenceTimepoint != CoreConstants.NULL_LONG) {
-                        if (divergenceTimepoint <= beginningOfSearch) {
+                        if (divergenceTimepoint <= (beginningOfSearch-offset)) {
                             //take the first one before leaving
                             collectedWorlds[0][collectedIndex] = currentWorld;
                             collectedIndex++;
                             break;
-                        } else if (divergenceTimepoint > endOfSearch) {
+                        } else if (divergenceTimepoint > (endOfSearch-offset)) {
                             //next round, go to parent world
                             currentWorld = selfPointer.globalWorldOrderChunk.get(currentWorld);
                         } else {
@@ -1353,20 +1340,20 @@ final class MWResolver implements Resolver {
                     }
                 }
                 //create request concat keys
-                selfPointer.resolveTimepointsFromWorlds(objectWorldOrder, node, beginningOfSearch, endOfSearch, collectedWorlds[0], collectedIndex, callback);
+                selfPointer.resolveTimepointsFromWorlds(objectWorldOrder, node, offset, beginningOfSearch, endOfSearch, collectedWorlds[0], collectedIndex, callback);
             }
         });
     }
 
-    private void resolveTimepointsFromWorlds(final WorldOrderChunk objectWorldOrder, final Node node, final long beginningOfSearch, final long endOfSearch, final long[] collectedWorlds, final int collectedWorldsSize, final Callback<long[]> callback) {
+    private void resolveTimepointsFromWorlds(final WorldOrderChunk objectWorldOrder, final Node node, final long offset, final long beginningOfSearch, final long endOfSearch, final long[] collectedWorlds, final int collectedWorldsSize, final Callback<long[]> callback) {
         final MWResolver selfPointer = this;
         final long[] timeTreeKeys = new long[collectedWorldsSize * 3];
         final byte[] types = new byte[collectedWorldsSize];
         for (int i = 0; i < collectedWorldsSize; i++) {
             timeTreeKeys[i * 3] = collectedWorlds[i];
-            timeTreeKeys[i * 3 + 1] = CoreConstants.NULL_LONG;
+            timeTreeKeys[i * 3 + 1] = 0;
             timeTreeKeys[i * 3 + 2] = node.id();
-            types[i] = ChunkType.TIME_TREE_CHUNK;
+            types[i] = ChunkType.SUPER_TIME_TREE_CHUNK;
         }
         getOrLoadAndMarkAll(types, timeTreeKeys, new Callback<Chunk[]>() {
             @Override
@@ -1381,9 +1368,9 @@ final class MWResolver implements Resolver {
                     final long[][] collectedSuperTimesAssociatedWorlds = {new long[collectedSize[0]]};
                     final int[] insert_index = {0};
 
-                    long previousDivergenceTime = endOfSearch;
+                    long previousDivergenceTime = endOfSearch - offset;
                     for (int i = 0; i < collectedWorldsSize; i++) {
-                        final TimeTreeChunk timeTree = (TimeTreeChunk) superTimeTrees[i];
+                        final SuperTimeTreeChunk timeTree = (SuperTimeTreeChunk) superTimeTrees[i];
                         if (timeTree != null) {
                             long currentDivergenceTime = objectWorldOrder.get(collectedWorlds[i]);
                             //if (currentDivergenceTime < beginningOfSearch) {
@@ -1417,13 +1404,13 @@ final class MWResolver implements Resolver {
                         selfPointer._space.unmark(timeTree.index());
                     }
                     //now we have superTimes, lets convert them to all times
-                    selfPointer.resolveTimepointsFromSuperTimes(objectWorldOrder, node, beginningOfSearch, endOfSearch, collectedSuperTimesAssociatedWorlds[0], collectedSuperTimes[0], insert_index[0], callback);
+                    selfPointer.resolveTimepointsFromSuperTimes(objectWorldOrder, node, offset, beginningOfSearch, endOfSearch, collectedSuperTimesAssociatedWorlds[0], collectedSuperTimes[0], insert_index[0], callback);
                 }
             }
         });
     }
 
-    private void resolveTimepointsFromSuperTimes(final WorldOrderChunk objectWorldOrder, final Node node, final long beginningOfSearch, final long endOfSearch, final long[] collectedWorlds, final long[] collectedSuperTimes, final int collectedSize, final Callback<long[]> callback) {
+    private void resolveTimepointsFromSuperTimes(final WorldOrderChunk objectWorldOrder, final Node node, final long offset, final long beginningOfSearch, final long endOfSearch, final long[] collectedWorlds, final long[] collectedSuperTimes, final int collectedSize, final Callback<long[]> callback) {
         final MWResolver selfPointer = this;
         final long[] timeTreeKeys = new long[collectedSize * 3];
         final byte[] types = new byte[collectedSize];
@@ -1444,13 +1431,13 @@ final class MWResolver implements Resolver {
                     final int[] collectedTimesSize = {CoreConstants.MAP_INITIAL_CAPACITY};
                     final long[][] collectedTimes = {new long[collectedTimesSize[0]]};
                     final int[] insert_index = {0};
-                    long previousDivergenceTime = endOfSearch;
+                    long previousDivergenceTime = (endOfSearch - offset);
                     for (int i = 0; i < collectedSize; i++) {
                         final TimeTreeChunk timeTree = (TimeTreeChunk) timeTrees[i];
                         if (timeTree != null) {
                             long currentDivergenceTime = objectWorldOrder.get(collectedWorlds[i]);
-                            if (currentDivergenceTime < beginningOfSearch) {
-                                currentDivergenceTime = beginningOfSearch;
+                            if (currentDivergenceTime < (beginningOfSearch - offset)) {
+                                currentDivergenceTime = (beginningOfSearch - offset);
                             }
                             final long finalPreviousDivergenceTime = previousDivergenceTime;
                             timeTree.range(currentDivergenceTime, previousDivergenceTime, CoreConstants.END_OF_TIME, new TreeWalker() {
