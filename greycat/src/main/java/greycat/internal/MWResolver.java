@@ -331,6 +331,7 @@ final class MWResolver implements Resolver {
                                                 } else {
                                                     isEmpty[0] = false;
                                                     keys[(i * Constants.KEY_SIZE) + 2] = closestSuperTime;
+                                                    keys[i * Constants.KEY_SIZE] = ChunkType.TIME_TREE_CHUNK;
                                                 }
                                             } else {
                                                 keys[i * Constants.KEY_SIZE] = -1; //skip
