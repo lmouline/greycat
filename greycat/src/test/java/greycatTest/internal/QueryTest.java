@@ -23,6 +23,7 @@ import greycat.plugin.*;
 import greycat.struct.Buffer;
 import greycat.TaskHook;
 import greycat.utility.HashHelper;
+import greycat.utility.Tuple;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -86,6 +87,11 @@ public class QueryTest implements Resolver, Graph {
     @Override
     public int typeCode(Node node) {
         return 0;
+    }
+
+    @Override
+    public void end(Node node) {
+
     }
 
     @Override
@@ -305,8 +311,8 @@ public class QueryTest implements Resolver, Graph {
     }
 
     @Override
-    public long[] getTimeSensitivity(Node node) {
-        return new long[0];
+    public Tuple<Long,Long> getTimeSensitivity(Node node) {
+        return new Tuple<Long,Long>(0L,0L);
     }
 
 }

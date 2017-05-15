@@ -17,17 +17,17 @@ package greycatTest.internal.heap;
 
 import greycat.internal.heap.HeapBuffer;
 import greycat.internal.heap.HeapChunkSpace;
-import greycat.internal.heap.HeapLTimeTreeChunk;
+import greycat.internal.heap.HeapSuperTimeTreeChunk;
 import greycat.struct.Buffer;
 import org.junit.Assert;
 import org.junit.Test;
 
-public class HeapLTimeTreeChunkTest {
+public class HeapSuperTimeTreeChunkTest {
 
     @Test
     public void test() {
         HeapChunkSpace space = new HeapChunkSpace(100, 10, null, false);
-        HeapLTimeTreeChunk tree = new HeapLTimeTreeChunk(space, -1);
+        HeapSuperTimeTreeChunk tree = new HeapSuperTimeTreeChunk(space, -1);
         for (int i = 0; i < 100; i = i + 10) {
             tree.insert(i, i);
         }
@@ -39,18 +39,26 @@ public class HeapLTimeTreeChunkTest {
     @Test
     public void loadSaveTest() {
         HeapChunkSpace space = new HeapChunkSpace(100, 10, null, false);
-        HeapLTimeTreeChunk tree = new HeapLTimeTreeChunk(space, -1);
+        HeapSuperTimeTreeChunk tree = new HeapSuperTimeTreeChunk(space, -1);
         for (int i = 0; i < 100; i = i + 10) {
             tree.insert(i, i);
         }
+        tree.setTimeSensitivity(-1);
+        tree.setTimeSensitivityOffset(50);
         Buffer buf = new HeapBuffer();
         tree.save(buf);
-        HeapLTimeTreeChunk tree2 = new HeapLTimeTreeChunk(space, -1);
+        HeapSuperTimeTreeChunk tree2 = new HeapSuperTimeTreeChunk(space, -1);
         tree2.load(buf);
         buf.free();
         for (int i = 5; i < 100; i = i + 10) {
-            Assert.assertEquals(i - 5,tree2.previous(i));
+            Assert.assertEquals(i - 5, tree2.previous(i));
         }
+        Assert.assertTrue(tree2.timeSensitivity() == -1);
+        Assert.assertTrue(tree2.timeSensitivityOffset() == 50);
+        buf.free();
+        space.free(tree);
+        space.free(tree2);
+        space.freeAll();
     }
 
 

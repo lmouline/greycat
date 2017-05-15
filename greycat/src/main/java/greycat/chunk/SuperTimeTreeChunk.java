@@ -15,7 +15,7 @@
  */
 package greycat.chunk;
 
-public interface LTimeTreeChunk extends Chunk {
+public interface SuperTimeTreeChunk extends Chunk {
 
     void insert(long key, long value);
 
@@ -27,18 +27,24 @@ public interface LTimeTreeChunk extends Chunk {
 
     long magic();
 
+    long subTreeCapacity();
+
     long previous(long key);
 
     long next(long key);
 
+    long end();
+
+    void setEnd(long v);
+
     int size();
 
-    long extra();
+    long timeSensitivity();
 
-    void setExtra(long extraValue);
+    void setTimeSensitivity(long v);
 
-    long extra2();
+    long timeSensitivityOffset();
 
-    void setExtra2(long extraValue);
+    void setTimeSensitivityOffset(long v);
 
 }

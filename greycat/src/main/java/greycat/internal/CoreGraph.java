@@ -168,7 +168,7 @@ public class CoreGraph implements Graph {
             this._space.mark(casted._index_worldOrder);
             //Create the cloned node
             final WorldOrderChunk worldOrderChunk = (WorldOrderChunk) this._space.get(casted._index_worldOrder);
-            final NodeFactory resolvedFactory = factoryByCode((int) worldOrderChunk.extra());
+            final NodeFactory resolvedFactory = factoryByCode((int) worldOrderChunk.type());
             BaseNode newNode;
             if (resolvedFactory == null) {
                 newNode = new BaseNode(origin.world(), origin.time(), origin.id(), this);
