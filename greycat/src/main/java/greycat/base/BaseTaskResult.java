@@ -327,7 +327,7 @@ public class BaseTaskResult<A> implements TaskResult<A> {
                         Base64.encodeDoubleToBuffer(castedDA[j], buffer);
                     }
                 } else {
-                    throw new RuntimeException("Unsupported yet!");
+                    throw new RuntimeException("Unsupported yet! "+it.getClass());
                 }
             }
         }
