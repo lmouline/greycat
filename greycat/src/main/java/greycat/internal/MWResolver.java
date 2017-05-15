@@ -605,6 +605,7 @@ final class MWResolver implements Resolver {
                                                     keys[i * Constants.KEY_SIZE] = -1; //skip
                                                 } else {
                                                     isEmpty[0] = false;
+                                                    keys[i * Constants.KEY_SIZE] = ChunkType.TIME_TREE_CHUNK;
                                                     keys[(i * Constants.KEY_SIZE) + 2] = closestSuperTime;
                                                 }
                                             } else {
@@ -670,7 +671,7 @@ final class MWResolver implements Resolver {
                                                                                     resolvedNode._time_magic = -1;
                                                                                 } else {
                                                                                     resolvedNode._world_magic = ((WorldOrderChunk) theNodeWorldOrders[i]).magic();
-                                                                                    resolvedNode._super_time_magic = ((TimeTreeChunk) theNodeSuperTimeTrees[i]).magic();
+                                                                                    resolvedNode._super_time_magic = ((SuperTimeTreeChunk) theNodeSuperTimeTrees[i]).magic();
                                                                                     resolvedNode._time_magic = ((TimeTreeChunk) theNodeTimeTrees[i]).magic();
                                                                                 }
                                                                                 finalResult[i] = resolvedNode;
