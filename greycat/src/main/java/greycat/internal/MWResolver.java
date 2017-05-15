@@ -1178,7 +1178,6 @@ final class MWResolver implements Resolver {
         final long nodeWorld = node.world();
         long nodeTime = node.time();
         final long nodeId = node.id();
-
         //compute time sensitivity
         final SuperTimeTreeChunk superTimeTree = (SuperTimeTreeChunk) this._space.get(castedNode._index_superTimeTree);
         final long timeSensitivity = superTimeTree.timeSensitivity();
@@ -1190,10 +1189,11 @@ final class MWResolver implements Resolver {
                 if (timeSensitivityOffset == Constants.NULL_LONG) {
                     timeSensitivityOffset = 0;
                 }
-                nodeTime = nodeTime - (nodeTime % timeSensitivity) + timeSensitivityOffset;
+                nodeTime = (nodeTime - (nodeTime % timeSensitivity) + timeSensitivityOffset) - nodeWorldOrder.offset();
             }
+        } else {
+            nodeTime = nodeTime - nodeWorldOrder.offset();
         }
-
         final StateChunk clonedState;
         if (nodeTime != previousTime || nodeWorld != previousWorld) {
             try {
@@ -1210,11 +1210,9 @@ final class MWResolver implements Resolver {
         } else {
             clonedState = previouStateChunk;
         }
-
         castedNode._world_magic = -1;
         castedNode._super_time_magic = -1;
         castedNode._time_magic = -1;
-
         if (previousWorld == nodeWorld || nodeWorldOrder.get(nodeWorld) != CoreConstants.NULL_LONG) {
             //final TimeTreeChunk superTimeTree = (TimeTreeChunk) this._space.get(castedNode._index_superTimeTree);
             final TimeTreeChunk timeTree = (TimeTreeChunk) this._space.get(castedNode._index_timeTree);
