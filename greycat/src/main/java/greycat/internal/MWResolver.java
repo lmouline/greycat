@@ -229,9 +229,9 @@ final class MWResolver implements Resolver {
                                                         }
                                                         BaseNode resolvedNode;
                                                         if (resolvedFactory == null) {
-                                                            resolvedNode = new BaseNode(world, time, id, selfPointer._graph);
+                                                            resolvedNode = new BaseNode(world, req_time, id, selfPointer._graph);
                                                         } else {
-                                                            resolvedNode = (BaseNode) resolvedFactory.create(world, time, id, selfPointer._graph);
+                                                            resolvedNode = (BaseNode) resolvedFactory.create(world, req_time, id, selfPointer._graph);
                                                         }
                                                         resolvedNode._dead = false;
                                                         resolvedNode._index_stateChunk = theObjectChunk.index();
@@ -380,9 +380,9 @@ final class MWResolver implements Resolver {
                                                                                 }
                                                                                 BaseNode resolvedNode;
                                                                                 if (resolvedFactory == null) {
-                                                                                    resolvedNode = new BaseNode(worlds[i], times[i], ids[i], selfPointer._graph);
+                                                                                    resolvedNode = new BaseNode(worlds[i], reqTimes[i], ids[i], selfPointer._graph);
                                                                                 } else {
-                                                                                    resolvedNode = (BaseNode) resolvedFactory.create(worlds[i], times[i], ids[i], selfPointer._graph);
+                                                                                    resolvedNode = (BaseNode) resolvedFactory.create(worlds[i], reqTimes[i], ids[i], selfPointer._graph);
                                                                                 }
                                                                                 resolvedNode._dead = false;
                                                                                 resolvedNode._index_stateChunk = theObjectChunks[i].index();
