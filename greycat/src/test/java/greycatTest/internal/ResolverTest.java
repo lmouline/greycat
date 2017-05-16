@@ -123,4 +123,21 @@ public class ResolverTest {
         });
     }
 
+    @Test
+    public void dephasingTest() {
+        long today = 1000;
+        Graph g = GraphBuilder.newBuilder().withScheduler(new NoopScheduler()).build();
+        g.connect(null);
+        BaseNode n = (BaseNode) g.newNode(0, today);
+        n.set("name", Type.STRING, "myName");
+        n.travelInTime(today + 100, new Callback<Node>() {
+            @Override
+            public void on(Node result) {
+                Assert.assertEquals("{\"world\":0,\"time\":1100,\"id\":1,\"name\":\"myName\"}",result.toString());
+                Assert.assertEquals(100,result.timeDephasing());
+            }
+        });
+    }
+
+
 }

@@ -17,6 +17,7 @@ package greycat.base;
 
 import greycat.*;
 import greycat.chunk.StateChunk;
+import greycat.chunk.WorldOrderChunk;
 import greycat.plugin.NodeStateCallback;
 import greycat.struct.*;
 import greycat.plugin.NodeDeclaration;
@@ -525,8 +526,9 @@ public class BaseNode implements Node {
     @Override
     public final long timeDephasing() {
         final NodeState state = this._resolver.resolveState(this);
+        final WorldOrderChunk woc = (WorldOrderChunk) this._graph.space().get(this._index_worldOrder);
         if (state != null) {
-            return (this._time - state.time());
+            return (this._time - state.time() - woc.offset());
         } else {
             throw new RuntimeException(Constants.CACHE_MISS_ERROR);
         }
@@ -575,7 +577,7 @@ public class BaseNode implements Node {
     }
 
     @Override
-    public final Tuple<Long,Long> timeSensitivity() {
+    public final Tuple<Long, Long> timeSensitivity() {
         return _resolver.getTimeSensitivity(this);
     }
 
@@ -586,7 +588,7 @@ public class BaseNode implements Node {
 
     @Override
     public String toString() {
-        if(_lock ==1){
+        if (_lock == 1) {
             return "locked";
         }
         final StringBuilder builder = new StringBuilder();
