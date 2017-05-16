@@ -267,14 +267,6 @@ public class CoreGraph implements Graph {
     }
 
     @Override
-    public final void lookupAllTimes(long world, long from, long to, long[] ids, Callback<Node[]> callback) {
-        if (!_isConnected.get()) {
-            throw new RuntimeException(CoreConstants.DISCONNECTED_ERROR);
-        }
-        this._resolver.lookupAllTimes(world, from, to, ids, callback);
-    }
-
-    @Override
     public final void save(Callback<Boolean> callback) {
         if (callback == null) {
             _space.save(false, false, null, null);

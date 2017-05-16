@@ -80,9 +80,7 @@ public interface Resolver {
     void lookupTimes(long world, long from, long to, long id, Callback<Node[]> callback);
 
     void lookupAll(long world, long time, long ids[], Callback<Node[]> callback);
-
-    void lookupAllTimes(long world, long from, long to, long ids[], Callback<Node[]> callback);
-
+    
     /**
      * Resolves the state of a node, to access attributes, relations, and indexes.
      *

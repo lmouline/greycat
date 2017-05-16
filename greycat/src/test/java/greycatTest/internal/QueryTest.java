@@ -138,11 +138,6 @@ public class QueryTest implements Resolver, Graph {
     }
 
     @Override
-    public void lookupAllTimes(long world, long from, long to, long[] ids, Callback<Node[]> callback) {
-
-    }
-
-    @Override
     public long fork(long world) {
         return 0;
     }
@@ -232,7 +227,7 @@ public class QueryTest implements Resolver, Graph {
 
     @Override
     public Query newQuery() {
-        return new CoreQuery(this,this);
+        return new CoreQuery(this, this);
     }
 
     @Override
@@ -311,8 +306,8 @@ public class QueryTest implements Resolver, Graph {
     }
 
     @Override
-    public Tuple<Long,Long> getTimeSensitivity(Node node) {
-        return new Tuple<Long,Long>(0L,0L);
+    public Tuple<Long, Long> getTimeSensitivity(Node node) {
+        return new Tuple<Long, Long>(0L, 0L);
     }
 
 }
