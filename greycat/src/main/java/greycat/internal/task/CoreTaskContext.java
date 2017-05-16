@@ -534,12 +534,18 @@ class CoreTaskContext implements TaskContext {
                     _result = new BaseTaskResult(null, false);
                 }
                 _result.setException(e);
+                if (_silent == null) {
+                    e.printStackTrace();
+                }
             }
             if (_output != null) {
                 if (_result == null) {
                     _result = new BaseTaskResult(null, false);
                 }
                 _result.setOutput(_output.toString());
+                if (_silent == null) {
+                    System.out.println(_result.output());
+                }
             }
             if (_silent != null) {
                 if (_result == null) {

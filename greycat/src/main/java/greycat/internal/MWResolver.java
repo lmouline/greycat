@@ -395,7 +395,7 @@ final class MWResolver implements Resolver {
                                                                                     resolvedNode._time_magic = -1;
                                                                                 } else {
                                                                                     resolvedNode._world_magic = ((WorldOrderChunk) theNodeWorldOrders[i]).magic();
-                                                                                    resolvedNode._super_time_magic = ((TimeTreeChunk) theNodeSuperTimeTrees[i]).magic();
+                                                                                    resolvedNode._super_time_magic = ((SuperTimeTreeChunk) theNodeSuperTimeTrees[i]).magic();
                                                                                     resolvedNode._time_magic = ((TimeTreeChunk) theNodeTimeTrees[i]).magic();
                                                                                 }
                                                                                 finalResult[i] = resolvedNode;
