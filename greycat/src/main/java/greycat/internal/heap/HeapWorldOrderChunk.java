@@ -331,6 +331,10 @@ final class HeapWorldOrderChunk implements WorldOrderChunk {
     @Override
     public synchronized void loadDiff(Buffer buffer) {
         internal_load(false, buffer);
+        _chunkHash = Constants.EMPTY_HASH;
+        if (_space != null) {
+            _space.notifyUpdate(_index);
+        }
     }
 
     @Override

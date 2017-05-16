@@ -151,14 +151,12 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
 
     @Override
     public final synchronized void loadDiff(final Buffer buffer) {
-        /*
         if (internal_load(buffer, false) && _hash != Constants.EMPTY_HASH) {
             _hash = Constants.EMPTY_HASH;
             if (_space != null) {
                 _space.notifyUpdate(_index);
             }
-        }*/
-        throw new RuntimeException("Not implemented yet!");
+        }
     }
 
     @Override
