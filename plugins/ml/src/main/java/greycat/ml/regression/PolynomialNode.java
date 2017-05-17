@@ -101,8 +101,10 @@ public class PolynomialNode extends BaseMLNode implements RegressionNode {
     public final void learn(double value, Callback<Boolean> callback) {
         NodeState previousState = unphasedState(); //past state, not cloned
 
+        final long dephasing = timeDephasing();
         long timeOrigin = previousState.time();
-        long nodeTime = time();
+        long nodeTime = timeOrigin + dephasing;
+
         double precision = previousState.getWithDefault(PRECISION, PRECISION_DEF);
         DoubleArray weight = (DoubleArray) previousState.get(INTERNAL_WEIGHT_KEY);
 
@@ -158,7 +160,8 @@ public class PolynomialNode extends BaseMLNode implements RegressionNode {
             int deg = weight.size() - 1;
             Integer num = (Integer) previousState.get(INTERNAL_NB_PAST_KEY);
 
-            double t = (nodeTime - timeOrigin);
+            double t = timeDephasing();
+            ;
             t = t / stp;
             double maxError = maxErr(precision, deg);
 
