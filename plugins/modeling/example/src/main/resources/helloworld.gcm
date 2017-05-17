@@ -1,0 +1,6 @@
+
+class Device {
+    att name: String
+    att identifier: Integer
+}
+
