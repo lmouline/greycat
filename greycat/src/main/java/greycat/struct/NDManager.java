@@ -13,32 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package greycat.chunk;
+package greycat.struct;
 
-public interface LTimeTreeChunk extends Chunk {
+/**
+ * Created by assaad on 02/05/2017.
+ */
+public interface NDManager {
+    /**
+     * Resolve the current object of the hashed id 
+     * @param id
+     * @return
+     */
+    Object get(long id);
 
-    void insert(long key, long value);
 
-    void unsafe_insert(long key, long value);
+    long updateExistingLeafNode(long oldKey, Object valueToInsert);
 
-    long previousOrEqual(long key);
+    boolean updateParentsOnExisting();
 
-    void range(long startKey, long endKey, long maxElements, TreeWalker walker);
+    boolean updateParentsOnNewValue();
 
-    long magic();
+    boolean parentsHaveNodes();
 
-    long previous(long key);
+    long getNewLeafNode(Object valueToInsert);
 
-    long next(long key);
+    long getNewParentNode();
 
-    int size();
-
-    long extra();
-
-    void setExtra(long extraValue);
-
-    long extra2();
-
-    void setExtra2(long extraValue);
-
+    long updateParent(long parentkey, double[] key, Object valueToInsert);
 }

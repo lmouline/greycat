@@ -534,12 +534,18 @@ class CoreTaskContext implements TaskContext {
                     _result = new BaseTaskResult(null, false);
                 }
                 _result.setException(e);
+                if (_silent == null) {
+                    e.printStackTrace();
+                }
             }
             if (_output != null) {
                 if (_result == null) {
                     _result = new BaseTaskResult(null, false);
                 }
                 _result.setOutput(_output.toString());
+                if (_silent == null) {
+                    System.out.println(_result.output());
+                }
             }
             if (_silent != null) {
                 if (_result == null) {
@@ -808,7 +814,10 @@ class CoreTaskContext implements TaskContext {
                     _result = loadedResult;
                 } else {
                     //TODO improve to manage global variable
-                    _localVariables.put(name, loadedResult);
+                    if (this._localVariables == null) {
+                        this._localVariables = new HashMap<String, TaskResult>();
+                    }
+                    this._localVariables.put(name, loadedResult);
                 }
                 return cursor;
             } else {

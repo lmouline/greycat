@@ -327,7 +327,7 @@ public class BaseTaskResult<A> implements TaskResult<A> {
                         Base64.encodeDoubleToBuffer(castedDA[j], buffer);
                     }
                 } else {
-                    throw new RuntimeException("Unsupported yet!");
+                    throw new RuntimeException("Unsupported yet! "+it.getClass());
                 }
             }
         }
@@ -447,71 +447,82 @@ public class BaseTaskResult<A> implements TaskResult<A> {
         int previous = 0;
         int index = 0;
         byte type = -1;
-        while (cursor < buffer.length()) {
-            byte current = buffer.read(cursor);
-            if (current == Constants.CHUNK_SEP) {
-                switch (index) {
-                    case 0:
-                        if (previous != cursor) {
-                            _notifications = graph.newBuffer();
-                            _notifications.writeAll(buffer.slice(previous, cursor - 1));
-                        }
-                        index++;
-                        break;
-                    case 1:
-                        if (previous != cursor) {
-                            _output = Base64.decodeToStringWithBounds(buffer, previous, cursor);
-                        }
-                        index++;
-                        break;
-                    case 2:
-                        if (previous != cursor) {
-                            loadExceptionFromString(Base64.decodeToStringWithBounds(buffer, previous, cursor));
-                        }
-                        index++;
-                        break;
-                    case 3:
-                        int newSize = Base64.decodeToIntWithBounds(buffer, previous, cursor);
-                        allocate(newSize);
-                        _size = newSize;
-                        index++;
-                        break;
-                    default:
+        try {
+            while (cursor < buffer.length()) {
+                byte current = buffer.read(cursor);
+                if (current == Constants.CHUNK_SEP) {
+                    switch (index) {
+                        case 0:
+                            if (previous != cursor) {
+                                _notifications = graph.newBuffer();
+                                _notifications.writeAll(buffer.slice(previous, cursor - 1));
+                            }
+                            index++;
+                            break;
+                        case 1:
+                            if (previous != cursor) {
+                                _output = Base64.decodeToStringWithBounds(buffer, previous, cursor);
+                            }
+                            index++;
+                            break;
+                        case 2:
+                            if (previous != cursor) {
+                                loadExceptionFromString(Base64.decodeToStringWithBounds(buffer, previous, cursor));
+                            }
+                            index++;
+                            break;
+                        case 3:
+                            int newSize = Base64.decodeToIntWithBounds(buffer, previous, cursor);
+                            allocate(newSize);
+                            _size = newSize;
+                            index++;
+                            break;
+                        default:
+                            if (previous == cursor) {
+                                _backend[index - 4] = null;
+                                index++;
+                            } else {
+                                if (type == -1) {
+                                    type = (byte) Base64.decodeToIntWithBounds(buffer, previous, cursor);
+                                } else {
+                                    internal_load_element(buffer, previous, cursor, type, index - 4, collector);
+                                    index++;
+                                    type = -1;
+                                }
+                            }
+                    }
+                    previous = cursor + 1;
+                } else if (current == Constants.BLOCK_CLOSE) {
+                    try {
                         if (previous == cursor) {
                             _backend[index - 4] = null;
-                            index++;
                         } else {
-                            if (type == -1) {
-                                type = (byte) Base64.decodeToIntWithBounds(buffer, previous, cursor);
-                            } else {
+                            if (type != -1) {
                                 internal_load_element(buffer, previous, cursor, type, index - 4, collector);
-                                index++;
-                                type = -1;
                             }
                         }
-                }
-                previous = cursor + 1;
-            } else if (current == Constants.BLOCK_CLOSE) {
-                if (previous == cursor) {
-                    _backend[index - 4] = null;
-                } else {
-                    if (type != -1) {
-                        internal_load_element(buffer, previous, cursor, type, index - 4, collector);
+                    } catch (Throwable t) {
+                        t.printStackTrace();
+                    } finally {
+                        return cursor;
                     }
+                } else if (current == Constants.BLOCK_OPEN && cursor != begin) {
+                    final BaseTaskResult subResult = new BaseTaskResult(null, false);
+                    subResult.load(buffer, cursor, graph, collector);
+                    _backend[index - 4] = subResult;
+                    index++;
                 }
-                return cursor;
-            } else if (current == Constants.BLOCK_OPEN && cursor != begin) {
-                final BaseTaskResult subResult = new BaseTaskResult(null, false);
-                subResult.load(buffer, cursor, graph, collector);
-                _backend[index - 4] = subResult;
-                index++;
+                cursor++;
             }
-            cursor++;
+            if (type != -1) {
+                internal_load_element(buffer, previous, cursor, type, index - 4, collector);
+            }
+            //return cursor;
+        } catch (Throwable t) {
+            t.printStackTrace();
+        } finally {
+            return cursor;
         }
-        if (type != -1) {
-            internal_load_element(buffer, previous, cursor, type, index - 4, collector);
-        }
-        return cursor;
     }
 
     private String toJson(boolean withContent) {
