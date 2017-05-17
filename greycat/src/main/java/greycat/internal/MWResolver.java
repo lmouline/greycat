@@ -21,14 +21,9 @@ import greycat.plugin.NodeFactory;
 import greycat.plugin.NodeState;
 import greycat.plugin.Resolver;
 import greycat.plugin.Storage;
-import greycat.struct.BufferIterator;
-import greycat.struct.LongLongMap;
-import greycat.struct.StringIntMap;
-import greycat.utility.HashHelper;
+import greycat.struct.*;
+import greycat.utility.*;
 import greycat.base.BaseNode;
-import greycat.struct.Buffer;
-import greycat.utility.KeyHelper;
-import greycat.utility.Tuple;
 
 final class MWResolver implements Resolver {
 
@@ -591,111 +586,183 @@ final class MWResolver implements Resolver {
     }
 
     @Override
-    public void lookupTimes(long world, long from, long to, long id, Callback<Node[]> callback) {
+    public void lookupPTimes(long world, long[] times, long id, Callback<Node[]> callback) {
 
-        throw new RuntimeException("Not implemented yet");
+    }
 
-        /*
+    @Override
+    public final void lookupTimes(long world, long rfrom, long rto, long id, int limit, Callback<Node[]> callback) {
         final MWResolver selfPointer = this;
-        try {
-            selfPointer._space.getOrLoadAndMark(ChunkType.WORLD_ORDER_CHUNK, 0, 0, id, new Callback<Chunk>() {
-                @Override
-                public void on(final Chunk theNodeWorldOrder) {
-                    if (theNodeWorldOrder == null) {
-                        callback.on(null);
+        _space.getOrLoadAndMark(ChunkType.WORLD_ORDER_CHUNK, 0, 0, id, new Callback<Chunk>() {
+            @Override
+            public void on(final Chunk resolved) {
+                if (resolved == null) {
+                    callback.on(new Node[0]);
+                    return;
+                }
+                final WorldOrderChunk objectWorldOrder = (WorldOrderChunk) resolved;
+                final long offset = objectWorldOrder.offset();
+                final long from;
+                final long to;
+                final boolean reversed;
+                if (rfrom > rto) {
+                    reversed = true;
+                    from = rto - offset;
+                    to = rfrom - offset;
+                } else {
+                    reversed = false;
+                    from = rfrom - offset;
+                    to = rto - offset;
+                }
+                //worlds collector
+                final LArray worldCollector = new LArray();
+                long currentWorld = world;
+                while (currentWorld != CoreConstants.NULL_LONG) {
+                    long divergenceTimepoint = objectWorldOrder.get(currentWorld);
+                    if (divergenceTimepoint != CoreConstants.NULL_LONG) {
+                        if (divergenceTimepoint <= from) {
+                            //take the first one before leaving
+                            worldCollector.add(currentWorld);
+                            break;
+                        } else if (divergenceTimepoint > to) {
+                            //next round, go to parent world
+                            currentWorld = selfPointer.globalWorldOrderChunk.get(currentWorld);
+                        } else {
+                            //that's fit, add to search
+                            worldCollector.add(currentWorld);
+                            //go to parent
+                            currentWorld = selfPointer.globalWorldOrderChunk.get(currentWorld);
+                        }
                     } else {
-*/
-
-
-                        /*
-                        final long closestWorld = selfPointer.resolve_world(globalWorldOrderChunk, (WorldOrderChunk) theNodeWorldOrder, time, world);
-                        selfPointer._space.getOrLoadAndMark(ChunkType.TIME_TREE_CHUNK, closestWorld, Constants.NULL_LONG, id, new Callback<Chunk>() {
-                            @Override
-                            public void on(final Chunk theNodeSuperTimeTree) {
-                                if (theNodeSuperTimeTree == null) {
-                                    selfPointer._space.unmark(theNodeWorldOrder.index());
-                                    callback.on(null);
-                                } else {
-                                    final long closestSuperTime = ((TimeTreeChunk) theNodeSuperTimeTree).previousOrEqual(time);
-                                    if (closestSuperTime == Constants.NULL_LONG) {
-                                        selfPointer._space.unmark(theNodeSuperTimeTree.index());
-                                        selfPointer._space.unmark(theNodeWorldOrder.index());
-                                        callback.on(null);
-                                        return;
-                                    }
-                                    selfPointer._space.getOrLoadAndMark(ChunkType.TIME_TREE_CHUNK, closestWorld, closestSuperTime, id, new Callback<Chunk>() {
+                        //go to parent
+                        currentWorld = selfPointer.globalWorldOrderChunk.get(currentWorld);
+                    }
+                }
+                if (worldCollector.size() == 0) {
+                    callback.on(new Node[0]);
+                    return;
+                }
+                final long[] call_keys = new long[worldCollector.size() * 3];
+                final byte[] call_types = new byte[worldCollector.size()];
+                for (int i = 0; i < worldCollector.size(); i++) {
+                    call_types[i] = ChunkType.SUPER_TIME_TREE_CHUNK;
+                    call_keys[i * Constants.KEY_SIZE] = worldCollector.get(i);
+                    call_keys[(i * Constants.KEY_SIZE) + 1] = 0;
+                    call_keys[(i * Constants.KEY_SIZE) + 2] = id;
+                }
+                getOrLoadAndMarkAll(call_types, call_keys, new Callback<Chunk[]>() {
+                    @Override
+                    public void on(final Chunk[] superTimeTrees) {
+                        if (superTimeTrees == null) {
+                            selfPointer._space.unmark(objectWorldOrder.index());
+                            callback.on(new Node[0]);
+                        } else {
+                            //time collector
+                            final LMap superTimeCollector = new LMap(true);
+                            final LMap superTimeCollectorCapacity = new LMap(true);
+                            long previousDivergenceTime = to;
+                            for (int i = 0; i < worldCollector.size(); i++) {
+                                final SuperTimeTreeChunk timeTree = (SuperTimeTreeChunk) superTimeTrees[i];
+                                if (timeTree != null) {
+                                    long currentDivergenceTime = objectWorldOrder.get(worldCollector.get(i));
+                                    final long finalPreviousDivergenceTime = previousDivergenceTime;
+                                    int finalI = i;
+                                    timeTree.range(currentDivergenceTime, previousDivergenceTime, CoreConstants.END_OF_TIME, new SuperTreeWalker() {
                                         @Override
-                                        public void on(final Chunk theNodeTimeTree) {
-                                            if (theNodeTimeTree == null) {
-                                                selfPointer._space.unmark(theNodeSuperTimeTree.index());
-                                                selfPointer._space.unmark(theNodeWorldOrder.index());
-                                                callback.on(null);
-                                            } else {
-                                                final long closestTime = ((TimeTreeChunk) theNodeTimeTree).previousOrEqual(time);
-                                                if (closestTime == Constants.NULL_LONG) {
-                                                    selfPointer._space.unmark(theNodeTimeTree.index());
-                                                    selfPointer._space.unmark(theNodeSuperTimeTree.index());
-                                                    selfPointer._space.unmark(theNodeWorldOrder.index());
-                                                    callback.on(null);
-                                                    return;
-                                                }
-                                                selfPointer._space.getOrLoadAndMark(STATE_CHUNK, closestWorld, closestTime, id, new Callback<Chunk>() {
-                                                    @Override
-                                                    public void on(Chunk theObjectChunk) {
-                                                        if (theObjectChunk == null) {
-                                                            selfPointer._space.unmark(theNodeTimeTree.index());
-                                                            selfPointer._space.unmark(theNodeSuperTimeTree.index());
-                                                            selfPointer._space.unmark(theNodeWorldOrder.index());
-                                                            callback.on(null);
-                                                        } else {
-                                                            WorldOrderChunk castedNodeWorldOrder = (WorldOrderChunk) theNodeWorldOrder;
-                                                            long extraCode = castedNodeWorldOrder.extra();
-                                                            NodeFactory resolvedFactory = null;
-                                                            if (extraCode != Constants.NULL_LONG) {
-                                                                resolvedFactory = ((CoreGraph) selfPointer._graph).factoryByCode(extraCode);
-                                                            }
-                                                            BaseNode resolvedNode;
-                                                            if (resolvedFactory == null) {
-                                                                resolvedNode = new CoreNode(world, time, id, selfPointer._graph);
-                                                            } else {
-                                                                resolvedNode = (BaseNode) resolvedFactory.create(world, time, id, selfPointer._graph);
-                                                            }
-                                                            resolvedNode._dead = false;
-                                                            resolvedNode._index_stateChunk = theObjectChunk.index();
-                                                            resolvedNode._index_superTimeTree = theNodeSuperTimeTree.index();
-                                                            resolvedNode._index_timeTree = theNodeTimeTree.index();
-                                                            resolvedNode._index_worldOrder = theNodeWorldOrder.index();
+                                        public void elem(final long superTime, final long superCapacity) {
+                                            if (superTime != finalPreviousDivergenceTime) {
+                                                superTimeCollector.put(superTime, finalI);
+                                                superTimeCollectorCapacity.put(superTime, finalI);
+                                            }
+                                        }
+                                    });
+                                    previousDivergenceTime = currentDivergenceTime;
+                                }
+                            }
+                            //now we should select SuperTimePoints according to needed capacity
 
-                                                            if (closestWorld == world && closestTime == time) {
-                                                                resolvedNode._world_magic = -1;
-                                                                resolvedNode._super_time_magic = -1;
-                                                                resolvedNode._time_magic = -1;
-                                                            } else {
-                                                                resolvedNode._world_magic = ((WorldOrderChunk) theNodeWorldOrder).magic();
-                                                                resolvedNode._super_time_magic = ((TimeTreeChunk) theNodeSuperTimeTree).magic();
-                                                                resolvedNode._time_magic = ((TimeTreeChunk) theNodeTimeTree).magic();
-                                                            }
-                                                            //selfPointer._tracker.monitor(resolvedNode);
-                                                            if (callback != null) {
-                                                                final Node casted = resolvedNode;
-                                                                callback.on((A) casted);
+                            final LArray filteredSuperTimeCollector = new LArray();
+                            final int sumCapacity = 0;
+                            if (reversed) {
+
+                            }
+
+
+                            final long[] call_keys2 = new long[superTimeCollector.size() * 3];
+                            final byte[] call_types2 = new byte[superTimeCollector.size()];
+                            for (int i = 0; i < superTimeCollector.size(); i++) {
+                                call_keys2[i * 3] = worldCollector.get((int) superTimeCollector.getValue(i));
+                                call_keys2[i * 3 + 1] = superTimeCollector.getValue(i);
+                                call_keys2[i * 3 + 2] = id;
+                                call_types2[i] = ChunkType.TIME_TREE_CHUNK;
+                            }
+                            getOrLoadAndMarkAll(call_types2, call_keys2, new Callback<Chunk[]>() {
+                                @Override
+                                public void on(final Chunk[] timeTrees) {
+                                    if (timeTrees == null) {
+                                        selfPointer._space.unmark(objectWorldOrder.index());
+                                        callback.on(new long[0]);
+                                    } else {
+                                        //time collector
+                                        final int[] collectedTimesSize = {CoreConstants.MAP_INITIAL_CAPACITY};
+                                        final long[][] collectedTimes = {new long[collectedTimesSize[0]]};
+                                        final int[] insert_index = {0};
+                                        long previousDivergenceTime = (endOfSearch - offset);
+                                        for (int i = 0; i < collectedSize; i++) {
+                                            final TimeTreeChunk timeTree = (TimeTreeChunk) timeTrees[i];
+                                            if (timeTree != null) {
+                                                long currentDivergenceTime = objectWorldOrder.get(collectedWorlds[i]);
+                                                if (currentDivergenceTime < (beginningOfSearch - offset)) {
+                                                    currentDivergenceTime = (beginningOfSearch - offset);
+                                                }
+                                                final long finalPreviousDivergenceTime = previousDivergenceTime;
+                                                timeTree.range(currentDivergenceTime, previousDivergenceTime, CoreConstants.END_OF_TIME, new TreeWalker() {
+                                                    @Override
+                                                    public void elem(long t) {
+                                                        if (t != finalPreviousDivergenceTime) {
+                                                            collectedTimes[0][insert_index[0]] = t;
+                                                            insert_index[0]++;
+                                                            if (collectedTimesSize[0] == insert_index[0]) {
+                                                                //reallocate
+                                                                long[] temp_collectedTimes = new long[collectedTimesSize[0] * 2];
+                                                                System.arraycopy(collectedTimes[0], 0, temp_collectedTimes, 0, collectedTimesSize[0]);
+                                                                collectedTimes[0] = temp_collectedTimes;
+                                                                collectedTimesSize[0] = collectedTimesSize[0] * 2;
                                                             }
                                                         }
                                                     }
                                                 });
+                                                if (i < collectedSize - 1) {
+                                                    if (collectedWorlds[i + 1] != collectedWorlds[i]) {
+                                                        //world overriding semantic
+                                                        previousDivergenceTime = currentDivergenceTime;
+                                                    }
+                                                }
+                                                selfPointer._space.unmark(timeTree.index());
                                             }
                                         }
-                                    });
+                                        //now we have times
+                                        if (insert_index[0] != collectedTimesSize[0]) {
+                                            long[] tempTimeline = new long[insert_index[0]];
+                                            System.arraycopy(collectedTimes[0], 0, tempTimeline, 0, insert_index[0]);
+                                            collectedTimes[0] = tempTimeline;
+                                        }
+                                        selfPointer._space.unmark(objectWorldOrder.index());
+                                        callback.on(collectedTimes[0]);
+                                    }
                                 }
-                            }
-                        });*/
-                   /* }
-                }
-            });
-        } catch (Exception e) {
-            e.printStackTrace();
-        }*/
+                            });
+                        }
+                    }
+                });
+            }
+        });
     }
+
+    private void internal_resolve_times_chunks(final long id, final long startWorld, final Callback<LArray> callback) {
+
+    }
+
 
     private long resolve_world(final LongLongMap globalWorldOrder, final LongLongMap nodeWorldOrder, final long timeToResolve, long originWorld) {
         if (globalWorldOrder == null || nodeWorldOrder == null) {
@@ -812,7 +879,6 @@ final class MWResolver implements Resolver {
     }
 
     /*
-
     @Override
     public NodeState newState(Node node, long world, long time) {
         //Retrieve Node needed chunks
@@ -1290,6 +1356,10 @@ final class MWResolver implements Resolver {
 
     @Override
     public void resolveTimepoints(final Node node, final long beginningOfSearch, final long endOfSearch, final Callback<long[]> callback) {
+        internal_resolveTimepoints(node, beginningOfSearch, endOfSearch, callback);
+    }
+
+    private void internal_resolveTimepoints(final Node node, final long beginningOfSearch, final long endOfSearch, final Callback<long[]> callback) {
         final MWResolver selfPointer = this;
         _space.getOrLoadAndMark(ChunkType.WORLD_ORDER_CHUNK, 0, 0, node.id(), new Callback<Chunk>() {
             @Override
@@ -1308,12 +1378,12 @@ final class MWResolver implements Resolver {
                 while (currentWorld != CoreConstants.NULL_LONG) {
                     long divergenceTimepoint = objectWorldOrder.get(currentWorld);
                     if (divergenceTimepoint != CoreConstants.NULL_LONG) {
-                        if (divergenceTimepoint <= (beginningOfSearch-offset)) {
+                        if (divergenceTimepoint <= (beginningOfSearch - offset)) {
                             //take the first one before leaving
                             collectedWorlds[0][collectedIndex] = currentWorld;
                             collectedIndex++;
                             break;
-                        } else if (divergenceTimepoint > (endOfSearch-offset)) {
+                        } else if (divergenceTimepoint > (endOfSearch - offset)) {
                             //next round, go to parent world
                             currentWorld = selfPointer.globalWorldOrderChunk.get(currentWorld);
                         } else {
@@ -1340,6 +1410,7 @@ final class MWResolver implements Resolver {
             }
         });
     }
+
 
     private void resolveTimepointsFromWorlds(final WorldOrderChunk objectWorldOrder, final Node node, final long offset, final long beginningOfSearch, final long endOfSearch, final long[] collectedWorlds, final int collectedWorldsSize, final Callback<long[]> callback) {
         final MWResolver selfPointer = this;

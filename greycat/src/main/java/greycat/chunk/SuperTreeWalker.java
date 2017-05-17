@@ -15,36 +15,9 @@
  */
 package greycat.chunk;
 
-public interface SuperTimeTreeChunk extends Chunk {
+@FunctionalInterface
+public interface SuperTreeWalker {
 
-    void insert(long key, long value);
-
-    void unsafe_insert(long key, long value);
-
-    long previousOrEqual(long key);
-
-    void range(long startKey, long endKey, long maxElements, SuperTreeWalker walker);
-
-    long magic();
-
-    long subTreeCapacity();
-
-    long previous(long key);
-
-    long next(long key);
-
-    long end();
-
-    void setEnd(long v);
-
-    int size();
-
-    long timeSensitivity();
-
-    void setTimeSensitivity(long v);
-
-    long timeSensitivityOffset();
-
-    void setTimeSensitivityOffset(long v);
+    void elem(long time, long capacity);
 
 }

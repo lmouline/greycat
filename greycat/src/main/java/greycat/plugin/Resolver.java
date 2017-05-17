@@ -77,10 +77,12 @@ public interface Resolver {
 
     void lookupBatch(long worlds[], long times[], long[] ids, Callback<Node[]> callback);
 
-    void lookupTimes(long world, long from, long to, long id, Callback<Node[]> callback);
+    void lookupPTimes(long world, long[] times, long id, Callback<Node[]> callback);
 
     void lookupAll(long world, long time, long ids[], Callback<Node[]> callback);
-    
+
+    void lookupTimes(long world, long rfrom, long rto, long id, int limit, Callback<Node[]> callback);
+
     /**
      * Resolves the state of a node, to access attributes, relations, and indexes.
      *

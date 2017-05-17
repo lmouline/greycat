@@ -18,6 +18,7 @@ package greycat.internal.heap;
 import greycat.Constants;
 import greycat.chunk.ChunkType;
 import greycat.chunk.SuperTimeTreeChunk;
+import greycat.chunk.SuperTreeWalker;
 import greycat.chunk.TreeWalker;
 import greycat.internal.CoreConstants;
 import greycat.struct.Buffer;
@@ -125,12 +126,12 @@ public class HeapSuperTimeTreeChunk implements SuperTimeTreeChunk {
     }
 
     @Override
-    public synchronized final void range(final long startKey, final long endKey, final long maxElements, final TreeWalker walker) {
+    public synchronized final void range(final long startKey, final long endKey, final long maxElements, final SuperTreeWalker walker) {
         //lock and load fromVar main memory
         int nbElements = 0;
         int indexEnd = internal_previousOrEqual_index(endKey);
         while (indexEnd != -1 && key(indexEnd) >= startKey && nbElements < maxElements) {
-            walker.elem(key(indexEnd));
+            walker.elem(_keys[indexEnd], _values[indexEnd]);
             nbElements++;
             indexEnd = internal_previous(indexEnd);
         }
