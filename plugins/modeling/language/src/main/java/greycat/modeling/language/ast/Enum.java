@@ -13,7 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package greycat.modeling.language;
+package greycat.modeling.language.ast;
 
-public interface Relation extends Property {
+import java.util.Set;
+import java.util.TreeSet;
+
+public class Enum implements Classifier {
+    private final String name;
+    private final Set<String> literals;
+
+    public Enum(String p_name) {
+        name = p_name;
+        literals = new TreeSet<String>();
+    }
+
+    public String[] literals() {
+        return literals.toArray(new String[literals.size()]);
+    }
+
+    public void addLiteral(String value) {
+        literals.add(value);
+    }
+
+    @Override
+    public String name() {
+        return name;
+    }
 }

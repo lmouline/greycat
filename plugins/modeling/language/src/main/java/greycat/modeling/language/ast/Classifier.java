@@ -13,14 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package greycat.modeling.language;
+package greycat.modeling.language.ast;
+
 
 public interface Classifier {
 
     String name();
-//    String fqn();
-
-//    String pack();
-//    String formatPack();
-
 }

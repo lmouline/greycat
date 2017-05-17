@@ -13,32 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package greycat.modeling.language.impl;
+package greycat.modeling.language.ast;
 
-
-import greycat.modeling.language.Property;
-import greycat.modeling.language.Class;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class ClassImpl extends AbstractClassifier implements Class {
-
+public class Class implements Classifier {
+    private final String name;
     private final Map<String, Property> properties;
 
     private Class parent;
 
-    public ClassImpl(String p_name) {
-        super(p_name);
+    public Class(String p_name) {
+        name = p_name;
         properties = new HashMap<String, Property>();
     }
 
-    @Override
     public Property[] properties() {
         return properties.values().toArray(new Property[properties.size()]);
     }
 
-    @Override
     public Property property(String name) {
         for (Property property : properties()) {
             if (property.name().equals(name)) {
@@ -48,19 +43,20 @@ public class ClassImpl extends AbstractClassifier implements Class {
         return null;
     }
 
-    @Override
     public void addProperty(Property property) {
         properties.put(property.name(), property);
     }
 
-    @Override
     public Class parent() {
         return parent;
     }
 
-    @Override
     public void setParent(Class parent) {
         this.parent = parent;
     }
 
+    @Override
+    public String name() {
+        return name;
+    }
 }

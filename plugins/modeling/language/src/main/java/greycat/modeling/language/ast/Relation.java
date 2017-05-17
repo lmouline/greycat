@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package greycat.modeling.language;
+package greycat.modeling.language.ast;
 
-public interface Property extends Comparable {
 
-    String name();
-
-    String type();
+public class Relation extends Property {
+    public Relation(String name, String type) {
+        super(name, type);
+    }
 }

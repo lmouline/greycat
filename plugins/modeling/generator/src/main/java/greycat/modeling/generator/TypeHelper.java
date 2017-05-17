@@ -16,8 +16,8 @@
 package greycat.modeling.generator;
 
 import greycat.Type;
-import greycat.modeling.language.Attribute;
-import greycat.modeling.language.Relation;
+import greycat.modeling.language.ast.Attribute;
+import greycat.modeling.language.ast.Relation;
 import greycat.struct.DoubleArray;
 import greycat.struct.IntArray;
 import greycat.struct.LongArray;
@@ -47,7 +47,7 @@ class TypeHelper {
                 //todo
         }
 
-        if(attribute.isArray()) {
+        if (attribute.isArray()) {
             typeBuilder.append("_ARRAY");
         }
 
@@ -55,7 +55,7 @@ class TypeHelper {
     }
 
     static byte type(final Attribute attribute) {
-        if(attribute.isArray()) {
+        if (attribute.isArray()) {
             switch (attribute.type()) {
                 case "String":
                     return Type.STRING_ARRAY;
@@ -92,7 +92,7 @@ class TypeHelper {
     }
 
     static String typeToClassName(final Attribute attribute) {
-        if(attribute.isArray()) {
+        if (attribute.isArray()) {
             switch (attribute.type()) {
                 case "String":
                     return StringArray.class.getName();
@@ -135,9 +135,6 @@ class TypeHelper {
 //        int lastPoint = relation.type().lastIndexOf(".");
 //        return relation.type().substring(0,lastPoint).toLowerCase() + relation.type().substring(lastPoint);
     }
-
-
-
 
 
 }

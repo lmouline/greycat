@@ -13,12 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package greycat.modeling.language;
+package greycat.modeling.language.ast;
 
-public interface Attribute extends Property {
-    boolean isArray();
+import java.util.HashSet;
+import java.util.Set;
 
-    Index[] indexes();
-    void addIndex(Index index);
+public class Attribute extends Property {
+    private final boolean isArray;
+    private final Set<Index> indexes;
 
+    public Attribute(String name, String type, boolean isArray) {
+        super(name, type);
+        this.isArray = isArray;
+        this.indexes = new HashSet<>();
+    }
+
+    public boolean isArray() {
+        return isArray;
+    }
+
+    public Index[] indexes() {
+        return indexes.toArray(new Index[indexes.size()]);
+    }
+
+    public void addIndex(Index index) {
+        indexes.add(index);
+    }
 }

@@ -16,10 +16,12 @@
 package greycat.modeling.generator;
 
 import greycat.Graph;
-import greycat.modeling.language.Class;
+import greycat.modeling.language.ast.Classifier;
+import greycat.modeling.language.ast.Class;
+import greycat.modeling.language.ast.Index;
+import greycat.modeling.language.ast.TypedGraph;
 import greycat.plugin.NodeFactory;
 import greycat.plugin.Plugin;
-import greycat.modeling.language.*;
 import org.jboss.forge.roaster.Roaster;
 import org.jboss.forge.roaster.model.Visibility;
 import org.jboss.forge.roaster.model.source.JavaClassSource;
@@ -38,8 +40,8 @@ class PluginClassGenerator {
         pluginClass.addInterface(Plugin.class);
 
 
-        for(int i=0;i<graph.classifiers().length;i++) {
-            if(graph.classifiers()[i] instanceof Index) {
+        for (int i = 0; i < graph.classifiers().length; i++) {
+            if (graph.classifiers()[i] instanceof Index) {
                 Index casted = (Index) graph.classifiers()[i];
                 pluginClass.addField()
                         .setVisibility(Visibility.PUBLIC)
@@ -52,10 +54,10 @@ class PluginClassGenerator {
 
                 StringBuilder initArrayAtt = new StringBuilder();
                 initArrayAtt.append("new String[]{");
-                for(int j=0;j<casted.properties().length;j++) {
+                for (int j = 0; j < casted.properties().length; j++) {
                     initArrayAtt.append(casted.type().name() + "." + casted.properties()[j].name().toUpperCase());
 
-                    if(j < casted.properties().length - 1) {
+                    if (j < casted.properties().length - 1) {
                         initArrayAtt.append(",");
                     }
                 }
@@ -97,7 +99,7 @@ class PluginClassGenerator {
                 .addAnnotation(Override.class);
         startMethod.setBody(startBodyBuilder.toString());
         startMethod.setName("start");
-        startMethod.addParameter("Graph","graph");
+        startMethod.addParameter("Graph", "graph");
 
         return pluginClass;
     }

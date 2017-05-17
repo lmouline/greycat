@@ -16,9 +16,8 @@
 package greycat.modeling.generator;
 
 import com.intellij.openapi.util.io.FileUtil;
-import greycat.modeling.language.TypedGraph;
 import greycat.modeling.language.TypedGraphBuilder;
-import greycat.modeling.language.impl.TypedGraphImpl;
+import greycat.modeling.language.ast.TypedGraph;
 import java2typescript.SourceTranslator;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.project.MavenProject;
@@ -35,13 +34,13 @@ public class APIGenerator {
     private final TypedGraph graph;
 
     public APIGenerator() {
-        this.graph = new TypedGraphImpl();
+        this.graph = new TypedGraph();
     }
 
     public void scan(File target) throws Exception {
-        if(target.isDirectory()) {
+        if (target.isDirectory()) {
             String[] everythingInThisDir = target.list();
-            if(everythingInThisDir == null) {
+            if (everythingInThisDir == null) {
                 //todo error
             } else {
                 for (String name : everythingInThisDir) {
@@ -51,7 +50,7 @@ public class APIGenerator {
                 }
             }
 
-        } else if(target.getName().endsWith(FILE_EXTENSION)) {
+        } else if (target.getName().endsWith(FILE_EXTENSION)) {
             TypedGraphBuilder.parse(target, graph);
         } else {
             //todo error
@@ -59,9 +58,9 @@ public class APIGenerator {
     }
 
     public void deepScan(File target) throws Exception {
-        if(target.isDirectory()) {
+        if (target.isDirectory()) {
             String[] everythingInThisDir = target.list();
-            if(everythingInThisDir == null) {
+            if (everythingInThisDir == null) {
                 //todo error
             } else {
                 for (String name : everythingInThisDir) {
@@ -76,8 +75,8 @@ public class APIGenerator {
                 }
             }
 
-        } else if(target.getName().endsWith(FILE_EXTENSION)) {
-            TypedGraphBuilder.parse(target,graph);
+        } else if (target.getName().endsWith(FILE_EXTENSION)) {
+            TypedGraphBuilder.parse(target, graph);
         }
     }
 
@@ -91,7 +90,7 @@ public class APIGenerator {
         System.arraycopy(nodeTypes, 0, sources, index, nodeTypes.length);
         index += nodeTypes.length;
 
-        JavaSource[] tasksApi = TaskApiGenerator.generate(packageName, graph);
+        JavaSource[] tasksApi = TaskAPIGenerator.generate(packageName, graph);
         System.arraycopy(tasksApi, 0, sources, index, tasksApi.length);
         index += tasksApi.length;
 
@@ -121,7 +120,7 @@ public class APIGenerator {
         // Generate TS
         SourceTranslator transpiler = new SourceTranslator(Arrays.asList(target.getAbsolutePath()), target.getAbsolutePath() + "ts", packageName);
 
-        if(mvnProject != null) {
+        if (mvnProject != null) {
             for (Artifact a : mvnProject.getArtifacts()) {
                 File file = a.getFile();
                 if (file != null) {
@@ -141,7 +140,7 @@ public class APIGenerator {
 
         File tsGen = new File(target.getAbsolutePath() + "ts/" + packageName + ".ts");
         try {
-            FileUtil.writeToFile(tsGen,("export = " + packageName).getBytes(),true);
+            FileUtil.writeToFile(tsGen, ("export = " + packageName).getBytes(), true);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -155,7 +154,7 @@ public class APIGenerator {
                 "    \"sourceMap\": true,\n" +
                 "    \"target\": \"es5\",\n" +
                 "    \"declaration\": true,\n" +
-                "    \"outDir\": \"../" +target.getName() + "js/" + packageName + "\"\n" +
+                "    \"outDir\": \"../" + target.getName() + "js/" + packageName + "\"\n" +
                 "  },\n" +
                 "  \"files\": [\n" +
                 "    \"" + packageName + ".ts\"\n" +
@@ -166,14 +165,14 @@ public class APIGenerator {
         try {
             File tsConfig = new File(target.getAbsolutePath() + "ts/tsconfig.json");
             tsConfig.createNewFile();
-            FileUtil.writeToFile(tsConfig,tsConfigContent);
+            FileUtil.writeToFile(tsConfig, tsConfigContent);
         } catch (IOException e) {
             e.printStackTrace();
         }
 
 
         boolean isSnaphot = (gcVersion.contains("SNAPSHOT"));
-        gcVersion = isSnaphot?  "./greycat" : "^" + gcVersion + ".0.0";
+        gcVersion = isSnaphot ? "./greycat" : "^" + gcVersion + ".0.0";
 
         String packageJsonContent = "{\n" +
                 "  \"name\": \"" + packageName + "\",\n" +
@@ -182,7 +181,7 @@ public class APIGenerator {
                 "  \"main\": \"main.js\",\n" +
                 "  \"author\": \"\",\n" +
                 "  \"dependencies\": {\n" +
-                "    \"greycat\": \"" +  gcVersion+ "\"\n" +
+                "    \"greycat\": \"" + gcVersion + "\"\n" +
                 "  },\n" +
                 "  \"devDependencies\": {\n" +
                 "    \"typescript\": \"^2.1.5\"\n" +
@@ -191,7 +190,7 @@ public class APIGenerator {
         try {
             File packageJson = new File(target.getAbsolutePath() + "ts/package.json");
             packageJson.createNewFile();
-            FileUtil.writeToFile(packageJson,packageJsonContent);
+            FileUtil.writeToFile(packageJson, packageJsonContent);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -200,16 +199,16 @@ public class APIGenerator {
         // Generate a base of NPM project
         File npmProject = new File(target.getAbsolutePath() + "js");
         npmProject.mkdirs();
-        File mainJS = new File(npmProject,"main.js");
-        File packageJson2 = new File(npmProject,"package.json");
+        File mainJS = new File(npmProject, "main.js");
+        File packageJson2 = new File(npmProject, "package.json");
 
         File npmModule = new File(npmProject.getAbsolutePath() + "/" + packageName);
         npmModule.mkdirs();
-        File packageJson3 = new File(npmModule,"package.json");
+        File packageJson3 = new File(npmModule, "package.json");
 
         try {
             mainJS.createNewFile();
-            FileUtil.writeToFile(mainJS,"var greycat = require(\"greycat\");\n" +
+            FileUtil.writeToFile(mainJS, "var greycat = require(\"greycat\");\n" +
                     "var " + packageName + " = require(\"" + packageName + "\");\n" +
                     "\n" +
                     "var builder = new greycat.GraphBuilder().withPlugin(new " + packageName + "." + pluginName + "());\n" +
@@ -220,7 +219,7 @@ public class APIGenerator {
                     "});");
 
             packageJson2.createNewFile();
-            FileUtil.writeToFile(packageJson2,"{\n" +
+            FileUtil.writeToFile(packageJson2, "{\n" +
                     "  \"name\": \"" + packageName + "\",\n" +
                     "  \"version\": \"1.0.0\",\n" +
                     "  \"description\": \"\",\n" +
@@ -233,35 +232,35 @@ public class APIGenerator {
                     "}");
 
             packageJson3.createNewFile();
-            FileUtil.writeToFile(packageJson3,"{\n" +
+            FileUtil.writeToFile(packageJson3, "{\n" +
                     "  \"name\": \"smarthome\",\n" +
                     "  \"description\": \"TypedGraph\",\n" +
                     "  \"version\": \"1.0.0\",\n" +
                     "  \"main\": \"smarthome.js\",\n" +
                     "  \"typings\": \"smarthome.d.ts\",\n" +
                     "  \"dependencies\": {\n" +
-                    "    \"greycat\": \"" + gcVersion +"\"\n" +
+                    "    \"greycat\": \"" + gcVersion + "\"\n" +
                     "  }\n" +
                     "}");
         } catch (IOException e) {
             e.printStackTrace();
         }
 
-        if(!isSnaphot) {
+        if (!isSnaphot) {
             File workingDFir = new File(target.getAbsolutePath() + "ts");
 
             // Install required package in TS
-            ProcessBuilder processBuilder = new ProcessBuilder("npm","install");
+            ProcessBuilder processBuilder = new ProcessBuilder("npm", "install");
             processBuilder.directory(workingDFir);
             processBuilder.inheritIO();
 
             // Run TSC
-            ProcessBuilder processBuilder2 = new ProcessBuilder("node","node_modules/typescript/lib/tsc.js");
+            ProcessBuilder processBuilder2 = new ProcessBuilder("node", "node_modules/typescript/lib/tsc.js");
             processBuilder2.directory(workingDFir);
             processBuilder2.inheritIO();
 
             //Intsall required packaged in JS project
-            ProcessBuilder processBuilder3 = new ProcessBuilder("npm","install");
+            ProcessBuilder processBuilder3 = new ProcessBuilder("npm", "install");
             processBuilder3.directory(npmProject);
             processBuilder3.inheritIO();
 
@@ -279,41 +278,41 @@ public class APIGenerator {
     }
 
     public void mvnGenerate(String packageName, String pluginName, File target, boolean generateJava, boolean generateJS, String gcVersion, MavenProject project) {
-        if(generateJava || generateJS) {
-            generateJava(packageName,pluginName,target);
+        if (generateJava || generateJS) {
+            generateJava(packageName, pluginName, target);
         }
 
-        if(generateJS) {
-            generateJS(packageName,pluginName,target,gcVersion, project);
+        if (generateJS) {
+            generateJS(packageName, pluginName, target, gcVersion, project);
         }
     }
 
 
     public void generate(String packageName, String pluginName, File target, boolean generateJava, boolean generateJS, String gcVersion) {
-        if(generateJava || generateJS) {
-            generateJava(packageName,pluginName,target);
+        if (generateJava || generateJS) {
+            generateJava(packageName, pluginName, target);
         }
 
-        if(generateJS) {
-            generateJS(packageName,pluginName,target,gcVersion,null);
+        if (generateJS) {
+            generateJS(packageName, pluginName, target, gcVersion, null);
         }
     }
 
 
     private void addToTransClassPath(SourceTranslator transpiler) {
         String classPath = System.getProperty("java.class.path");
-        int index=0;
+        int index = 0;
         boolean finish = false;
-        while(index < classPath.length() && !finish) {
-            if(classPath.charAt(index) == ':') {
+        while (index < classPath.length() && !finish) {
+            if (classPath.charAt(index) == ':') {
                 int slashIdx = index;
-                while(slashIdx >= 0 && !finish) {
-                    if(classPath.charAt(slashIdx) == '/') {
-                        if(slashIdx+7 < index && classPath.charAt(slashIdx + 1) == 'g' && classPath.charAt(slashIdx + 2) == 'r' && classPath.charAt(slashIdx + 3) == 'e'
-                                && classPath.charAt(slashIdx + 4) == 'y' && classPath.charAt(slashIdx + 5) == 'c' && classPath.charAt(slashIdx + 6) == 'a' &&  classPath.charAt(slashIdx + 7) == 't') {
-                            while(slashIdx >= 0 && !finish) {
-                                if(classPath.charAt(slashIdx) == ':') {
-                                    transpiler.addToClasspath(classPath.substring(slashIdx + 1,index));
+                while (slashIdx >= 0 && !finish) {
+                    if (classPath.charAt(slashIdx) == '/') {
+                        if (slashIdx + 7 < index && classPath.charAt(slashIdx + 1) == 'g' && classPath.charAt(slashIdx + 2) == 'r' && classPath.charAt(slashIdx + 3) == 'e'
+                                && classPath.charAt(slashIdx + 4) == 'y' && classPath.charAt(slashIdx + 5) == 'c' && classPath.charAt(slashIdx + 6) == 'a' && classPath.charAt(slashIdx + 7) == 't') {
+                            while (slashIdx >= 0 && !finish) {
+                                if (classPath.charAt(slashIdx) == ':') {
+                                    transpiler.addToClasspath(classPath.substring(slashIdx + 1, index));
                                     finish = true;
                                 }
                                 slashIdx--;

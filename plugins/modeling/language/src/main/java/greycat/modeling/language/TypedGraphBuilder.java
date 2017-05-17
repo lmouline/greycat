@@ -16,7 +16,9 @@
 package greycat.modeling.language;
 
 
-import greycat.modeling.language.impl.*;
+import greycat.modeling.language.ast.*;
+import greycat.modeling.language.ast.Class;
+import greycat.modeling.language.ast.Enum;
 import org.antlr.v4.runtime.ANTLRFileStream;
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.BufferedTokenStream;
@@ -27,15 +29,18 @@ import java.io.File;
 
 public class TypedGraphBuilder {
 
+/*
     public static TypedGraph parse(String content) {
-        TypedGraph typedGraph = new TypedGraphImpl();
+        TypedGraph typedGraph = new TypedGraph();
         return build(new ANTLRInputStream(content), typedGraph);
     }
 
     public static TypedGraph parse(File content) throws Exception {
-        TypedGraph typedGraph = new TypedGraphImpl();
+        TypedGraph typedGraph = new TypedGraph();
         return build(new ANTLRFileStream(content.getAbsolutePath()), typedGraph);
     }
+*/
+
 
     public static TypedGraph parse(File content, TypedGraph typedGraph) throws Exception {
         return build(new ANTLRFileStream(content.getAbsolutePath()), typedGraph);
@@ -70,15 +75,15 @@ public class TypedGraphBuilder {
             if (classDeclrContext.IDENT() != null) {
                 classFqn = classDeclrContext.IDENT().toString();
             }
-            final greycat.modeling.language.Class newClass = (greycat.modeling.language.Class) getOrAddClass(typedGraph, classFqn);
+            final Class newClass = (Class) getOrAddClass(typedGraph, classFqn);
             //process parents
             if (classDeclrContext.parentsDeclr() != null) {
                 if (classDeclrContext.parentsDeclr().TYPE_NAME() != null) {
-                    final greycat.modeling.language.Class newClassTT = (greycat.modeling.language.Class) getOrAddClass(typedGraph, classDeclrContext.parentsDeclr().TYPE_NAME().toString());
+                    final Class newClassTT = (Class) getOrAddClass(typedGraph, classDeclrContext.parentsDeclr().TYPE_NAME().toString());
                     newClass.setParent(newClassTT);
                 }
                 if (classDeclrContext.parentsDeclr().IDENT() != null) {
-                    final greycat.modeling.language.Class newClassTT = (greycat.modeling.language.Class) getOrAddClass(typedGraph, classDeclrContext.parentsDeclr().IDENT().toString());
+                    final Class newClassTT = (Class) getOrAddClass(typedGraph, classDeclrContext.parentsDeclr().IDENT().toString());
                     newClass.setParent(newClassTT);
                 }
             }
@@ -92,7 +97,7 @@ public class TypedGraphBuilder {
                     isArray = true;
                 }
 
-                final Attribute attribute = new AttributeImpl(name, value,isArray);
+                final Attribute attribute = new Attribute(name, value,isArray);
                 newClass.addProperty(attribute);
             }
             for (greycat.modeling.language.GreyCatModelParser.RelationDeclarationContext relDecl : classDeclrContext.relationDeclaration()) {
@@ -103,7 +108,7 @@ public class TypedGraphBuilder {
                 } else {
                     type = relDecl.TYPE_NAME().toString();
                 }
-                final Relation relation = new RelationImpl(name, type);
+                final Relation relation = new Relation(name, type);
                 newClass.addProperty(relation);
             }
         }
@@ -116,7 +121,7 @@ public class TypedGraphBuilder {
             } else {
                 type = indexDeclrContext.TYPE_NAME().toString();
             }
-            final Index indexClass = (Index) getOrAddIndex(typedGraph, name, (greycat.modeling.language.Class) typedGraph.get(type));
+            final Index indexClass = (Index) getOrAddIndex(typedGraph, name, (Class) typedGraph.get(type));
             for (TerminalNode literal : indexDeclrContext.indexLiterals().IDENT()) {
                 indexClass.addProperty(literal.getText());
             }
@@ -130,17 +135,17 @@ public class TypedGraphBuilder {
         if (previous != null) {
             return previous;
         }
-        previous = new ClassImpl(fqn);
+        previous = new Class(fqn);
         typedGraph.addClassifier(previous);
         return previous;
     }
 
-    private static Classifier getOrAddIndex(TypedGraph typedGraph, String fqn, greycat.modeling.language.Class clazz) {
+    private static Classifier getOrAddIndex(TypedGraph typedGraph, String fqn, Class clazz) {
         Classifier previous = typedGraph.get(fqn);
         if (previous != null) {
             return previous;
         }
-        previous = new IndexImpl(fqn, clazz);
+        previous = new Index(fqn, clazz);
         typedGraph.addClassifier(previous);
         return previous;
     }
@@ -150,7 +155,7 @@ public class TypedGraphBuilder {
         if (previous != null) {
             return previous;
         }
-        previous = new EnumImpl(fqn);
+        previous = new Enum(fqn);
         typedGraph.addClassifier(previous);
         return previous;
     }

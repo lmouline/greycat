@@ -13,34 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package greycat.modeling.language.impl;
-
-import greycat.modeling.language.Attribute;
-import greycat.modeling.language.Class;
-import greycat.modeling.language.Index;
-import greycat.modeling.language.Property;
+package greycat.modeling.language.ast;
 
 import java.util.Set;
 import java.util.TreeSet;
 
-public class IndexImpl extends AbstractClassifier implements Index {
-
+public class Index implements Classifier {
+    private final String name;
     private final Set<Property> literals;
-
     private final Class clazz;
 
-    public IndexImpl(String p_name, Class clazz) {
-        super(p_name);
+    public Index(String p_name, Class clazz) {
+        name = p_name;
         this.clazz = clazz;
         literals = new TreeSet<Property>();
     }
 
-    @Override
     public Property[] properties() {
         return literals.toArray(new Property[literals.size()]);
     }
 
-    @Override
     public void addProperty(String value) {
         Property prop = clazz.property(value);
         literals.add(prop);
@@ -49,13 +41,10 @@ public class IndexImpl extends AbstractClassifier implements Index {
         }
     }
 
-    @Override
     public Class type() {
         return this.clazz;
     }
 
-
-    @Override
     public boolean equals(Object obj) {
         if(obj == null) {
             return false;
@@ -71,5 +60,10 @@ public class IndexImpl extends AbstractClassifier implements Index {
     @Override
     public int hashCode() {
         return this.name().hashCode();
+    }
+
+    @Override
+    public String name() {
+        return name;
     }
 }

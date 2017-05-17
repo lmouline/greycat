@@ -18,24 +18,24 @@ package greycat.modeling.generator;
 import greycat.Node;
 import greycat.TaskContext;
 import greycat.TaskFunctionSelect;
-import greycat.modeling.language.Class;
-import greycat.modeling.language.Classifier;
-import greycat.modeling.language.TypedGraph;
+import greycat.modeling.language.ast.Classifier;
+import greycat.modeling.language.ast.Class;
+import greycat.modeling.language.ast.TypedGraph;
 import org.jboss.forge.roaster.Roaster;
 import org.jboss.forge.roaster.model.source.JavaInterfaceSource;
 import org.jboss.forge.roaster.model.source.JavaSource;
 import org.jboss.forge.roaster.model.source.MethodSource;
 
-class TaskApiGenerator {
+class TaskAPIGenerator {
 
     static JavaSource[] generate(final String packageName, TypedGraph graph) {
         final JavaSource[] result = new JavaSource[1 + graph.classifiers().length];
         int index = 0;
 
 
-        for(Classifier classifier: graph.classifiers()) {
-            if(classifier instanceof Class) {
-                result[index] = generateSelectFunctions(packageName,classifier);
+        for (Classifier classifier : graph.classifiers()) {
+            if (classifier instanceof Class) {
+                result[index] = generateSelectFunctions(packageName, classifier);
                 index++;
             }
         }

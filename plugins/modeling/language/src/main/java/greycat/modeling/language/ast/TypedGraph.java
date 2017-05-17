@@ -13,12 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package greycat.modeling.language.impl;
+package greycat.modeling.language.ast;
 
-import greycat.modeling.language.Relation;
+import java.util.HashMap;
+import java.util.Map;
 
-public class RelationImpl extends PropertyImpl implements Relation {
-    public RelationImpl(String name, String type) {
-        super(name, type);
+public class TypedGraph {
+
+    private final Map<String, Classifier> classifiers;
+
+    public TypedGraph() {
+        classifiers = new HashMap<String, Classifier>();
+    }
+
+    public Classifier[] classifiers() {
+        return classifiers.values().toArray(new Classifier[classifiers.size()]);
+    }
+
+    public void addClassifier(Classifier classifier) {
+        classifiers.put(classifier.name(), classifier);
+    }
+
+    public Classifier get(String fqn) {
+        return classifiers.get(fqn);
     }
 }

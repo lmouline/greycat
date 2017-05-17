@@ -13,18 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package greycat.modeling.language;
+package greycat.modeling.language.ast;
 
-public interface Class extends Classifier {
+public abstract class Property implements Comparable<Property> {
 
-    Property[] properties();
+    private final String name;
 
-    void addProperty(Property property);
+    private final String type;
 
-    Property property(String name);
+    public Property(String p_name, String p_type) {
+        this.name = p_name;
+        this.type = p_type;
+    }
 
-    Class parent();
+    public String name() {
+        return name;
+    }
 
-    void setParent(Class parent);
+    public String type() {
+        return type;
+    }
 
+    public int compareTo(Property p) {
+        if(p.name().equals(name)){
+            return 0;
+        } else {
+            return name().compareTo(p.name);
+        }
+    }
 }
