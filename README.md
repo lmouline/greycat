@@ -9,8 +9,12 @@ For any questions please contact us via our Gitter:
 [![Build Status](https://travis-ci.org/datathings/greycat.svg?branch=master)](https://travis-ci.org/datathings/greycat)
 
 # Changelog
+- Version 8 (~end of Mai 2017)
+    - Backend API change: new mini-batch trees
+    - New Traverse in Times API
+    - Data Compression using Time Offset strategy
 
-- Version 7 (planned for 28/04/2017)
+- Version 7 (15/05/2017)
     - fix bug in global dictionary
     - add option in builder to desactivate global dictionary and introspection ability
     - fix potential NPE into dephased struct proxy for EGraph
@@ -20,6 +24,8 @@ For any questions please contact us via our Gitter:
     - add clear method to all arrays chunk
     - add savePartial method
     - add batchSaveSize option to build
+    - add start and end transaction
+    - PROTOCOL change: adapt Remote Task Protocol to allows nested task result
 - Version 6 (11/04/2017)
     - Introducing Hash to check Remote Cache Consistency
     - New API for React Remote Graph usage

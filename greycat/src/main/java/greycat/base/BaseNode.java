@@ -17,12 +17,15 @@ package greycat.base;
 
 import greycat.*;
 import greycat.chunk.StateChunk;
+import greycat.chunk.WorldOrderChunk;
+import greycat.struct.*;
 import greycat.plugin.NodeDeclaration;
 import greycat.plugin.NodeState;
 import greycat.plugin.NodeStateCallback;
 import greycat.plugin.Resolver;
 import greycat.struct.*;
 import greycat.struct.proxy.*;
+import greycat.utility.Tuple;
 
 import java.lang.reflect.Field;
 import java.util.HashSet;
@@ -530,8 +533,9 @@ public class BaseNode implements Node {
     @Override
     public final long timeDephasing() {
         final NodeState state = this._resolver.resolveState(this);
+        final WorldOrderChunk woc = (WorldOrderChunk) this._graph.space().get(this._index_worldOrder);
         if (state != null) {
-            return (this._time - state.time());
+            return (this._time - state.time() - woc.offset());
         } else {
             throw new RuntimeException(Constants.CACHE_MISS_ERROR);
         }
@@ -580,12 +584,20 @@ public class BaseNode implements Node {
     }
 
     @Override
-    public final long[] timeSensitivity() {
+    public final Tuple<Long, Long> timeSensitivity() {
         return _resolver.getTimeSensitivity(this);
     }
 
     @Override
+    public final void end() {
+        _resolver.end(this);
+    }
+
+    @Override
     public String toString() {
+        if (_lock == 1) {
+            return "locked";
+        }
         final StringBuilder builder = new StringBuilder();
         final boolean[] isFirst = {true};
         builder.append("{\"world\":");

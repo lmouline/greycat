@@ -15,26 +15,36 @@
  */
 package greycat.chunk;
 
-import greycat.struct.LongLongMap;
+public interface SuperTimeTreeChunk extends Chunk {
 
-public interface WorldOrderChunk extends Chunk, LongLongMap {
+    void insert(long key, long value);
+
+    void unsafe_insert(long key, long value);
+
+    long previousOrEqual(long key);
+
+    void range(long startKey, long endKey, long maxElements, TreeWalker walker);
 
     long magic();
 
-    void lock();
+    long subTreeCapacity();
 
-    void unlock();
+    long previous(long key);
 
-    void externalLock();
+    long next(long key);
 
-    void externalUnlock();
+    long end();
 
-    long type();
+    void setEnd(long v);
 
-    void setType(long extraValue);
+    int size();
 
-    long offset();
+    long timeSensitivity();
 
-    void setOffset(long v);
+    void setTimeSensitivity(long v);
+
+    long timeSensitivityOffset();
+
+    void setTimeSensitivityOffset(long v);
 
 }

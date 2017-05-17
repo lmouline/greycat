@@ -24,7 +24,7 @@ import greycat.struct.Buffer;
 import greycat.utility.Base64;
 import greycat.utility.HashHelper;
 
-class HeapTimeTreeChunk implements TimeTreeChunk {
+class HeapDTimeTreeChunk implements TimeTreeChunk {
 
     //constants definition
     private static final int META_SIZE = 3;
@@ -37,20 +37,21 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
     private long[] _k;
     private boolean[] _colors;
 
+    private volatile long _magic;
+    private volatile int _size = 0;
+
     private long _hash;
     private boolean _inSync;
 
+    //extra temporal element
     private volatile long _capacity;
-    private volatile long _magic;
-    private volatile int _size;
 
-    HeapTimeTreeChunk(final HeapChunkSpace p_space, final long p_index) {
+    HeapDTimeTreeChunk(final HeapChunkSpace p_space, final long p_index) {
         _space = p_space;
         _index = p_index;
         _magic = 0;
         _hash = 0;
         _capacity = 0;
-        _size = 0;
         _inSync = true;
     }
 
@@ -114,13 +115,12 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
     @Override
     public synchronized final void save(Buffer buffer) {
         final long beginIndex = buffer.writeIndex();
-        Base64.encodeIntToBuffer(_size, buffer);
-        buffer.write(CoreConstants.CHUNK_SEP);
         Base64.encodeLongToBuffer(_capacity, buffer);
         buffer.write(CoreConstants.CHUNK_SEP);
+        Base64.encodeIntToBuffer(_size, buffer);
         for (int i = 0; i < _size; i++) {
-            Base64.encodeLongToBuffer(this._k[i], buffer);
             buffer.write(CoreConstants.CHUNK_VAL_SEP);
+            Base64.encodeLongToBuffer(this._k[i], buffer);
         }
         _hash = HashHelper.hashBuffer(buffer, beginIndex, buffer.writeIndex());
     }
@@ -172,31 +172,32 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
         long cursor = 0;
         long previous = 0;
         long payloadSize = buffer.length();
-        int extraCursor = 0;
+        boolean isFirst = true;
         while (cursor < payloadSize) {
             final byte current = buffer.read(cursor);
             switch (current) {
                 case Constants.CHUNK_SEP:
-                    switch (extraCursor) {
-                        case 0:
-                            final int treeSize = Base64.decodeToIntWithBounds(buffer, previous, cursor);
-                            final int closePowerOfTwo = (int) Math.pow(2, Math.ceil(Math.log(treeSize) / Math.log(2)));
-                            reallocate(closePowerOfTwo);
-                            break;
-                        case 1:
-                            _capacity = Base64.decodeToLongWithBounds(buffer, previous, cursor);
-                            break;
-                    }
+                    _capacity = Base64.decodeToLongWithBounds(buffer, previous, cursor);
                     previous = cursor + 1;
                     break;
                 case Constants.CHUNK_VAL_SEP:
-                    boolean insertResult = internal_insert(Base64.decodeToLongWithBounds(buffer, previous, cursor), initial);
-                    isDirty = isDirty || insertResult;
-                    previous = cursor + 1;
+                    if (isFirst) {
+                        final int treeSize = Base64.decodeToIntWithBounds(buffer, previous, cursor);
+                        final int closePowerOfTwo = (int) Math.pow(2, Math.ceil(Math.log(treeSize) / Math.log(2)));
+                        reallocate(closePowerOfTwo);
+                        previous = cursor + 1;
+                        isFirst = false;
+                    } else {
+                        boolean insertResult = internal_insert(Base64.decodeToLongWithBounds(buffer, previous, cursor), initial);
+                        isDirty = isDirty || insertResult;
+                        previous = cursor + 1;
+                    }
                     break;
             }
             cursor++;
         }
+        boolean insertResult = internal_insert(Base64.decodeToLongWithBounds(buffer, previous, cursor), initial);
+        isDirty = isDirty || insertResult;
         return isDirty;
     }
 

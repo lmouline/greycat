@@ -18,15 +18,12 @@ package greycat.internal.heap;
 import greycat.Callback;
 import greycat.Constants;
 import greycat.Graph;
-import greycat.chunk.ChunkSpace;
-import greycat.chunk.ChunkType;
-import greycat.chunk.Stack;
+import greycat.chunk.*;
 import greycat.struct.Buffer;
 import greycat.struct.BufferIterator;
 import greycat.struct.EGraph;
 import greycat.utility.HashHelper;
 import greycat.utility.KeyHelper;
-import greycat.chunk.Chunk;
 import greycat.utility.LMap;
 
 import java.util.concurrent.atomic.AtomicIntegerArray;
@@ -60,6 +57,8 @@ public class HeapChunkSpace implements ChunkSpace {
 
     private final boolean _deep_priority;
 
+    private Interceptor[] _interceptors;
+
     @Override
     public final Graph graph() {
         return this._graph;
@@ -78,6 +77,7 @@ public class HeapChunkSpace implements ChunkSpace {
     }
 
     public HeapChunkSpace(final int initialCapacity, final int batchSize, final Graph p_graph, final boolean deepWorldPriority) {
+        _interceptors = null;
         _batchSize = batchSize;
         _deep_priority = deepWorldPriority;
         _graph = p_graph;
@@ -106,6 +106,16 @@ public class HeapChunkSpace implements ChunkSpace {
 
     @Override
     public final Chunk getAndMark(final byte type, final long world, final long time, final long id) {
+        boolean valid = true;
+        if (_interceptors != null) {
+            for (int i = 0; i < _interceptors.length && valid; i++) {
+                valid = _interceptors[i].preChunkRead(type, world, time, id);
+            }
+        }
+        if (!valid) {
+            return null;
+        }
+
         final int index;
         if (_deep_priority) {
             index = (int) HashHelper.tripleHash(type, world, time, id, this._hashEntries);
@@ -127,22 +137,31 @@ public class HeapChunkSpace implements ChunkSpace {
                 m = this._hashNext.get(m);
             }
         }
+        Chunk result = null;
         if (found != -1) {
-            Chunk result = this._chunkValues.get(found);
+            result = this._chunkValues.get(found);
             if (!result.inSync()) {
                 //cache is out of sync, force refresh
                 unmark(result.index());
                 result = null;
             }
-            return result;
-        } else {
-            return null;
         }
+        return result;
     }
 
     @Override
     public final Chunk get(final long index) {
-        return this._chunkValues.get((int) index);
+        final int casted = (int) index;
+        boolean valid = true;
+        if (_interceptors != null) {
+            for (int i = 0; i < _interceptors.length && valid; i++) {
+                valid = _interceptors[i].preChunkRead(_chunkTypes.get(casted), _chunkWorlds.get(casted), _chunkTimes.get(casted), _chunkIds.get(casted));
+            }
+        }
+        if (!valid) {
+            return null;
+        }
+        return this._chunkValues.get(casted);
     }
 
     @Override
@@ -276,7 +295,20 @@ public class HeapChunkSpace implements ChunkSpace {
     }
 
     @Override
-    public final synchronized Chunk createAndMark(final byte type, final long world, final long time, final long id) {
+    public final Chunk createAndMark(final byte type, final long world, final long time, final long id) {
+        boolean valid = true;
+        if (_interceptors != null) {
+            for (int i = 0; i < _interceptors.length && valid; i++) {
+                valid = _interceptors[i].preChunkCreate(type, world, time, id);
+            }
+        }
+        if (!valid) {
+            return null;
+        }
+        return internal_createAndMark(type, world, time, id);
+    }
+
+    private synchronized Chunk internal_createAndMark(final byte type, final long world, final long time, final long id) {
         //first mark the object
         int entry = -1;
         final int hashIndex;
@@ -333,6 +365,9 @@ public class HeapChunkSpace implements ChunkSpace {
                 break;
             case ChunkType.TIME_TREE_CHUNK:
                 toInsert = new HeapTimeTreeChunk(this, currentVictimIndex);
+                break;
+            case ChunkType.SUPER_TIME_TREE_CHUNK:
+                toInsert = new HeapSuperTimeTreeChunk(this, currentVictimIndex);
                 break;
             case ChunkType.GEN_CHUNK:
                 toInsert = new HeapGenChunk(this, id, currentVictimIndex);
@@ -552,6 +587,37 @@ public class HeapChunkSpace implements ChunkSpace {
         return new HeapEGraph(null, null, _graph);
     }
 
+    @Override
+    public Interceptor[] interceptors() {
+        return _interceptors;
+    }
+
+    @Override
+    public void addInterceptorFirst(Interceptor it) {
+        if (_interceptors == null) {
+            _interceptors = new Interceptor[1];
+            _interceptors[0] = it;
+        } else {
+            Interceptor[] interceptors2 = new Interceptor[_interceptors.length + 1];
+            System.arraycopy(_interceptors, 0, _interceptors, 1, _interceptors.length);
+            interceptors2[0] = it;
+            _interceptors = interceptors2;
+        }
+    }
+
+    @Override
+    public void addInterceptorLast(Interceptor it) {
+        if (_interceptors == null) {
+            _interceptors = new Interceptor[1];
+            _interceptors[0] = it;
+        } else {
+            Interceptor[] interceptors2 = new Interceptor[_interceptors.length + 1];
+            System.arraycopy(_interceptors, 0, _interceptors, 0, _interceptors.length);
+            interceptors2[_interceptors.length] = it;
+            _interceptors = interceptors2;
+        }
+    }
+
     public final void printMarked() {
         for (int i = 0; i < _chunkValues.length(); i++) {
             if (_chunkValues.get(i) != null) {
@@ -559,6 +625,9 @@ public class HeapChunkSpace implements ChunkSpace {
                     switch (_chunkTypes.get(i)) {
                         case ChunkType.STATE_CHUNK:
                             System.out.println("STATE(" + _chunkWorlds.get(i) + "," + _chunkTimes.get(i) + "," + _chunkIds.get(i) + ")->marks->" + _chunkMarks.get(i));
+                            break;
+                        case ChunkType.SUPER_TIME_TREE_CHUNK:
+                            System.out.println("SUPER_TIME_TREE(" + _chunkWorlds.get(i) + "," + _chunkTimes.get(i) + "," + _chunkIds.get(i) + ")->marks->" + _chunkMarks.get(i));
                             break;
                         case ChunkType.TIME_TREE_CHUNK:
                             System.out.println("TIME_TREE(" + _chunkWorlds.get(i) + "," + _chunkTimes.get(i) + "," + _chunkIds.get(i) + ")->marks->" + _chunkMarks.get(i));

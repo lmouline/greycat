@@ -13,28 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package greycat.chunk;
+package greycat.struct;
 
-import greycat.struct.LongLongMap;
+/**
+ * Created by assaad on 02/05/2017.
+ */
+public interface NDManager {
+    /**
+     * Resolve the current object of the hashed id 
+     * @param id
+     * @return
+     */
+    Object get(long id);
 
-public interface WorldOrderChunk extends Chunk, LongLongMap {
 
-    long magic();
+    long updateExistingLeafNode(long oldKey, Object valueToInsert);
 
-    void lock();
+    boolean updateParentsOnExisting();
 
-    void unlock();
+    boolean updateParentsOnNewValue();
 
-    void externalLock();
+    boolean parentsHaveNodes();
 
-    void externalUnlock();
+    long getNewLeafNode(Object valueToInsert);
 
-    long type();
+    long getNewParentNode();
 
-    void setType(long extraValue);
-
-    long offset();
-
-    void setOffset(long v);
-
+    long updateParent(long parentkey, double[] key, Object valueToInsert);
 }

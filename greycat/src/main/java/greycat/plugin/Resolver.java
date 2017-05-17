@@ -17,6 +17,7 @@ package greycat.plugin;
 
 import greycat.Node;
 import greycat.Callback;
+import greycat.utility.Tuple;
 
 /**
  * Resolver plugin, able to change the semantic of Many World Graph
@@ -61,6 +62,8 @@ public interface Resolver {
      */
     int typeCode(Node node);
 
+    void end(Node node);
+
     /**
      * Creates and schedules a lookup task.
      *
@@ -77,9 +80,7 @@ public interface Resolver {
     void lookupTimes(long world, long from, long to, long id, Callback<Node[]> callback);
 
     void lookupAll(long world, long time, long ids[], Callback<Node[]> callback);
-
-    void lookupAllTimes(long world, long from, long to, long ids[], Callback<Node[]> callback);
-
+    
     /**
      * Resolves the state of a node, to access attributes, relations, and indexes.
      *
@@ -137,6 +138,6 @@ public interface Resolver {
 
     void setTimeSensitivity(Node node, long deltaTime, long delta);
 
-    long[] getTimeSensitivity(Node node);
+    Tuple<Long, Long> getTimeSensitivity(Node node);
 
 }

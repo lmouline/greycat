@@ -15,26 +15,14 @@
  */
 package greycat.chunk;
 
-import greycat.struct.LongLongMap;
+public interface Interceptor {
 
-public interface WorldOrderChunk extends Chunk, LongLongMap {
+    boolean preChunkRead(final byte type, final long world, final long time, final long id);
 
-    long magic();
+    boolean preChunkCreate(final byte type, final long world, final long time, final long id);
 
-    void lock();
+    boolean preAttSet(final Chunk chunk, final int index);
 
-    void unlock();
-
-    void externalLock();
-
-    void externalUnlock();
-
-    long type();
-
-    void setType(long extraValue);
-
-    long offset();
-
-    void setOffset(long v);
+    boolean postAttSet(final Chunk chunk, final int index);
 
 }
