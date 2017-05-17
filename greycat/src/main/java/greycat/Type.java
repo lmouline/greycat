@@ -34,6 +34,7 @@ public class Type {
     public static final byte INT_ARRAY = 8;
     public static final byte STRING_ARRAY = 9;
 
+
     public static final byte LONG_TO_LONG_MAP = 10;
     public static final byte LONG_TO_LONG_ARRAY_MAP = 11;
     public static final byte STRING_TO_INT_MAP = 12;
@@ -57,6 +58,8 @@ public class Type {
     public static final byte NODE = 24;
     public static final byte NODE_ARRAY = 25;
 
+    public static final byte INT_TO_INT_MAP = 26;
+    public static final byte INT_TO_STRING_MAP = 27;
 
     /**
      * Convert a type that represent a byte to a readable String representation
@@ -115,6 +118,10 @@ public class Type {
                 return "KDTREE";
             case Type.NDTREE:
                 return "NDTREE";
+            case Type.INT_TO_INT_MAP:
+                return "INT_TO_INT_MAP";
+            case Type.INT_TO_STRING_MAP:
+                return "INT_TO_STRING_MAP";
             default:
                 return "unknown";
         }
@@ -168,6 +175,10 @@ public class Type {
                 return Type.KDTREE;
             case "NDTREE":
                 return Type.NDTREE;
+            case "INT_TO_INT_MAP":
+                return Type.INT_TO_INT_MAP;
+            case "INT_TO_STRING_MAP":
+                return Type.INT_TO_STRING_MAP;
             default:
                 return -1;
         }
