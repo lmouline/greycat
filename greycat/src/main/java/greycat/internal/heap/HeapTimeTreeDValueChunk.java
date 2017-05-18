@@ -304,13 +304,6 @@ class HeapTimeTreeDValueChunk implements TimeTreeDValueChunk {
         return _k[p_currentIndex];
     }
 
-    private void setKey(int p_currentIndex, long p_paramIndex, boolean initial) {
-        _k[p_currentIndex] = p_paramIndex;
-       /* if (!initial) {
-            _diff[p_currentIndex] = true;
-        }*/
-    }
-
     private int left(int p_currentIndex) {
         if (p_currentIndex == -1) {
             return -1;
@@ -579,7 +572,8 @@ class HeapTimeTreeDValueChunk implements TimeTreeDValueChunk {
         int newIndex = _size;
         if (newIndex == 0) {
             _root = newIndex;
-            setKey(newIndex, p_key, initial);
+            _k[newIndex] = p_key;
+            _values[newIndex] = value;
             setLeft(newIndex, -1);
             setRight(newIndex, -1);
             setColor(newIndex, true);
@@ -591,7 +585,12 @@ class HeapTimeTreeDValueChunk implements TimeTreeDValueChunk {
             while (leaf != -1) {
                 father = leaf;
                 if (_k[father] == p_key) {
-                    return false;
+                    if (_values[father] == value) {
+                        return false;
+                    } else {
+                        _values[father] = value;
+                        return true;
+                    }
                 }
                 if (key(father) < p_key) {
                     leaf = right(father);
@@ -602,7 +601,8 @@ class HeapTimeTreeDValueChunk implements TimeTreeDValueChunk {
                 }
             }
             setColor(newIndex, false);
-            setKey(newIndex, p_key, initial);
+            _k[newIndex] = p_key;
+            _values[newIndex] = value;
             setLeft(newIndex, -1);
             setRight(newIndex, -1);
             setParent(newIndex, father);
