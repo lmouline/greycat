@@ -100,12 +100,12 @@ public interface Resolver {
     NodeState alignState(Node node);
 
     /**
-     * @param node  The node for which the state must be collected.
-     * @param world The world for which the new state must be created.
-     * @param time  The time for which the new state must be created.
+     * @param node         The node for which the state must be collected.
+     * @param world        The world for which the new state must be created.
+     * @param relativeTime The time for which the new state must be created. Time should be RELATIVE to first creation of node (see offset method of WorldOrderChunk)
      * @return The newly empty created state of the node.
      */
-    NodeState newState(Node node, long world, long time);
+    NodeState newState(Node node, long world, long relativeTime);
 
     /**
      * Resolves the timePoints of a node.

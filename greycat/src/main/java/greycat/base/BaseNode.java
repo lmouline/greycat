@@ -129,8 +129,8 @@ public class BaseNode implements Node {
         return this._resolver.alignState(this);
     }
 
-    protected final NodeState newState(long time) {
-        return this._resolver.newState(this, _world, time);
+    protected final NodeState newState(long relativeTime) {
+        return this._resolver.newState(this, _world, relativeTime);
     }
 
     @Override

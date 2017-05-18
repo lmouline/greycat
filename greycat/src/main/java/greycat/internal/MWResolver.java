@@ -1439,12 +1439,14 @@ final class MWResolver implements Resolver {
     }
 
     @Override
-    public NodeState newState(Node node, long world, long time) {
+    public NodeState newState(Node node, long world, long relativeTime) {
         final BaseNode castedNode = (BaseNode) node;
+        final WorldOrderChunk woc = (WorldOrderChunk) _space.get(castedNode._index_worldOrder);
+
         NodeState resolved;
         castedNode.cacheLock();
 
-        BaseNode fakeNode = new BaseNode(world, time, node.id(), node.graph());
+        BaseNode fakeNode = new BaseNode(world, relativeTime + woc.offset(), node.id(), node.graph());
         fakeNode._index_worldOrder = castedNode._index_worldOrder;
         fakeNode._index_superTimeTree = castedNode._index_superTimeTree;
         fakeNode._index_timeTree = castedNode._index_timeTree;
