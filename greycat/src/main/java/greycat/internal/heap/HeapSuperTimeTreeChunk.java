@@ -34,8 +34,8 @@ public class HeapSuperTimeTreeChunk implements SuperTimeTreeChunk {
     //tree struct array
     private int _root = -1;
     private int[] _back_meta;
-    private long[] _keys;
-    private long[] _values;
+    private long[] _k;
+    private long[] _v;
     private boolean[] _colors;
 
     private volatile long _magic;
@@ -161,9 +161,9 @@ public class HeapSuperTimeTreeChunk implements SuperTimeTreeChunk {
         }
         buffer.write(CoreConstants.CHUNK_SEP);
         for (int i = 0; i < _size; i++) {
-            Base64.encodeLongToBuffer(this._keys[i], buffer);
+            Base64.encodeLongToBuffer(this._k[i], buffer);
             buffer.write(CoreConstants.CHUNK_VAL_SEP);
-            Base64.encodeLongToBuffer(this._values[i], buffer);
+            Base64.encodeLongToBuffer(this._v[i], buffer);
             buffer.write(CoreConstants.CHUNK_VAL_SEP);
         }
         _hash = HashHelper.hashBuffer(buffer, beginIndex, buffer.writeIndex());
@@ -183,9 +183,9 @@ public class HeapSuperTimeTreeChunk implements SuperTimeTreeChunk {
             buffer.write(CoreConstants.CHUNK_SEP);
             for (int i = 0; i < _size; i++) {
                 buffer.write(CoreConstants.CHUNK_VAL_SEP);
-                Base64.encodeLongToBuffer(this._keys[i], buffer);
+                Base64.encodeLongToBuffer(this._k[i], buffer);
                 buffer.write(CoreConstants.CHUNK_VAL_SEP);
-                Base64.encodeLongToBuffer(this._values[i], buffer);
+                Base64.encodeLongToBuffer(this._v[i], buffer);
             }
             //TODO change this with incremental hash!
             _hash = HashHelper.hashBuffer(buffer, beginIndex, buffer.writeIndex());
@@ -335,14 +335,14 @@ public class HeapSuperTimeTreeChunk implements SuperTimeTreeChunk {
     }
 
     private void reallocate(int newCapacity) {
-        if (_keys != null && newCapacity <= _keys.length) {
+        if (_k != null && newCapacity <= _k.length) {
             return;
         }
         final long[] new_keys = new long[newCapacity];
         final long[] new_values = new long[newCapacity];
-        if (_keys != null) {
-            System.arraycopy(_keys, 0, new_keys, 0, _size);
-            System.arraycopy(_values, 0, new_values, 0, _size);
+        if (_k != null) {
+            System.arraycopy(_k, 0, new_keys, 0, _size);
+            System.arraycopy(_v, 0, new_values, 0, _size);
         }
 
         /*
@@ -366,8 +366,8 @@ public class HeapSuperTimeTreeChunk implements SuperTimeTreeChunk {
             }
         }
         _back_meta = new_back_meta;
-        _keys = new_keys;
-        _values = new_values;
+        _k = new_keys;
+        _v = new_values;
         _colors = new_back_colors;
         //_diff = new_back_diff;
     }
@@ -376,7 +376,7 @@ public class HeapSuperTimeTreeChunk implements SuperTimeTreeChunk {
         if (p_currentIndex == -1) {
             return -1;
         }
-        return _keys[p_currentIndex];
+        return _k[p_currentIndex];
     }
 
     private int left(int p_currentIndex) {
@@ -421,17 +421,6 @@ public class HeapSuperTimeTreeChunk implements SuperTimeTreeChunk {
 
     private void setColor(int p_currentIndex, boolean p_paramIndex) {
         _colors[p_currentIndex] = p_paramIndex;
-    }
-
-    private int grandParent(int p_currentIndex) {
-        if (p_currentIndex == -1) {
-            return -1;
-        }
-        if (parent(p_currentIndex) != -1) {
-            return parent(parent(p_currentIndex));
-        } else {
-            return -1;
-        }
     }
 
     private int sibling(int p_currentIndex) {
@@ -627,7 +616,7 @@ public class HeapSuperTimeTreeChunk implements SuperTimeTreeChunk {
     }
 
     private boolean internal_insert(long p_key, long p_value, boolean initial) {
-        if (_keys == null || _keys.length == _size) {
+        if (_k == null || _k.length == _size) {
             int length = _size;
             if (length == 0) {
                 length = Constants.MAP_INITIAL_CAPACITY;
@@ -639,11 +628,11 @@ public class HeapSuperTimeTreeChunk implements SuperTimeTreeChunk {
         int newIndex = _size;
         if (newIndex == 0) {
             _root = newIndex;
-            _keys[newIndex] = p_key;
+            _k[newIndex] = p_key;
             setLeft(newIndex, -1);
             setRight(newIndex, -1);
             setColor(newIndex, true);
-            _values[newIndex] = p_value;
+            _v[newIndex] = p_value;
             setParent(newIndex, -1);
         } else {
             int father = -1;
@@ -651,8 +640,13 @@ public class HeapSuperTimeTreeChunk implements SuperTimeTreeChunk {
             boolean left = false;
             while (leaf != -1) {
                 father = leaf;
-                if (_keys[father] == p_key) {
-                    return false;
+                if (_k[father] == p_key) {
+                    if (_v[father] != p_value) {
+                        _v[father] = p_value;
+                        return true;
+                    } else {
+                        return false;
+                    }
                 }
                 if (key(father) < p_key) {
                     leaf = right(father);
@@ -663,11 +657,11 @@ public class HeapSuperTimeTreeChunk implements SuperTimeTreeChunk {
                 }
             }
             setColor(newIndex, false);
-            _keys[newIndex] = p_key;
+            _k[newIndex] = p_key;
             setLeft(newIndex, -1);
             setRight(newIndex, -1);
             setParent(newIndex, father);
-            _values[newIndex] = p_value;
+            _v[newIndex] = p_value;
             if (left) {
                 setLeft(father, newIndex);
             } else {
