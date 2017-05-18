@@ -19,8 +19,6 @@ public interface SuperTimeTreeChunk extends Chunk {
 
     void insert(long key, long value);
 
-    void unsafe_insert(long key, long value);
-
     long previousOrEqual(long key);
 
     void range(long startKey, long endKey, long maxElements, SuperTreeWalker walker);
@@ -46,5 +44,11 @@ public interface SuperTimeTreeChunk extends Chunk {
     long timeSensitivityOffset();
 
     void setTimeSensitivityOffset(long v);
+
+    long lastKey();
+
+    long lastValue();
+
+    void setLastValue(long v);
 
 }

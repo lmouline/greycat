@@ -19,7 +19,6 @@ import greycat.Constants;
 import greycat.chunk.ChunkType;
 import greycat.chunk.SuperTimeTreeChunk;
 import greycat.chunk.SuperTreeWalker;
-import greycat.chunk.TreeWalker;
 import greycat.internal.CoreConstants;
 import greycat.struct.Buffer;
 import greycat.utility.Base64;
@@ -77,6 +76,30 @@ public class HeapSuperTimeTreeChunk implements SuperTimeTreeChunk {
     @Override
     public final void setTimeSensitivityOffset(final long v) {
         _timeSensitivityOffset = v;
+    }
+
+    @Override
+    public long lastKey() {
+        if (_size == 0) {
+            return Constants.NULL_LONG;
+        }
+        return _keys[_size - 1];
+    }
+
+    @Override
+    public long lastValue() {
+        if (_size == 0) {
+            return Constants.NULL_LONG;
+        }
+        return _values[_size - 1];
+    }
+
+    @Override
+    public void setLastValue(long newV) {
+        if (_size == 0) {
+            return;
+        }
+        _values[_size - 1] = newV;
     }
 
     @Override
@@ -323,11 +346,6 @@ public class HeapSuperTimeTreeChunk implements SuperTimeTreeChunk {
         if (internal_insert(p_key, p_value, false)) {
             internal_set_dirty();
         }
-    }
-
-    @Override
-    public synchronized final void unsafe_insert(final long p_key, final long p_value) {
-        internal_insert(p_key, p_value, false);
     }
 
     @Override
