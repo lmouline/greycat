@@ -34,8 +34,8 @@ public class HeapSuperTimeTreeChunk implements SuperTimeTreeChunk {
     //tree struct array
     private int _root = -1;
     private int[] _back_meta;
-    private long[] _keys;
-    private long[] _values;
+    private long[] _k;
+    private long[] _v;
     private boolean[] _colors;
 
     private volatile long _magic;
@@ -83,7 +83,7 @@ public class HeapSuperTimeTreeChunk implements SuperTimeTreeChunk {
         if (_size == 0) {
             return Constants.NULL_LONG;
         }
-        return _keys[_size - 1];
+        return _k[_size - 1];
     }
 
     @Override
@@ -91,7 +91,7 @@ public class HeapSuperTimeTreeChunk implements SuperTimeTreeChunk {
         if (_size == 0) {
             return Constants.NULL_LONG;
         }
-        return _values[_size - 1];
+        return _v[_size - 1];
     }
 
     @Override
@@ -99,7 +99,7 @@ public class HeapSuperTimeTreeChunk implements SuperTimeTreeChunk {
         if (_size == 0) {
             return;
         }
-        _values[_size - 1] = newV;
+        _v[_size - 1] = newV;
     }
 
     @Override
@@ -154,7 +154,7 @@ public class HeapSuperTimeTreeChunk implements SuperTimeTreeChunk {
         int nbElements = 0;
         int indexEnd = internal_previousOrEqual_index(endKey);
         while (indexEnd != -1 && key(indexEnd) >= startKey && nbElements < maxElements) {
-            walker.elem(_keys[indexEnd], _values[indexEnd]);
+            walker.elem(_k[indexEnd], _v[indexEnd]);
             nbElements++;
             indexEnd = internal_previous(indexEnd);
         }
@@ -185,9 +185,9 @@ public class HeapSuperTimeTreeChunk implements SuperTimeTreeChunk {
         }
         buffer.write(CoreConstants.CHUNK_SEP);
         for (int i = 0; i < _size; i++) {
-            Base64.encodeLongToBuffer(this._keys[i], buffer);
+            Base64.encodeLongToBuffer(this._k[i], buffer);
             buffer.write(CoreConstants.CHUNK_VAL_SEP);
-            Base64.encodeLongToBuffer(this._values[i], buffer);
+            Base64.encodeLongToBuffer(this._v[i], buffer);
             buffer.write(CoreConstants.CHUNK_VAL_SEP);
         }
         _hash = HashHelper.hashBuffer(buffer, beginIndex, buffer.writeIndex());
@@ -207,9 +207,9 @@ public class HeapSuperTimeTreeChunk implements SuperTimeTreeChunk {
             buffer.write(CoreConstants.CHUNK_SEP);
             for (int i = 0; i < _size; i++) {
                 buffer.write(CoreConstants.CHUNK_VAL_SEP);
-                Base64.encodeLongToBuffer(this._keys[i], buffer);
+                Base64.encodeLongToBuffer(this._k[i], buffer);
                 buffer.write(CoreConstants.CHUNK_VAL_SEP);
-                Base64.encodeLongToBuffer(this._values[i], buffer);
+                Base64.encodeLongToBuffer(this._v[i], buffer);
             }
             //TODO change this with incremental hash!
             _hash = HashHelper.hashBuffer(buffer, beginIndex, buffer.writeIndex());
@@ -354,14 +354,14 @@ public class HeapSuperTimeTreeChunk implements SuperTimeTreeChunk {
     }
 
     private void reallocate(int newCapacity) {
-        if (_keys != null && newCapacity <= _keys.length) {
+        if (_k != null && newCapacity <= _k.length) {
             return;
         }
         final long[] new_keys = new long[newCapacity];
         final long[] new_values = new long[newCapacity];
-        if (_keys != null) {
-            System.arraycopy(_keys, 0, new_keys, 0, _size);
-            System.arraycopy(_values, 0, new_values, 0, _size);
+        if (_k != null) {
+            System.arraycopy(_k, 0, new_keys, 0, _size);
+            System.arraycopy(_v, 0, new_values, 0, _size);
         }
 
         /*
@@ -385,8 +385,8 @@ public class HeapSuperTimeTreeChunk implements SuperTimeTreeChunk {
             }
         }
         _back_meta = new_back_meta;
-        _keys = new_keys;
-        _values = new_values;
+        _k = new_keys;
+        _v = new_values;
         _colors = new_back_colors;
         //_diff = new_back_diff;
     }
@@ -395,7 +395,7 @@ public class HeapSuperTimeTreeChunk implements SuperTimeTreeChunk {
         if (p_currentIndex == -1) {
             return -1;
         }
-        return _keys[p_currentIndex];
+        return _k[p_currentIndex];
     }
 
     private int left(int p_currentIndex) {
@@ -440,17 +440,6 @@ public class HeapSuperTimeTreeChunk implements SuperTimeTreeChunk {
 
     private void setColor(int p_currentIndex, boolean p_paramIndex) {
         _colors[p_currentIndex] = p_paramIndex;
-    }
-
-    private int grandParent(int p_currentIndex) {
-        if (p_currentIndex == -1) {
-            return -1;
-        }
-        if (parent(p_currentIndex) != -1) {
-            return parent(parent(p_currentIndex));
-        } else {
-            return -1;
-        }
     }
 
     private int sibling(int p_currentIndex) {
@@ -606,93 +595,47 @@ public class HeapSuperTimeTreeChunk implements SuperTimeTreeChunk {
     }
 
     private void rotateLeft(int n) {
-        int r = right(n);
-        replaceNode(n, r);
-        setRight(n, left(r));
-        if (left(r) != -1) {
-            setParent(left(r), n);
+        int child = right(n);
+        setRight(n, left(child));
+        if (left(child) != -1) {
+            setParent(left(child), n);
         }
-        setLeft(r, n);
-        setParent(n, r);
+        setParent(child, parent(n));
+        if (n == _root) {
+            _root = child;
+        } else {
+            if (n == left(parent(n))) {
+                setLeft(parent(n), child);
+            } else {
+                setRight(parent(n), child);
+            }
+        }
+        setLeft(child, n);
+        setParent(n, child);
     }
 
     private void rotateRight(int n) {
-        int l = left(n);
-        replaceNode(n, l);
-        setLeft(n, right(l));
-        if (right(l) != -1) {
-            setParent(right(l), n);
+        int child = left(n);
+        setLeft(n, right(child));
+        if (right(child) != -1) {
+            setParent(right(child), n);
         }
-        setRight(l, n);
-        setParent(n, l);
-    }
-
-    private void replaceNode(int oldn, int newn) {
-        if (parent(oldn) == -1) {
-            _root = newn;
+        setParent(child, parent(n));
+        if (n == _root) {
+            _root = child;
         } else {
-            if (oldn == left(parent(oldn))) {
-                setLeft(parent(oldn), newn);
+            if (n == left(parent(n))) {
+                setLeft(parent(n), child);
             } else {
-                setRight(parent(oldn), newn);
+                setRight(parent(n), child);
             }
         }
-        if (newn != -1) {
-            setParent(newn, parent(oldn));
-        }
-    }
-
-    private void insertCase1(int n) {
-        if (parent(n) == -1) {
-            setColor(n, true);
-        } else {
-            insertCase2(n);
-        }
-    }
-
-    private void insertCase2(int n) {
-        if (!color(parent(n))) {
-            insertCase3(n);
-        }
-    }
-
-    private void insertCase3(int n) {
-        if (!color(uncle(n))) {
-            setColor(parent(n), true);
-            setColor(uncle(n), true);
-            setColor(grandParent(n), false);
-            insertCase1(grandParent(n));
-        } else {
-            insertCase4(n);
-        }
-    }
-
-    private void insertCase4(int n_n) {
-        int n = n_n;
-        if (n == right(parent(n)) && parent(n) == left(grandParent(n))) {
-            rotateLeft(parent(n));
-            n = left(n);
-        } else {
-            if (n == left(parent(n)) && parent(n) == right(grandParent(n))) {
-                rotateRight(parent(n));
-                n = right(n);
-            }
-        }
-        insertCase5(n);
-    }
-
-    private void insertCase5(int n) {
-        setColor(parent(n), true);
-        setColor(grandParent(n), false);
-        if (n == left(parent(n)) && parent(n) == left(grandParent(n))) {
-            rotateRight(grandParent(n));
-        } else {
-            rotateLeft(grandParent(n));
-        }
+        setRight(child, n);
+        setParent(n, child);
     }
 
     private boolean internal_insert(long p_key, long p_value, boolean initial) {
-        if (_keys == null || (_keys.length) == _size) {
+        if (_k == null || _k.length == _size) {
             int length = _size;
             if (length == 0) {
                 length = Constants.MAP_INITIAL_CAPACITY;
@@ -703,57 +646,84 @@ public class HeapSuperTimeTreeChunk implements SuperTimeTreeChunk {
         }
         int newIndex = _size;
         if (newIndex == 0) {
-            _keys[newIndex] = p_key;
-            _values[newIndex] = p_value;
-            _colors[newIndex] = false;
+            _root = newIndex;
+            _k[newIndex] = p_key;
             setLeft(newIndex, -1);
             setRight(newIndex, -1);
+            setColor(newIndex, true);
+            _v[newIndex] = p_value;
             setParent(newIndex, -1);
-            _root = newIndex;
-            _size = 1;
         } else {
-            int n = _root;
-            while (true) {
-                if (p_key == key(n)) {
-                    if (_values[n] == p_value) {
-                        return false;
-                    } else {
-                        _values[n] = p_value;
+            int father = -1;
+            int leaf = _root;
+            boolean left = false;
+            while (leaf != -1) {
+                father = leaf;
+                if (_k[father] == p_key) {
+                    if (_v[father] != p_value) {
+                        _v[father] = p_value;
                         return true;
-                    }
-                } else if (p_key < key(n)) {
-                    if (left(n) == -1) {
-                        _keys[newIndex] = p_key;
-                        _values[newIndex] = p_value;
-                        setColor(newIndex, false);
-                        setLeft(newIndex, -1);
-                        setRight(newIndex, -1);
-                        setParent(newIndex, -1);
-                        setLeft(n, newIndex);
-                        _size++;
-                        break;
                     } else {
-                        n = left(n);
+                        return false;
                     }
+                }
+                if (key(father) < p_key) {
+                    leaf = right(father);
+                    left = false;
                 } else {
-                    if (right(n) == -1) {
-                        _keys[newIndex] = p_key;
-                        _values[newIndex] = p_value;
-                        setColor(newIndex, false);
-                        setLeft(newIndex, -1);
-                        setRight(newIndex, -1);
-                        setParent(newIndex, -1);
-                        setRight(n, newIndex);
-                        _size++;
-                        break;
+                    leaf = left(father);
+                    left = true;
+                }
+            }
+            setColor(newIndex, false);
+            _k[newIndex] = p_key;
+            setLeft(newIndex, -1);
+            setRight(newIndex, -1);
+            setParent(newIndex, father);
+            _v[newIndex] = p_value;
+            if (left) {
+                setLeft(father, newIndex);
+            } else {
+                setRight(father, newIndex);
+            }
+
+            int nodeStudy = newIndex;
+            while (father != -1 && !color(father)) {
+                int greatFather = parent(father);
+                int uncle = uncle(nodeStudy);
+                if (!color(uncle)) {
+                    setColor(father, true);
+                    setColor(uncle, true);
+                    setColor(greatFather, false);
+                    nodeStudy = greatFather;
+                    father = parent(nodeStudy);
+                } else {
+                    if (father == left(greatFather)) {
+                        if (nodeStudy == right(father)) {
+                            nodeStudy = father;
+                            father = greatFather;
+                            greatFather = parent(father);
+                            rotateLeft(nodeStudy);
+                        }
+                        setColor(father, true);
+                        setColor(greatFather, false);
+                        rotateRight(greatFather);
                     } else {
-                        n = right(n);
+                        if (nodeStudy == left(father)) {
+                            nodeStudy = father;
+                            father = greatFather;
+                            greatFather = parent(father);
+                            rotateRight(nodeStudy);
+                        }
+                        setColor(father, true);
+                        setColor(greatFather, false);
+                        rotateLeft(greatFather);
                     }
                 }
             }
-            setParent(newIndex, n);
+            setColor(_root, true);
         }
-        insertCase1(newIndex);
+        _size++;
         return true;
     }
 

@@ -540,91 +540,46 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
     }
 
     private void rotateLeft(int n) {
-        int r = right(n);
-        replaceNode(n, r);
-        setRight(n, left(r));
-        if (left(r) != -1) {
-            setParent(left(r), n);
+        int child = right(n);
+        setRight(n, left(child));
+        if (left(child) != -1) {
+            setParent(left(child), n);
         }
-        setLeft(r, n);
-        setParent(n, r);
+        setParent(child, parent(n));
+        if (n == _root) {
+            _root = child;
+        } else {
+            if (n == left(parent(n))) {
+                setLeft(parent(n), child);
+            } else {
+                setRight(parent(n), child);
+            }
+        }
+        setLeft(child, n);
+        setParent(n, child);
     }
 
     private void rotateRight(int n) {
-        int l = left(n);
-        replaceNode(n, l);
-        setLeft(n, right(l));
-        if (right(l) != -1) {
-            setParent(right(l), n);
+        int child = left(n);
+        setLeft(n, right(child));
+        if (right(child) != -1) {
+            setParent(right(child), n);
         }
-        setRight(l, n);
-        setParent(n, l);
-    }
-
-    private void replaceNode(int oldn, int newn) {
-        if (parent(oldn) == -1) {
-            _root = newn;
+        setParent(child, parent(n));
+        if (n == _root) {
+            _root = child;
         } else {
-            if (oldn == left(parent(oldn))) {
-                setLeft(parent(oldn), newn);
+            if (n == left(parent(n))) {
+                setLeft(parent(n), child);
             } else {
-                setRight(parent(oldn), newn);
+                setRight(parent(n), child);
             }
         }
-        if (newn != -1) {
-            setParent(newn, parent(oldn));
-        }
+        setRight(child, n);
+        setParent(n, child);
     }
 
-    private void insertCase1(int n) {
-        if (parent(n) == -1) {
-            setColor(n, true);
-        } else {
-            insertCase2(n);
-        }
-    }
-
-    private void insertCase2(int n) {
-        if (!color(parent(n))) {
-            insertCase3(n);
-        }
-    }
-
-    private void insertCase3(int n) {
-        if (!color(uncle(n))) {
-            setColor(parent(n), true);
-            setColor(uncle(n), true);
-            setColor(grandParent(n), false);
-            insertCase1(grandParent(n));
-        } else {
-            insertCase4(n);
-        }
-    }
-
-    private void insertCase4(int n_n) {
-        int n = n_n;
-        if (n == right(parent(n)) && parent(n) == left(grandParent(n))) {
-            rotateLeft(parent(n));
-            n = left(n);
-        } else {
-            if (n == left(parent(n)) && parent(n) == right(grandParent(n))) {
-                rotateRight(parent(n));
-                n = right(n);
-            }
-        }
-        insertCase5(n);
-    }
-
-    private void insertCase5(int n) {
-        setColor(parent(n), true);
-        setColor(grandParent(n), false);
-        if (n == left(parent(n)) && parent(n) == left(grandParent(n))) {
-            rotateRight(grandParent(n));
-        } else {
-            rotateLeft(grandParent(n));
-        }
-    }
-
+    @SuppressWarnings("Duplicates")
     private boolean internal_insert(long p_key, boolean initial) {
         if (_k == null || _k.length == _size) {
             int length = _size;
@@ -637,49 +592,77 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
         }
         int newIndex = _size;
         if (newIndex == 0) {
+            _root = newIndex;
             setKey(newIndex, p_key, initial);
-            setColor(newIndex, false);
             setLeft(newIndex, -1);
             setRight(newIndex, -1);
+            setColor(newIndex, true);
             setParent(newIndex, -1);
-            _root = newIndex;
-            _size = 1;
         } else {
-            int n = _root;
-            while (true) {
-                if (p_key == key(n)) {
+            int father = -1;
+            int leaf = _root;
+            boolean left = false;
+            while (leaf != -1) {
+                father = leaf;
+                if(_k[father] == p_key){
                     return false;
-                } else if (p_key < key(n)) {
-                    if (left(n) == -1) {
-                        setKey(newIndex, p_key, initial);
-                        setColor(newIndex, false);
-                        setLeft(newIndex, -1);
-                        setRight(newIndex, -1);
-                        setParent(newIndex, -1);
-                        setLeft(n, newIndex);
-                        _size++;
-                        break;
-                    } else {
-                        n = left(n);
-                    }
+                }
+                if (key(father) < p_key) {
+                    leaf = right(father);
+                    left = false;
                 } else {
-                    if (right(n) == -1) {
-                        setKey(newIndex, p_key, initial);
-                        setColor(newIndex, false);
-                        setLeft(newIndex, -1);
-                        setRight(newIndex, -1);
-                        setParent(newIndex, -1);
-                        setRight(n, newIndex);
-                        _size++;
-                        break;
+                    leaf = left(father);
+                    left = true;
+                }
+            }
+            setColor(newIndex, false);
+            setKey(newIndex, p_key, initial);
+            setLeft(newIndex, -1);
+            setRight(newIndex, -1);
+            setParent(newIndex, father);
+            if (left) {
+                setLeft(father, newIndex);
+            } else {
+                setRight(father, newIndex);
+            }
+
+            int nodeStudy = newIndex;
+            while (father != -1 && !color(father)) {
+                int greatFather = parent(father);
+                int uncle = uncle(nodeStudy);
+                if (!color(uncle)) {
+                    setColor(father, true);
+                    setColor(uncle, true);
+                    setColor(greatFather, false);
+                    nodeStudy = greatFather;
+                    father = parent(nodeStudy);
+                } else {
+                    if (father == left(greatFather)) {
+                        if (nodeStudy == right(father)) {
+                            nodeStudy = father;
+                            father = greatFather;
+                            greatFather = parent(father);
+                            rotateLeft(nodeStudy);
+                        }
+                        setColor(father, true);
+                        setColor(greatFather, false);
+                        rotateRight(greatFather);
                     } else {
-                        n = right(n);
+                        if (nodeStudy == left(father)) {
+                            nodeStudy = father;
+                            father = greatFather;
+                            greatFather = parent(father);
+                            rotateRight(nodeStudy);
+                        }
+                        setColor(father, true);
+                        setColor(greatFather, false);
+                        rotateLeft(greatFather);
                     }
                 }
             }
-            setParent(newIndex, n);
+            setColor(_root, true);
         }
-        insertCase1(newIndex);
+        _size++;
         return true;
     }
 
