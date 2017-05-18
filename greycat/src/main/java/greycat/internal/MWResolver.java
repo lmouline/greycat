@@ -792,10 +792,13 @@ final class MWResolver implements Resolver {
                                                     result[i] = (BaseNode) resolvedFactory.create(call_keys2[reversedIndex * 3], timeCollector.getKey(i), id, selfPointer._graph);
                                                 }
                                                 result[i]._dead = false;
-                                                //result[i]._index_stateChunk =  theObjectChunk.index(); TODO
                                                 final SuperTimeTreeChunk stc = (SuperTimeTreeChunk) superTimeTrees[(int) tempSuperTimeCollector.get(timeTrees[reversedIndex].time())];
+                                                final TimeTreeChunk ttc = (TimeTreeChunk) timeTrees[reversedIndex];
+                                                _space.mark(stc.index());
+                                                _space.mark(ttc.index());
+                                                _space.mark(objectWorldOrder.index());
                                                 result[i]._index_superTimeTree = stc.index();
-                                                result[i]._index_timeTree = timeTrees[reversedIndex].index();
+                                                result[i]._index_timeTree = ttc.index();
                                                 result[i]._index_worldOrder = objectWorldOrder.index();
                                                 if (call_keys2[reversedIndex * 3] == world) { //time is always precise here
                                                     result[i]._world_magic = -1;
@@ -803,9 +806,10 @@ final class MWResolver implements Resolver {
                                                     result[i]._time_magic = -1;
                                                 } else {
                                                     result[i]._world_magic = objectWorldOrder.magic();
-                                                    result[i]._super_time_magic = ((SuperTimeTreeChunk) stc).magic();
-                                                    result[i]._time_magic = ((TimeTreeChunk) timeTrees[reversedIndex]).magic();
+                                                    result[i]._super_time_magic = stc.magic();
+                                                    result[i]._time_magic = ttc.magic();
                                                 }
+                                                //we need to marks
                                             }
                                         } else {
                                             int nodeIndex = 0;
@@ -817,10 +821,13 @@ final class MWResolver implements Resolver {
                                                     result[nodeIndex] = (BaseNode) resolvedFactory.create(call_keys2[reversedIndex * 3], timeCollector.getKey(i), id, selfPointer._graph);
                                                 }
                                                 result[nodeIndex]._dead = false;
-                                                //result[i]._index_stateChunk =  theObjectChunk.index(); TODO
                                                 final SuperTimeTreeChunk stc = (SuperTimeTreeChunk) superTimeTrees[(int) tempSuperTimeCollector.get(timeTrees[reversedIndex].time())];
+                                                final TimeTreeChunk ttc = (TimeTreeChunk) timeTrees[reversedIndex];
+                                                _space.mark(stc.index());
+                                                _space.mark(ttc.index());
+                                                _space.mark(objectWorldOrder.index());
                                                 result[nodeIndex]._index_superTimeTree = stc.index();
-                                                result[nodeIndex]._index_timeTree = timeTrees[reversedIndex].index();
+                                                result[nodeIndex]._index_timeTree = ttc.index();
                                                 result[nodeIndex]._index_worldOrder = objectWorldOrder.index();
                                                 if (call_keys2[reversedIndex * 3] == world) { //time is always precise here
                                                     result[nodeIndex]._world_magic = -1;
@@ -828,8 +835,8 @@ final class MWResolver implements Resolver {
                                                     result[nodeIndex]._time_magic = -1;
                                                 } else {
                                                     result[nodeIndex]._world_magic = objectWorldOrder.magic();
-                                                    result[nodeIndex]._super_time_magic = ((SuperTimeTreeChunk) stc).magic();
-                                                    result[nodeIndex]._time_magic = ((TimeTreeChunk) timeTrees[reversedIndex]).magic();
+                                                    result[nodeIndex]._super_time_magic = stc.magic();
+                                                    result[nodeIndex]._time_magic = ttc.magic();
                                                 }
                                                 nodeIndex++;
                                             }
@@ -841,6 +848,13 @@ final class MWResolver implements Resolver {
                                             call_keys3[i * 3 + 1] = result[i].time();
                                             call_keys3[i * 3 + 2] = id;
                                             call_types3[i] = ChunkType.STATE_CHUNK;
+                                        }
+                                        _space.unmark(objectWorldOrder.index());
+                                        for (int i = 0; i < timeTrees.length; i++) {
+                                            _space.unmark(timeTrees[i].index());
+                                        }
+                                        for (int i = 0; i < superTimeTrees.length; i++) {
+                                            _space.unmark(superTimeTrees[i].index());
                                         }
                                         getOrLoadAndMarkAll(call_types3, call_keys3, new Callback<Chunk[]>() {
                                             @Override

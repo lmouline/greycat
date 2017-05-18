@@ -152,9 +152,11 @@ public class ResolverTest {
                         @Override
                         public void on(Node result) {
                             result.set("time", Type.LONG, finalI);
+                            result.free();
                         }
                     });
                 }
+
                 //From, to, not reversed, complete
                 g.lookupTimes(0, 1000, 2000, n.id(), -1, new Callback<Node[]>() {
                     @Override
@@ -165,6 +167,7 @@ public class ResolverTest {
                         for (long i = 0; i < result.length; i++) {
                             Assert.assertEquals(result[(int) i].get("time"), i + 1000);
                         }
+                        g.freeNodes(result);
                     }
                 });
                 //From, to, not reversed, not complete
@@ -177,6 +180,7 @@ public class ResolverTest {
                         for (long i = 0; i < result.length; i++) {
                             Assert.assertEquals(result[(int) i].get("time"), i + 1000);
                         }
+                        g.freeNodes(result);
                     }
                 });
                 //To, from, reversed, complete
@@ -189,6 +193,7 @@ public class ResolverTest {
                         for (long i = 0; i < result.length; i++) {
                             Assert.assertEquals(result[(int) i].get("time"), 2000 - i - 1);
                         }
+                        g.freeNodes(result);
                     }
                 });
                 //To, from, reversed, not complete
@@ -201,6 +206,7 @@ public class ResolverTest {
                         for (long i = 0; i < result.length; i++) {
                             Assert.assertEquals(result[(int) i].get("time"), 2000 - i - 1);
                         }
+                        g.freeNodes(result);
                     }
                 });
                 //BEGINNING, END, reversed, not complete
@@ -213,12 +219,11 @@ public class ResolverTest {
                         for (long i = 0; i < result.length; i++) {
                             Assert.assertEquals(result[(int) i].get("time"), 2000 - i - 1);
                         }
+                        g.freeNodes(result);
                     }
                 });
-
-
-
-
+                n.free();
+                
             }
         });
     }
