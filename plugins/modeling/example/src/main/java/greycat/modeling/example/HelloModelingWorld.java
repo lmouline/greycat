@@ -21,7 +21,7 @@ import modeling.ModelingPlugin;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-public class HelloWorld {
+public class HelloModelingWorld {
 
 
     public static void main(String[] args) {

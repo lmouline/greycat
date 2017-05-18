@@ -18,14 +18,12 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.datathings.greycat-modeling</groupId>
-    <artifactId>greycat-modeling-examples</artifactId>
-    <version>1-SNAPSHOT</version>
-    <!--<name>Example :: MavenPlugin</name>-->
+    <artifactId>examples</artifactId>
+    <name>Modeling :: Examples</name>
 
     <properties>
         <greycat-modeling.version>7-SNAPSHOT</greycat-modeling.version>
         <greycat.version>7-SNAPSHOT</greycat.version>
-        <!--<greycat.version>6</greycat.version>-->
     </properties>
 
     <dependencies>
@@ -40,7 +38,7 @@
         <plugins>
             <plugin>
                 <groupId>com.datathings.greycat-modeling</groupId>
-                <artifactId>greycat-modeling-mavenplugin</artifactId>
+                <artifactId>mavenplugin</artifactId>
                 <version>${greycat-modeling.version}</version>
                 <executions>
                     <execution>
@@ -51,16 +49,6 @@
                         </goals>
                     </execution>
                 </executions>
-                <!--
-                <configuration>
-                    <packageName>smarthome</packageName>
-                    <pluginName>ZSmartHomePlugin</pluginName>
-                    <srcFiles>src/main/resources</srcFiles>
-                    <deepScan>false</deepScan>
-                    <targetGen>target/generated-sources/homeAutomation</targetGen>
-                    <generateJS>false</generateJS>
-                </configuration>
-                -->
             </plugin>
 
             <plugin>

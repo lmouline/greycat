@@ -15,9 +15,7 @@
  */
 package greycat.modeling.generator;
 
-import com.intellij.openapi.util.io.FileUtil;
-import greycat.modeling.language.TypedGraphBuilder;
-import greycat.modeling.language.ast.TypedGraph;
+import greycat.modeling.language.ast.Model;
 import java2typescript.SourceTranslator;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.project.MavenProject;
@@ -33,10 +31,10 @@ import java.util.Arrays;
 public class Generator {
     public static final String FILE_EXTENSION = ".gcm";
 
-    private final TypedGraph graph;
+    private final Model model;
 
     public Generator() {
-        this.graph = new TypedGraph();
+        this.model = new Model();
     }
 
     public void scan(File target) throws Exception {
@@ -47,13 +45,13 @@ public class Generator {
             } else {
                 for (String name : files) {
                     if (name.trim().endsWith(FILE_EXTENSION)) {
-                        TypedGraphBuilder.parse(new File(target, name), graph);
+                        Model.parse(new File(target, name), model);
                     }
                 }
             }
 
         } else if (target.getName().endsWith(FILE_EXTENSION)) {
-            TypedGraphBuilder.parse(target, graph);
+            Model.parse(target, model);
         } else {
             throw new RuntimeException("no file with correct extension found");
         }
@@ -67,7 +65,7 @@ public class Generator {
             } else {
                 for (String name : files) {
                     if (name.trim().endsWith(FILE_EXTENSION)) {
-                        TypedGraphBuilder.parse(new File(target, name), graph);
+                        Model.parse(new File(target, name), model);
                     } else {
                         File current = new File(target, name);
                         if (current.isDirectory()) {
@@ -78,17 +76,17 @@ public class Generator {
             }
 
         } else if (target.getName().endsWith(FILE_EXTENSION)) {
-            TypedGraphBuilder.parse(target, graph);
+            Model.parse(target, model);
         }
     }
 
     private void generateJava(String packageName, String pluginName, File target) {
         int index = 0;
-        JavaSource[] sources = new JavaSource[(graph.classifiers().length) * 2 + 2];
-        sources[index] = PluginClassGenerator.generate(packageName, pluginName, graph);
+        JavaSource[] sources = new JavaSource[(model.classifiers().length) * 2 + 2];
+        sources[index] = PluginClassGenerator.generate(packageName, pluginName, model);
         index++;
 
-        JavaSource[] nodeTypes = NodeTypeGenerator.generate(packageName, pluginName, graph);
+        JavaSource[] nodeTypes = NodeTypeGenerator.generate(packageName, pluginName, model);
         System.arraycopy(nodeTypes, 0, sources, index, nodeTypes.length);
         index += nodeTypes.length;
 
@@ -164,7 +162,7 @@ public class Generator {
         try {
             File tsConfig = new File(target.getAbsolutePath() + "ts/tsconfig.json");
             tsConfig.createNewFile();
-            FileUtil.writeToFile(tsConfig, tsConfigContent);
+            Files.write(tsConfig.toPath(), tsConfigContent.getBytes());
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -189,7 +187,7 @@ public class Generator {
         try {
             File packageJson = new File(target.getAbsolutePath() + "ts/package.json");
             packageJson.createNewFile();
-            FileUtil.writeToFile(packageJson, packageJsonContent);
+            Files.write(packageJson.toPath(), packageJsonContent.getBytes());
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -207,7 +205,7 @@ public class Generator {
 
         try {
             mainJS.createNewFile();
-            FileUtil.writeToFile(mainJS, "var greycat = require(\"greycat\");\n" +
+            Files.write(mainJS.toPath(), ("var greycat = require(\"greycat\");\n" +
                     "var " + packageName + " = require(\"" + packageName + "\");\n" +
                     "\n" +
                     "var builder = new greycat.GraphBuilder().withPlugin(new " + packageName + "." + pluginName + "());\n" +
@@ -215,10 +213,10 @@ public class Generator {
                     "\n" +
                     "graph.connect(function (isSucceed) {\n" +
                     "\n" +
-                    "});");
+                    "});").getBytes());
 
             packageJson2.createNewFile();
-            FileUtil.writeToFile(packageJson2, "{\n" +
+            Files.write(packageJson2.toPath(), ("{\n" +
                     "  \"name\": \"" + packageName + "\",\n" +
                     "  \"version\": \"1.0.0\",\n" +
                     "  \"description\": \"\",\n" +
@@ -226,21 +224,22 @@ public class Generator {
                     "  \"author\": \"\",\n" +
                     "  \"dependencies\": {\n" +
                     "    \"greycat\": \"" + gcVersion + "\",\n" +
-                    "    \"smarthome\": \"./smarthome\"\n" +
+                    "    \""+packageName+"\": \"./"+packageName+"\"\n" +
                     "  }\n" +
-                    "}");
+                    "}").getBytes());
 
             packageJson3.createNewFile();
-            FileUtil.writeToFile(packageJson3, "{\n" +
-                    "  \"name\": \"smarthome\",\n" +
-                    "  \"description\": \"TypedGraph\",\n" +
+            Files.write(packageJson3.toPath(),("{\n" +
+                    "  \"name\": \""+packageName+"\",\n" +
+                    "  \"description\": \"Model\",\n" +
                     "  \"version\": \"1.0.0\",\n" +
-                    "  \"main\": \"smarthome.js\",\n" +
-                    "  \"typings\": \"smarthome.d.ts\",\n" +
+                    "  \"main\": \""+packageName+".js\",\n" +
+                    "  \"typings\": \""+packageName+".d.ts\",\n" +
                     "  \"dependencies\": {\n" +
                     "    \"greycat\": \"" + gcVersion + "\"\n" +
                     "  }\n" +
-                    "}");
+                    "}").getBytes());
+
         } catch (IOException e) {
             e.printStackTrace();
         }

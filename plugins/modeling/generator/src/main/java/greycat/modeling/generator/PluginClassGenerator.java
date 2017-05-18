@@ -19,7 +19,7 @@ import greycat.Graph;
 import greycat.modeling.language.ast.Classifier;
 import greycat.modeling.language.ast.Class;
 import greycat.modeling.language.ast.Index;
-import greycat.modeling.language.ast.TypedGraph;
+import greycat.modeling.language.ast.Model;
 import greycat.plugin.NodeFactory;
 import greycat.plugin.Plugin;
 import org.jboss.forge.roaster.Roaster;
@@ -30,7 +30,7 @@ import org.jboss.forge.roaster.model.source.MethodSource;
 
 class PluginClassGenerator {
 
-    static JavaSource generate(final String packageName, final String pluginName, final TypedGraph graph) {
+    static JavaSource generate(final String packageName, final String pluginName, final Model model) {
         final JavaClassSource pluginClass = Roaster.create(JavaClassSource.class);
         pluginClass.addImport(NodeFactory.class);
         pluginClass.addImport(Graph.class);
@@ -40,9 +40,9 @@ class PluginClassGenerator {
         pluginClass.addInterface(Plugin.class);
 
 
-        for (int i = 0; i < graph.classifiers().length; i++) {
-            if (graph.classifiers()[i] instanceof Index) {
-                Index casted = (Index) graph.classifiers()[i];
+        for (int i = 0; i < model.classifiers().length; i++) {
+            if (model.classifiers()[i] instanceof Index) {
+                Index casted = (Index) model.classifiers()[i];
                 pluginClass.addField()
                         .setVisibility(Visibility.PUBLIC)
                         .setStatic(true)
@@ -79,7 +79,7 @@ class PluginClassGenerator {
                 .addAnnotation(Override.class);
 
         StringBuilder startBodyBuilder = new StringBuilder();
-        for (Classifier classifier : graph.classifiers()) {
+        for (Classifier classifier : model.classifiers()) {
             if (classifier instanceof Class) {
                 startBodyBuilder.append("\t\tgraph.nodeRegistry()\n")
                         .append("\t\t\t.getOrCreateDeclaration(").append(classifier.name()).append(".NODE_NAME").append(")").append("\n")

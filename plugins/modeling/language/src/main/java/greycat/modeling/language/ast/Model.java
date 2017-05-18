@@ -13,12 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package greycat.modeling.language;
+package greycat.modeling.language.ast;
 
-
-import greycat.modeling.language.ast.*;
-import greycat.modeling.language.ast.Class;
-import greycat.modeling.language.ast.Enum;
 import org.antlr.v4.runtime.ANTLRFileStream;
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.BufferedTokenStream;
@@ -26,27 +22,35 @@ import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
 import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
 
-public class TypedGraphBuilder {
+public class Model {
 
-/*
-    public static TypedGraph parse(String content) {
-        TypedGraph typedGraph = new TypedGraph();
-        return build(new ANTLRInputStream(content), typedGraph);
+    private final Map<String, Classifier> classifiers;
+
+    public Model() {
+        classifiers = new HashMap<String, Classifier>();
     }
 
-    public static TypedGraph parse(File content) throws Exception {
-        TypedGraph typedGraph = new TypedGraph();
-        return build(new ANTLRFileStream(content.getAbsolutePath()), typedGraph);
-    }
-*/
-
-
-    public static TypedGraph parse(File content, TypedGraph typedGraph) throws Exception {
-        return build(new ANTLRFileStream(content.getAbsolutePath()), typedGraph);
+    public Classifier[] classifiers() {
+        return classifiers.values().toArray(new Classifier[classifiers.size()]);
     }
 
-    private static TypedGraph build(ANTLRInputStream in, TypedGraph typedGraph) {
+    public void addClassifier(Classifier classifier) {
+        classifiers.put(classifier.name(), classifier);
+    }
+
+    public Classifier get(String fqn) {
+        return classifiers.get(fqn);
+    }
+
+
+    public static Model parse(File content, Model model) throws Exception {
+        return build(new ANTLRFileStream(content.getAbsolutePath()), model);
+    }
+
+    private static Model build(ANTLRInputStream in, Model model) {
 
         BufferedTokenStream tokens = new CommonTokenStream(new greycat.modeling.language.GreyCatModelLexer(in));
         greycat.modeling.language.GreyCatModelParser parser = new greycat.modeling.language.GreyCatModelParser(tokens);
@@ -61,7 +65,7 @@ public class TypedGraphBuilder {
             if (enumDeclrContext.IDENT() != null) {
                 fqn = enumDeclrContext.IDENT().toString();
             }
-            final Enum enumClass = (Enum) getOrAddEnum(typedGraph, fqn);
+            final Enum enumClass = (Enum) getOrAddEnum(model, fqn);
             for (TerminalNode literal : enumDeclrContext.enumLiterals().IDENT()) {
                 enumClass.addLiteral(literal.getText());
             }
@@ -75,15 +79,15 @@ public class TypedGraphBuilder {
             if (classDeclrContext.IDENT() != null) {
                 classFqn = classDeclrContext.IDENT().toString();
             }
-            final Class newClass = (Class) getOrAddClass(typedGraph, classFqn);
+            final Class newClass = (Class) getOrAddClass(model, classFqn);
             //process parents
             if (classDeclrContext.parentsDeclr() != null) {
                 if (classDeclrContext.parentsDeclr().TYPE_NAME() != null) {
-                    final Class newClassTT = (Class) getOrAddClass(typedGraph, classDeclrContext.parentsDeclr().TYPE_NAME().toString());
+                    final Class newClassTT = (Class) getOrAddClass(model, classDeclrContext.parentsDeclr().TYPE_NAME().toString());
                     newClass.setParent(newClassTT);
                 }
                 if (classDeclrContext.parentsDeclr().IDENT() != null) {
-                    final Class newClassTT = (Class) getOrAddClass(typedGraph, classDeclrContext.parentsDeclr().IDENT().toString());
+                    final Class newClassTT = (Class) getOrAddClass(model, classDeclrContext.parentsDeclr().IDENT().toString());
                     newClass.setParent(newClassTT);
                 }
             }
@@ -121,42 +125,42 @@ public class TypedGraphBuilder {
             } else {
                 type = indexDeclrContext.TYPE_NAME().toString();
             }
-            final Index indexClass = (Index) getOrAddIndex(typedGraph, name, (Class) typedGraph.get(type));
+            final Index indexClass = (Index) getOrAddIndex(model, name, (Class) model.get(type));
             for (TerminalNode literal : indexDeclrContext.indexLiterals().IDENT()) {
                 indexClass.addProperty(literal.getText());
             }
         }
 
-        return typedGraph;
+        return model;
     }
 
-    private static Classifier getOrAddClass(TypedGraph typedGraph, String fqn) {
-        Classifier previous = typedGraph.get(fqn);
+    private static Classifier getOrAddClass(Model model, String fqn) {
+        Classifier previous = model.get(fqn);
         if (previous != null) {
             return previous;
         }
         previous = new Class(fqn);
-        typedGraph.addClassifier(previous);
+        model.addClassifier(previous);
         return previous;
     }
 
-    private static Classifier getOrAddIndex(TypedGraph typedGraph, String fqn, Class clazz) {
-        Classifier previous = typedGraph.get(fqn);
+    private static Classifier getOrAddIndex(Model model, String fqn, Class clazz) {
+        Classifier previous = model.get(fqn);
         if (previous != null) {
             return previous;
         }
         previous = new Index(fqn, clazz);
-        typedGraph.addClassifier(previous);
+        model.addClassifier(previous);
         return previous;
     }
 
-    private static Classifier getOrAddEnum(TypedGraph typedGraph, String fqn) {
-        Classifier previous = typedGraph.get(fqn);
+    private static Classifier getOrAddEnum(Model model, String fqn) {
+        Classifier previous = model.get(fqn);
         if (previous != null) {
             return previous;
         }
         previous = new Enum(fqn);
-        typedGraph.addClassifier(previous);
+        model.addClassifier(previous);
         return previous;
     }
 }

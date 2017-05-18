@@ -18,8 +18,8 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.datathings.greycat-modeling</groupId>
-    <artifactId>greycat-modeling-generator</artifactId>
-   <!-- <name>Modeling :: Generator</name>-->
+    <artifactId>generator</artifactId>
+    <name>Modeling :: Generator</name>
 
     <parent>
         <artifactId>greycat-modeling</artifactId>
@@ -40,7 +40,7 @@
 
         <dependency>
             <groupId>com.datathings.greycat-modeling</groupId>
-            <artifactId>greycat-modeling-language</artifactId>
+            <artifactId>language</artifactId>
             <version>${project.version}</version>
         </dependency>
 
@@ -53,7 +53,6 @@
             <groupId>org.jboss.forge.roaster</groupId>
             <artifactId>roaster-jdt</artifactId>
             <version>${roaster.version}</version>
-            <!--<scope>runtime</scope>-->
         </dependency>
 
         <dependency>

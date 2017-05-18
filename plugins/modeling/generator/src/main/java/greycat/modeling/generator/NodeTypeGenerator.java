@@ -31,11 +31,11 @@ import org.jboss.forge.roaster.model.source.*;
 
 class NodeTypeGenerator {
 
-    static JavaSource[] generate(String packageName, String name, TypedGraph graph) {
-        JavaSource[] sources = new JavaSource[graph.classifiers().length];
+    static JavaSource[] generate(String packageName, String name, Model model) {
+        JavaSource[] sources = new JavaSource[model.classifiers().length];
 
-        for (int i = 0; i < graph.classifiers().length; i++) {
-            final Classifier classifier = graph.classifiers()[i];
+        for (int i = 0; i < model.classifiers().length; i++) {
+            final Classifier classifier = model.classifiers()[i];
 
             if (classifier instanceof Enum) {
                 sources[i] = generateEnum(packageName, (Enum) classifier);
