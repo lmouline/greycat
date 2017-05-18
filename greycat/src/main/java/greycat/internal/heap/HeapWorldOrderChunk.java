@@ -42,7 +42,6 @@ final class HeapWorldOrderChunk implements WorldOrderChunk {
 
     private volatile long _magic;
     private volatile long _type;
-    private volatile long _offset;
 
     private volatile int _size;
     private int _capacity;
@@ -103,7 +102,6 @@ final class HeapWorldOrderChunk implements WorldOrderChunk {
         _hash = null;
         _chunkHash = 0;
         _inSync = true;
-        _offset = 0;
     }
 
     @Override
@@ -129,16 +127,6 @@ final class HeapWorldOrderChunk implements WorldOrderChunk {
     @Override
     public final void setType(final long v) {
         this._type = v;
-    }
-
-    @Override
-    public final long offset() {
-        return this._offset;
-    }
-
-    @Override
-    public final void setOffset(final long v) {
-        this._offset = v;
     }
 
     /**
@@ -360,9 +348,6 @@ final class HeapWorldOrderChunk implements WorldOrderChunk {
                                 resize(closePowerOfTwo);
                                 break;
                             case 1:
-                                _offset = Base64.decodeToLongWithBounds(buffer, previousStart, cursor);
-                                break;
-                            case 2:
                                 if (previousStart != cursor) {
                                     _type = Base64.decodeToLongWithBounds(buffer, previousStart, cursor);
                                 }
@@ -412,8 +397,6 @@ final class HeapWorldOrderChunk implements WorldOrderChunk {
     public final synchronized void save(final Buffer buffer) {
         final long beginIndex = buffer.writeIndex();
         Base64.encodeIntToBuffer(_size, buffer);
-        buffer.write(CoreConstants.CHUNK_SEP);
-        Base64.encodeLongToBuffer(_offset, buffer);
         buffer.write(CoreConstants.CHUNK_SEP);
         if (_type != Constants.NULL_LONG) {
             Base64.encodeLongToBuffer(_type, buffer);

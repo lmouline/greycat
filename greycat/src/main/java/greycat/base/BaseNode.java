@@ -533,9 +533,8 @@ public class BaseNode implements Node {
     @Override
     public final long timeDephasing() {
         final NodeState state = this._resolver.resolveState(this);
-        final WorldOrderChunk woc = (WorldOrderChunk) this._graph.space().get(this._index_worldOrder);
         if (state != null) {
-            return (this._time - state.time() - woc.offset());
+            return this._time - state.time();
         } else {
             throw new RuntimeException(Constants.CACHE_MISS_ERROR);
         }

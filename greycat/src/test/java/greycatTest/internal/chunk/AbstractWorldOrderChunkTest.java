@@ -104,7 +104,6 @@ public abstract class AbstractWorldOrderChunkTest {
         }
         Assert.assertTrue(map.type() == CoreConstants.NULL_LONG);
         map.setType(1000000);
-        map.setOffset(50);
         Assert.assertTrue(map.size() == 10000);
         Assert.assertTrue(map.type() == 1000000);
         Buffer buffer = factory.newBuffer();
@@ -115,7 +114,6 @@ public abstract class AbstractWorldOrderChunkTest {
             Assert.assertTrue(map2.get(i) == i * 3);
         }
         Assert.assertTrue(map2.type() == 1000000);
-        Assert.assertTrue(map2.offset() == 50);
         Buffer buffer2 = factory.newBuffer();
         map2.save(buffer2);
         Assert.assertTrue(compareBuffers(buffer, buffer2));
