@@ -145,7 +145,6 @@ public class ResolverTest {
         g.connect(new Callback<Boolean>() {
             @Override
             public void on(Boolean connectionResult) {
-
                 long availableBefore = g.space().available();
                 BaseNode n = (BaseNode) g.newNode(0, 0);
                 for (long i = 1000; i < 2000; i++) {
