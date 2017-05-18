@@ -133,8 +133,99 @@ public class ResolverTest {
         n.travelInTime(today + 100, new Callback<Node>() {
             @Override
             public void on(Node result) {
-                Assert.assertEquals("{\"world\":0,\"time\":1100,\"id\":1,\"name\":\"myName\"}",result.toString());
-                Assert.assertEquals(100,result.timeDephasing());
+                Assert.assertEquals("{\"world\":0,\"time\":1100,\"id\":1,\"name\":\"myName\"}", result.toString());
+                Assert.assertEquals(100, result.timeDephasing());
+            }
+        });
+    }
+
+    @Test
+    public void lookupTimesTest() {
+        Graph g = GraphBuilder.newBuilder().withScheduler(new NoopScheduler()).build();
+        g.connect(new Callback<Boolean>() {
+            @Override
+            public void on(Boolean connectionResult) {
+                long availableBefore = g.space().available();
+                BaseNode n = (BaseNode) g.newNode(0, 0);
+                for (long i = 1000; i < 2000; i++) {
+                    final long finalI = i;
+                    g.lookup(0, i, n.id(), new Callback<Node>() {
+                        @Override
+                        public void on(Node result) {
+                            result.set("time", Type.LONG, finalI);
+                            result.free();
+                        }
+                    });
+                }
+                //From, to, not reversed, complete
+                g.lookupTimes(0, 1000, 2000, n.id(), -1, new Callback<Node[]>() {
+                    @Override
+                    public void on(Node[] result) {
+                        //check size
+                        Assert.assertEquals(1000, result.length);
+                        //check order
+                        for (long i = 0; i < result.length; i++) {
+                            Assert.assertEquals(result[(int) i].get("time"), i + 1000);
+                        }
+                        g.freeNodes(result);
+                    }
+                });
+                //From, to, not reversed, not complete
+                g.lookupTimes(0, 1000, 2000, n.id(), 500, new Callback<Node[]>() {
+                    @Override
+                    public void on(Node[] result) {
+                        //check size
+                        Assert.assertEquals(500, result.length);
+                        //check order
+                        for (long i = 0; i < result.length; i++) {
+                            Assert.assertEquals(result[(int) i].get("time"), i + 1000);
+                        }
+                        g.freeNodes(result);
+                    }
+                });
+                //To, from, reversed, complete
+                g.lookupTimes(0, 2000, 1000, n.id(), 1000, new Callback<Node[]>() {
+                    @Override
+                    public void on(Node[] result) {
+                        //check size
+                        Assert.assertEquals(1000, result.length);
+                        //check order
+                        for (long i = 0; i < result.length; i++) {
+                            Assert.assertEquals(result[(int) i].get("time"), 2000 - i - 1);
+                        }
+                        g.freeNodes(result);
+                    }
+                });
+                //To, from, reversed, not complete
+                g.lookupTimes(0, 2000, 1000, n.id(), 500, new Callback<Node[]>() {
+                    @Override
+                    public void on(Node[] result) {
+                        //check size
+                        Assert.assertEquals(500, result.length);
+                        //check order
+                        for (long i = 0; i < result.length; i++) {
+                            Assert.assertEquals(result[(int) i].get("time"), 2000 - i - 1);
+                        }
+                        g.freeNodes(result);
+                    }
+                });
+                //BEGINNING, END, reversed, not complete
+                g.lookupTimes(0, Constants.END_OF_TIME, Constants.BEGINNING_OF_TIME, n.id(), 10, new Callback<Node[]>() {
+                    @Override
+                    public void on(Node[] result) {
+                        //check size
+                        Assert.assertEquals(10, result.length);
+                        //check order
+                        for (long i = 0; i < result.length; i++) {
+                            Assert.assertEquals(result[(int) i].get("time"), 2000 - i - 1);
+                        }
+                        g.freeNodes(result);
+                    }
+                });
+                n.free();
+                g.save(null);
+                long availableAfter = g.space().available();
+                Assert.assertEquals(availableBefore, availableAfter);
             }
         });
     }

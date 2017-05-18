@@ -259,11 +259,11 @@ public class CoreGraph implements Graph {
     }
 
     @Override
-    public final void lookupTimes(long world, long from, long to, long id, Callback<Node[]> callback) {
+    public final void lookupTimes(long world, long from, long to, long id, int limit, Callback<Node[]> callback) {
         if (!_isConnected.get()) {
             throw new RuntimeException(CoreConstants.DISCONNECTED_ERROR);
         }
-        this._resolver.lookupTimes(world, from, to, id, callback);
+        this._resolver.lookupTimes(world, from, to, id, limit, callback);
     }
 
     @Override

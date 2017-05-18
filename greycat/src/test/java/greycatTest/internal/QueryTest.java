@@ -128,12 +128,18 @@ public class QueryTest implements Resolver, Graph {
     }
 
     @Override
-    public void lookupTimes(long world, long from, long to, long id, Callback<Node[]> callback) {
+    public void lookupPTimes(long world, long[] times, long id, Callback<Node[]> callback) {
+
+    }
+
+
+    @Override
+    public void lookupAll(long world, long time, long[] ids, Callback<Node[]> callback) {
 
     }
 
     @Override
-    public void lookupAll(long world, long time, long[] ids, Callback<Node[]> callback) {
+    public void lookupTimes(long world, long rfrom, long rto, long id, int limit, Callback<Node[]> callback) {
 
     }
 

@@ -101,8 +101,8 @@ public interface Graph {
      * @param id       The unique identifier of the {@link Node} ({@link Node#id()}) researched.
      * @param callback The task to be called when the {@link Node} is retrieved.
      */
-    void lookupTimes(long world, long from, long to, long id, Callback<Node[]> callback);
-    
+    void lookupTimes(long world, long from, long to, long id, int limit, Callback<Node[]> callback);
+
     /**
      * Creates a spin-off world from the world given as parameter.<br>
      * The forked world can then be altered independently of its parent.<br>

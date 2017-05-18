@@ -18,7 +18,7 @@ package greycat.internal.heap;
 import greycat.Constants;
 import greycat.chunk.ChunkType;
 import greycat.chunk.SuperTimeTreeChunk;
-import greycat.chunk.TreeWalker;
+import greycat.chunk.SuperTreeWalker;
 import greycat.internal.CoreConstants;
 import greycat.struct.Buffer;
 import greycat.utility.Base64;
@@ -79,6 +79,30 @@ public class HeapSuperTimeTreeChunk implements SuperTimeTreeChunk {
     }
 
     @Override
+    public long lastKey() {
+        if (_size == 0) {
+            return Constants.NULL_LONG;
+        }
+        return _keys[_size - 1];
+    }
+
+    @Override
+    public long lastValue() {
+        if (_size == 0) {
+            return Constants.NULL_LONG;
+        }
+        return _values[_size - 1];
+    }
+
+    @Override
+    public void setLastValue(long newV) {
+        if (_size == 0) {
+            return;
+        }
+        _values[_size - 1] = newV;
+    }
+
+    @Override
     public final long end() {
         return _end;
     }
@@ -125,12 +149,12 @@ public class HeapSuperTimeTreeChunk implements SuperTimeTreeChunk {
     }
 
     @Override
-    public synchronized final void range(final long startKey, final long endKey, final long maxElements, final TreeWalker walker) {
+    public synchronized final void range(final long startKey, final long endKey, final long maxElements, final SuperTreeWalker walker) {
         //lock and load fromVar main memory
         int nbElements = 0;
         int indexEnd = internal_previousOrEqual_index(endKey);
         while (indexEnd != -1 && key(indexEnd) >= startKey && nbElements < maxElements) {
-            walker.elem(key(indexEnd));
+            walker.elem(_keys[indexEnd], _values[indexEnd]);
             nbElements++;
             indexEnd = internal_previous(indexEnd);
         }
@@ -322,11 +346,6 @@ public class HeapSuperTimeTreeChunk implements SuperTimeTreeChunk {
         if (internal_insert(p_key, p_value, false)) {
             internal_set_dirty();
         }
-    }
-
-    @Override
-    public synchronized final void unsafe_insert(final long p_key, final long p_value) {
-        internal_insert(p_key, p_value, false);
     }
 
     @Override
