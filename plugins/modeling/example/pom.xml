@@ -19,6 +19,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.datathings.greycat-modeling</groupId>
     <artifactId>examples</artifactId>
+    <version>7-SNAPSHOT</version>
     <name>Modeling :: Examples</name>
 
     <properties>
