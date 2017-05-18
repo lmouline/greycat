@@ -16,14 +16,14 @@
 package greycatTest.internal.chunk;
 
 import greycat.Constants;
+import greycat.chunk.ChunkSpace;
 import greycat.chunk.ChunkType;
+import greycat.chunk.TimeTreeChunk;
 import greycat.chunk.TreeWalker;
+import greycat.plugin.MemoryFactory;
 import greycat.struct.Buffer;
 import org.junit.Assert;
 import org.junit.Test;
-import greycat.chunk.ChunkSpace;
-import greycat.chunk.TimeTreeChunk;
-import greycat.plugin.MemoryFactory;
 
 public abstract class AbstractTimeTreeTest {
 
@@ -174,7 +174,7 @@ public abstract class AbstractTimeTreeTest {
     public void massiveTest() {
         ChunkSpace space = factory.newSpace(100, -1, null, false);
         TimeTreeChunk tree = (TimeTreeChunk) space.createAndMark(ChunkType.TIME_TREE_CHUNK, 0, 0, 0);
-       //  long before = System.currentTimeMillis();
+        //  long before = System.currentTimeMillis();
         long max = 100;
         for (long i = 0; i <= max; i = i + 2) {
             tree.insert(i);
@@ -253,6 +253,22 @@ public abstract class AbstractTimeTreeTest {
         return true;
     }
 
+    @Test
+    public void stressTest() {
+        ChunkSpace space = factory.newSpace(100, -1, null, false);
+        TimeTreeChunk tree = (TimeTreeChunk) space.createAndMark(ChunkType.TIME_TREE_CHUNK, 0, 0, 0);
+        for (long i = 1000000; i > 0; i = i - 2) {
+            tree.insert(i);
+        }
+        Assert.assertEquals(95000, tree.previous(95001));
+        Assert.assertEquals(120002, tree.next(120001));
+        Buffer buffer = factory.newBuffer();
+        tree.save(buffer);
+        TimeTreeChunk tree2 = (TimeTreeChunk) space.createAndMark(ChunkType.TIME_TREE_CHUNK, 0, 0, 1);
+        tree2.load(buffer);
+        Assert.assertEquals(tree.size(), tree2.size());
+
+    }
 
     /*
     @Test
