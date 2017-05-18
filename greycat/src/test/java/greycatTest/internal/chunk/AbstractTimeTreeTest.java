@@ -191,6 +191,7 @@ public abstract class AbstractTimeTreeTest {
         //  System.out.println((after-before) / 1000);
     }
 
+    /*
     @Test
     public void emptyHalfTest() {
         ChunkSpace space = factory.newSpace(100, -1, null, false);
@@ -229,7 +230,7 @@ public abstract class AbstractTimeTreeTest {
         Assert.assertTrue(nbCall[0] == 5);
         space.free(tree);
         space.freeAll();
-    }
+    }*/
 
     private boolean compareWithString(Buffer buffer, String content) {
         for (int i = 0; i < content.length(); i++) {

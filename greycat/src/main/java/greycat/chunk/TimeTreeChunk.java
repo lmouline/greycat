@@ -21,8 +21,6 @@ public interface TimeTreeChunk extends Chunk {
     
     long previousOrEqual(long key);
 
-    void clearAt(long max);
-
     void range(long startKey, long endKey, long maxElements, TreeWalker walker);
 
     long magic();

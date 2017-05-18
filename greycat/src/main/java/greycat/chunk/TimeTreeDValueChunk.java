@@ -15,18 +15,10 @@
  */
 package greycat.chunk;
 
-public class ChunkType {
+public interface TimeTreeDValueChunk extends TimeTreeChunk {
 
-    public static final byte WORLD_ORDER_CHUNK = 0;
+    void insertValue(long key, double value);
 
-    public static final byte SUPER_TIME_TREE_CHUNK = 1;
-
-    public static final byte TIME_TREE_CHUNK = 2;
-
-    public static final byte TIME_TREE_DVALUE_CHUNK = 3;
-
-    public static final byte STATE_CHUNK = 4;
-
-    public static final byte GEN_CHUNK = 5;
+    void rangeValue(long startKey, long endKey, long maxElements, TreeDValueWalker walker);
 
 }

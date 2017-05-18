@@ -15,18 +15,9 @@
  */
 package greycat.chunk;
 
-public class ChunkType {
+@FunctionalInterface
+public interface TreeDValueWalker {
 
-    public static final byte WORLD_ORDER_CHUNK = 0;
-
-    public static final byte SUPER_TIME_TREE_CHUNK = 1;
-
-    public static final byte TIME_TREE_CHUNK = 2;
-
-    public static final byte TIME_TREE_DVALUE_CHUNK = 3;
-
-    public static final byte STATE_CHUNK = 4;
-
-    public static final byte GEN_CHUNK = 5;
+    void elem(final long time, final double value);
 
 }

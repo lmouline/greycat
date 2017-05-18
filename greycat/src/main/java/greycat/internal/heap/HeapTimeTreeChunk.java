@@ -264,27 +264,6 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
         return ChunkType.TIME_TREE_CHUNK;
     }
 
-    @Override
-    public synchronized final void clearAt(long max) {
-        //TODO save clear element too, to for the incremental storage
-        //lock and load fromVar main memory
-        long[] previousValue = _k;
-        //reset the state
-        _k = new long[_k.length];
-        _back_meta = new int[_k.length * META_SIZE];
-        _colors = new boolean[_k.length];
-        _root = -1;
-        int _previousSize = _size;
-        _size = 0;
-        for (int i = 0; i < _previousSize; i++) {
-            if (previousValue[i] != CoreConstants.NULL_LONG && previousValue[i] < max) {
-                internal_insert(previousValue[i], false);
-            }
-        }
-        //dirty
-        internal_set_dirty();
-    }
-
     private void reallocate(int newCapacity) {
         if (_k != null && newCapacity <= _k.length) {
             return;

@@ -17,14 +17,15 @@ package greycat.internal.heap;
 
 import greycat.Constants;
 import greycat.chunk.ChunkType;
-import greycat.chunk.TimeTreeChunk;
+import greycat.chunk.TimeTreeDValueChunk;
+import greycat.chunk.TreeDValueWalker;
 import greycat.chunk.TreeWalker;
 import greycat.internal.CoreConstants;
 import greycat.struct.Buffer;
 import greycat.utility.Base64;
 import greycat.utility.HashHelper;
 
-class HeapDTimeTreeChunk implements TimeTreeChunk {
+class HeapTimeTreeDValueChunk implements TimeTreeDValueChunk {
 
     //constants definition
     private static final int META_SIZE = 3;
@@ -35,6 +36,7 @@ class HeapDTimeTreeChunk implements TimeTreeChunk {
     private int _root = -1;
     private int[] _back_meta;
     private long[] _k;
+    private double[] _values;
     private boolean[] _colors;
 
     private long _hash;
@@ -44,7 +46,7 @@ class HeapDTimeTreeChunk implements TimeTreeChunk {
     private volatile long _magic;
     private volatile int _size;
 
-    HeapDTimeTreeChunk(final HeapChunkSpace p_space, final long p_index) {
+    HeapTimeTreeDValueChunk(final HeapChunkSpace p_space, final long p_index) {
         _space = p_space;
         _index = p_index;
         _magic = 0;
@@ -100,18 +102,6 @@ class HeapDTimeTreeChunk implements TimeTreeChunk {
     }
 
     @Override
-    public synchronized final void range(final long startKey, final long endKey, final long maxElements, final TreeWalker walker) {
-        //lock and load fromVar main memory
-        int nbElements = 0;
-        int indexEnd = internal_previousOrEqual_index(endKey);
-        while (indexEnd != -1 && key(indexEnd) >= startKey && nbElements < maxElements) {
-            walker.elem(key(indexEnd));
-            nbElements++;
-            indexEnd = internal_previous(indexEnd);
-        }
-    }
-
-    @Override
     public synchronized final void save(Buffer buffer) {
         final long beginIndex = buffer.writeIndex();
         Base64.encodeIntToBuffer(_size, buffer);
@@ -120,6 +110,8 @@ class HeapDTimeTreeChunk implements TimeTreeChunk {
         buffer.write(CoreConstants.CHUNK_SEP);
         for (int i = 0; i < _size; i++) {
             Base64.encodeLongToBuffer(this._k[i], buffer);
+            buffer.write(CoreConstants.CHUNK_VAL_SEP);
+            Base64.encodeDoubleToBuffer(this._values[i], buffer);
             buffer.write(CoreConstants.CHUNK_VAL_SEP);
         }
         _hash = HashHelper.hashBuffer(buffer, beginIndex, buffer.writeIndex());
@@ -173,6 +165,9 @@ class HeapDTimeTreeChunk implements TimeTreeChunk {
         long previous = 0;
         long payloadSize = buffer.length();
         int extraCursor = 0;
+
+        boolean waiting_value = false;
+        long key_time = -1;
         while (cursor < payloadSize) {
             final byte current = buffer.read(cursor);
             switch (current) {
@@ -190,8 +185,13 @@ class HeapDTimeTreeChunk implements TimeTreeChunk {
                     previous = cursor + 1;
                     break;
                 case Constants.CHUNK_VAL_SEP:
-                    boolean insertResult = internal_insert(Base64.decodeToLongWithBounds(buffer, previous, cursor), initial);
-                    isDirty = isDirty || insertResult;
+                    if (waiting_value) {
+                        boolean insertResult = internal_insert(key_time, Base64.decodeToDoubleWithBounds(buffer, previous, cursor), initial);
+                        isDirty = isDirty || insertResult;
+                    } else {
+                        waiting_value = true;
+                        key_time = Base64.decodeToLongWithBounds(buffer, previous, cursor);
+                    }
                     previous = cursor + 1;
                     break;
             }
@@ -254,35 +254,14 @@ class HeapDTimeTreeChunk implements TimeTreeChunk {
 
     @Override
     public synchronized final void insert(final long p_key) {
-        if (internal_insert(p_key, false)) {
+        if (internal_insert(p_key, 0.0d, false)) {
             internal_set_dirty();
         }
     }
 
     @Override
     public final byte chunkType() {
-        return ChunkType.TIME_TREE_CHUNK;
-    }
-
-    @Override
-    public synchronized final void clearAt(long max) {
-        //TODO save clear element too, to for the incremental storage
-        //lock and load fromVar main memory
-        long[] previousValue = _k;
-        //reset the state
-        _k = new long[_k.length];
-        _back_meta = new int[_k.length * META_SIZE];
-        _colors = new boolean[_k.length];
-        _root = -1;
-        int _previousSize = _size;
-        _size = 0;
-        for (int i = 0; i < _previousSize; i++) {
-            if (previousValue[i] != CoreConstants.NULL_LONG && previousValue[i] < max) {
-                internal_insert(previousValue[i], false);
-            }
-        }
-        //dirty
-        internal_set_dirty();
+        return ChunkType.TIME_TREE_DVALUE_CHUNK;
     }
 
     private void reallocate(int newCapacity) {
@@ -579,8 +558,15 @@ class HeapDTimeTreeChunk implements TimeTreeChunk {
         setParent(n, child);
     }
 
+    @Override
+    public final void insertValue(long p_key, double p_value) {
+        if (internal_insert(p_key, p_value, false)) {
+            internal_set_dirty();
+        }
+    }
+
     @SuppressWarnings("Duplicates")
-    private boolean internal_insert(long p_key, boolean initial) {
+    private boolean internal_insert(long p_key, double value, boolean initial) {
         if (_k == null || _k.length == _size) {
             int length = _size;
             if (length == 0) {
@@ -604,7 +590,7 @@ class HeapDTimeTreeChunk implements TimeTreeChunk {
             boolean left = false;
             while (leaf != -1) {
                 father = leaf;
-                if(_k[father] == p_key){
+                if (_k[father] == p_key) {
                     return false;
                 }
                 if (key(father) < p_key) {
@@ -671,6 +657,30 @@ class HeapDTimeTreeChunk implements TimeTreeChunk {
         if (_space != null && _hash != Constants.EMPTY_HASH) {
             _hash = Constants.EMPTY_HASH;
             _space.notifyUpdate(_index);
+        }
+    }
+
+    @Override
+    public void rangeValue(long startKey, long endKey, long maxElements, TreeDValueWalker walker) {
+        //lock and load fromVar main memory
+        int nbElements = 0;
+        int indexEnd = internal_previousOrEqual_index(endKey);
+        while (indexEnd != -1 && key(indexEnd) >= startKey && nbElements < maxElements) {
+            walker.elem(_k[indexEnd], _values[indexEnd]);
+            nbElements++;
+            indexEnd = internal_previous(indexEnd);
+        }
+    }
+
+    @Override
+    public synchronized final void range(final long startKey, final long endKey, final long maxElements, final TreeWalker walker) {
+        //lock and load fromVar main memory
+        int nbElements = 0;
+        int indexEnd = internal_previousOrEqual_index(endKey);
+        while (indexEnd != -1 && key(indexEnd) >= startKey && nbElements < maxElements) {
+            walker.elem(key(indexEnd));
+            nbElements++;
+            indexEnd = internal_previous(indexEnd);
         }
     }
 
