@@ -145,6 +145,8 @@ public class ResolverTest {
         g.connect(new Callback<Boolean>() {
             @Override
             public void on(Boolean connectionResult) {
+
+                long availableBefore = g.space().available();
                 BaseNode n = (BaseNode) g.newNode(0, 0);
                 for (long i = 1000; i < 2000; i++) {
                     final long finalI = i;
@@ -156,7 +158,6 @@ public class ResolverTest {
                         }
                     });
                 }
-
                 //From, to, not reversed, complete
                 g.lookupTimes(0, 1000, 2000, n.id(), -1, new Callback<Node[]>() {
                     @Override
@@ -223,7 +224,9 @@ public class ResolverTest {
                     }
                 });
                 n.free();
-                
+                g.save(null);
+                long availableAfter = g.space().available();
+                Assert.assertEquals(availableBefore, availableAfter);
             }
         });
     }
