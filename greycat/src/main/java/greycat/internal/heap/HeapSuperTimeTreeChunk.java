@@ -83,7 +83,7 @@ public class HeapSuperTimeTreeChunk implements SuperTimeTreeChunk {
         if (_size == 0) {
             return Constants.NULL_LONG;
         }
-        return _keys[_size - 1];
+        return _k[_size - 1];
     }
 
     @Override
@@ -91,7 +91,7 @@ public class HeapSuperTimeTreeChunk implements SuperTimeTreeChunk {
         if (_size == 0) {
             return Constants.NULL_LONG;
         }
-        return _values[_size - 1];
+        return _v[_size - 1];
     }
 
     @Override
@@ -99,7 +99,7 @@ public class HeapSuperTimeTreeChunk implements SuperTimeTreeChunk {
         if (_size == 0) {
             return;
         }
-        _values[_size - 1] = newV;
+        _v[_size - 1] = newV;
     }
 
     @Override
@@ -154,7 +154,7 @@ public class HeapSuperTimeTreeChunk implements SuperTimeTreeChunk {
         int nbElements = 0;
         int indexEnd = internal_previousOrEqual_index(endKey);
         while (indexEnd != -1 && key(indexEnd) >= startKey && nbElements < maxElements) {
-            walker.elem(_keys[indexEnd], _values[indexEnd]);
+            walker.elem(_k[indexEnd], _v[indexEnd]);
             nbElements++;
             indexEnd = internal_previous(indexEnd);
         }
