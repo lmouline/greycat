@@ -61,5 +61,21 @@ public class HeapSuperTimeTreeChunkTest {
         space.freeAll();
     }
 
+    @Test
+    public void stressTest() {
+        HeapChunkSpace space = new HeapChunkSpace(100, 10, null, false);
+        HeapSuperTimeTreeChunk tree = new HeapSuperTimeTreeChunk(space, -1);
+        for (long i = 1000000; i > 0; i = i - 2) {
+            tree.insert(i,i);
+        }
+        Assert.assertEquals(95000, tree.previous(95001));
+        Assert.assertEquals(120002, tree.next(120001));
+        Buffer buffer = new HeapBuffer();
+        tree.save(buffer);
+        HeapSuperTimeTreeChunk tree2 = new HeapSuperTimeTreeChunk(space, -1);
+        tree2.load(buffer);
+        Assert.assertEquals(tree.size(), tree2.size());
+
+    }
 
 }
