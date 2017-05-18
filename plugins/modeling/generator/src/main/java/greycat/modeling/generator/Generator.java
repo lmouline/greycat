@@ -26,24 +26,26 @@ import org.jboss.forge.roaster.model.source.JavaSource;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.StandardOpenOption;
 import java.util.Arrays;
 
-public class APIGenerator {
+public class Generator {
     public static final String FILE_EXTENSION = ".gcm";
 
     private final TypedGraph graph;
 
-    public APIGenerator() {
+    public Generator() {
         this.graph = new TypedGraph();
     }
 
     public void scan(File target) throws Exception {
         if (target.isDirectory()) {
-            String[] everythingInThisDir = target.list();
-            if (everythingInThisDir == null) {
-                //todo error
+            String[] files = target.list();
+            if (files == null) {
+                throw new RuntimeException("no files to parse found");
             } else {
-                for (String name : everythingInThisDir) {
+                for (String name : files) {
                     if (name.trim().endsWith(FILE_EXTENSION)) {
                         TypedGraphBuilder.parse(new File(target, name), graph);
                     }
@@ -53,17 +55,17 @@ public class APIGenerator {
         } else if (target.getName().endsWith(FILE_EXTENSION)) {
             TypedGraphBuilder.parse(target, graph);
         } else {
-            //todo error
+            throw new RuntimeException("no file with correct extension found");
         }
     }
 
     public void deepScan(File target) throws Exception {
         if (target.isDirectory()) {
-            String[] everythingInThisDir = target.list();
-            if (everythingInThisDir == null) {
-                //todo error
+            String[] files = target.list();
+            if (files == null) {
+                throw new RuntimeException("no files to parse found");
             } else {
-                for (String name : everythingInThisDir) {
+                for (String name : files) {
                     if (name.trim().endsWith(FILE_EXTENSION)) {
                         TypedGraphBuilder.parse(new File(target, name), graph);
                     } else {
@@ -90,9 +92,6 @@ public class APIGenerator {
         System.arraycopy(nodeTypes, 0, sources, index, nodeTypes.length);
         index += nodeTypes.length;
 
-        JavaSource[] tasksApi = TaskAPIGenerator.generate(packageName, graph);
-        System.arraycopy(tasksApi, 0, sources, index, tasksApi.length);
-        index += tasksApi.length;
 
         for (int i = 0; i < index; i++) {
             if (sources[i] != null) {
@@ -116,7 +115,7 @@ public class APIGenerator {
         }
     }
 
-    private void generateJS(String packageName, String pluginName, File target, String gcVersion, MavenProject mvnProject) {//todo move to generator
+    private void generateJS(String packageName, String pluginName, File target, String gcVersion, MavenProject mvnProject) {
         // Generate TS
         SourceTranslator transpiler = new SourceTranslator(Arrays.asList(target.getAbsolutePath()), target.getAbsolutePath() + "ts", packageName);
 
@@ -140,7 +139,7 @@ public class APIGenerator {
 
         File tsGen = new File(target.getAbsolutePath() + "ts/" + packageName + ".ts");
         try {
-            FileUtil.writeToFile(tsGen, ("export = " + packageName).getBytes(), true);
+            Files.write(tsGen.toPath(), ("export = " + packageName).getBytes(), StandardOpenOption.APPEND);
         } catch (IOException e) {
             e.printStackTrace();
         }

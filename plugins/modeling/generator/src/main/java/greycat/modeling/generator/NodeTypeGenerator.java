@@ -21,6 +21,10 @@ import greycat.Type;
 import greycat.modeling.language.ast.*;
 import greycat.modeling.language.ast.Class;
 import greycat.modeling.language.ast.Enum;
+import greycat.struct.DoubleArray;
+import greycat.struct.IntArray;
+import greycat.struct.LongArray;
+import greycat.struct.StringArray;
 import org.jboss.forge.roaster.Roaster;
 import org.jboss.forge.roaster.model.Visibility;
 import org.jboss.forge.roaster.model.source.*;
@@ -37,11 +41,9 @@ class NodeTypeGenerator {
                 sources[i] = generateEnum(packageName, (Enum) classifier);
             } else if (classifier instanceof Class) {
                 sources[i] = generateClass(packageName, name, (Class) classifier);
-            } else if (classifier instanceof Index) {
-                // Ignore it
-            } else {
-                //todo
             }
+
+            // nothing to generate for indexes here
         }
 
         return sources;
@@ -51,7 +53,6 @@ class NodeTypeGenerator {
     private static JavaSource generateEnum(String packageName, Enum enumClassifier) {
         final JavaEnumSource javaEnum = Roaster.create(JavaEnumSource.class);
         javaEnum.setPackage(packageName);
-
 
         javaEnum.setName(enumClassifier.name());
         for (String literal : enumClassifier.literals()) {
@@ -103,6 +104,7 @@ class NodeTypeGenerator {
                     .setStringInitializer(prop.name())
                     .setStatic(true);
 
+
             if (prop instanceof Attribute) {
                 Attribute casted = (Attribute) prop;
                 javaClass.addImport(Type.class);
@@ -112,17 +114,17 @@ class NodeTypeGenerator {
                         .setName(casted.name().toUpperCase() + "_TYPE")
                         .setType(byte.class)
                         .setStatic(true);
-                typeHelper.setLiteralInitializer(TypeHelper.stringType((Attribute) prop));
+                typeHelper.setLiteralInitializer(typeToString((Attribute) prop));
 
                 //generate getter
                 MethodSource<JavaClassSource> getter = javaClass.addMethod();
                 getter.setVisibility(Visibility.PUBLIC).setFinal(true);
-                getter.setReturnType(TypeHelper.typeToClassName((Attribute) prop));
+                getter.setReturnType(typeToClassName((Attribute) prop));
                 getter.setName("get" + upperCaseFirstChar(prop.name()));
                 if (casted.isArray()) {
-                    getter.setBody("return (" + TypeHelper.typeToClassName(casted) + ") super.getOrCreate(" + casted.name().toUpperCase() + ", " + casted.name().toUpperCase() + "_TYPE);");
+                    getter.setBody("return (" + typeToClassName(casted) + ") super.getOrCreate(" + casted.name().toUpperCase() + ", " + casted.name().toUpperCase() + "_TYPE);");
                 } else {
-                    getter.setBody("return (" + TypeHelper.typeToClassName(casted) + ") super.get(" + casted.name().toUpperCase() + ");");
+                    getter.setBody("return (" + typeToClassName(casted) + ") super.get(" + casted.name().toUpperCase() + ");");
                 }
 
 
@@ -134,7 +136,7 @@ class NodeTypeGenerator {
                         .setBody("super.set(" + prop.name().toUpperCase() + ", " + prop.name().toUpperCase()
                                 + "_TYPE,value);\nreturn this;"
                         )
-                        .addParameter(TypeHelper.typeToClassName(casted), "value");
+                        .addParameter(typeToClassName(casted), "value");
 
                 if (casted.indexes().length > 0) {
                     if (indexedProperties == null) {
@@ -151,7 +153,7 @@ class NodeTypeGenerator {
             } else if (prop instanceof Relation) {
                 Relation casted = (Relation) prop;
                 //generate getter
-                String resultType = TypeHelper.formatClassType(casted);
+                String resultType = casted.type();
                 MethodSource<JavaClassSource> getter = javaClass.addMethod();
                 getter.setVisibility(Visibility.PUBLIC);
                 getter.setFinal(true);
@@ -178,7 +180,7 @@ class NodeTypeGenerator {
                 add.setVisibility(Visibility.PUBLIC).setFinal(true);
                 add.setName("addTo" + upperCaseFirstChar(prop.name()));
                 add.setReturnType(classClassifier.name());
-                add.addParameter(TypeHelper.formatClassType(casted), "value");
+                add.addParameter(casted.type(), "value");
                 bodyBuilder.append("super.addToRelation(").append(prop.name().toUpperCase()).append(",(greycat.Node)value);");
                 bodyBuilder.append("return this;");
                 add.setBody(bodyBuilder.toString());
@@ -189,14 +191,11 @@ class NodeTypeGenerator {
                 remove.setVisibility(Visibility.PUBLIC).setFinal(true);
                 remove.setName("removeFrom" + upperCaseFirstChar(prop.name()));
                 remove.setReturnType(classClassifier.name());
-                remove.addParameter(TypeHelper.formatClassType(casted), "value");
+                remove.addParameter(casted.type(), "value");
                 bodyBuilder.append("super.removeFromRelation(").append(prop.name().toUpperCase()).append(",(greycat.Node)value);");
                 bodyBuilder.append("return this;");
                 remove.setBody(bodyBuilder.toString());
 
-
-            } else {
-                //todo
             }
         }
 
@@ -223,8 +222,73 @@ class NodeTypeGenerator {
         return javaClass;
     }
 
-    static String upperCaseFirstChar(String init) {
+    private static String upperCaseFirstChar(String init) {
         return init.substring(0, 1).toUpperCase() + init.substring(1);
+    }
+
+
+    private static String typeToString(final Attribute attribute) {
+        StringBuilder typeBuilder = new StringBuilder();
+        switch (attribute.type()) {
+            case "String":
+                typeBuilder.append("Type.STRING");
+                break;
+            case "Double":
+                typeBuilder.append("Type.DOUBLE");
+                break;
+            case "Long":
+                typeBuilder.append("Type.LONG");
+                break;
+            case "Integer":
+                typeBuilder.append("Type.INT");
+                break;
+            case "Boolean":
+                typeBuilder.append("Type.BOOL");
+                break;
+            default:
+                throw new RuntimeException("type " + attribute.type() + " is unknown");
+        }
+
+        if (attribute.isArray()) {
+            typeBuilder.append("_ARRAY");
+        }
+
+        return typeBuilder.toString();
+    }
+
+
+    private static String typeToClassName(final Attribute attribute) {
+        if (attribute.isArray()) {
+            switch (attribute.type()) {
+                case "String":
+                    return StringArray.class.getName();
+                case "Double":
+                    return DoubleArray.class.getName();
+                case "Long":
+                    return LongArray.class.getName();
+                case "Integer":
+                    return IntArray.class.getName();
+                case "Boolean":
+                    throw new RuntimeException("boolean arrays are not supported yet!");
+                default:
+                    throw new RuntimeException("unknown type");
+            }
+        } else {
+            switch (attribute.type()) {
+                case "String":
+                    return String.class.getCanonicalName();
+                case "Double":
+                    return double.class.getCanonicalName();
+                case "Long":
+                    return long.class.getCanonicalName();
+                case "Integer":
+                    return int.class.getCanonicalName();
+                case "Boolean":
+                    return boolean.class.getCanonicalName();
+                default:
+                    throw new RuntimeException("unknown type");
+            }
+        }
     }
 
 

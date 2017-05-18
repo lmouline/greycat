@@ -15,7 +15,7 @@
  */
 package greycat.modeling.mavenplugin;
 
-import greycat.modeling.generator.APIGenerator;
+import greycat.modeling.generator.Generator;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -35,7 +35,7 @@ public class GeneratorPlugin extends AbstractMojo {
      * File containing the data structure, or the directory to navigate to get file(s).
      * If there is several TYG files in the folder, they will be merged in one.
      *
-     * File(s) should have the "{@value APIGenerator#FILE_EXTENSION}".
+     * File(s) should have the "{@value Generator#FILE_EXTENSION}".
      */
     @Parameter(defaultValue = "${project.basedir}/src/main/resources")
     private File srcFiles;
@@ -81,7 +81,7 @@ public class GeneratorPlugin extends AbstractMojo {
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
-        APIGenerator generator = new APIGenerator();
+        Generator generator = new Generator();
         try {
             if(doDeepScan) {
                 generator.deepScan(srcFiles);
