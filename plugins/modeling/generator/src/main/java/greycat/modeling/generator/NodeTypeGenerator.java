@@ -74,6 +74,19 @@ class NodeTypeGenerator {
         }
 
 
+        // create method
+        MethodSource<JavaClassSource> create = javaClass.addMethod()
+                .setName("create")
+                .setVisibility(Visibility.PUBLIC)
+                .setStatic(true);
+        create.addParameter("long","p_world");
+        create.addParameter("long","p_time");
+        create.addParameter(Graph.class,"p_graph");
+        create.setReturnType(classClassifier.name());
+        create.setBody("return (" + javaClass.getName() + ") p_graph.newTypedNode(p_world, p_time, " + javaClass.getName() + ".NODE_NAME);");
+
+
+        // constructor
         MethodSource<JavaClassSource> constructor = javaClass.addMethod().setConstructor(true);
         constructor.addParameter("long", "p_world");
         constructor.addParameter("long", "p_time");
@@ -82,14 +95,15 @@ class NodeTypeGenerator {
         constructor.setBody("super(p_world, p_time, p_id, p_graph);");
         constructor.setVisibility(Visibility.PUBLIC);
 
-        //add helper name
-        javaClass.addField()
+        // helper name
+        FieldSource helperName = javaClass.addField()
                 .setVisibility(Visibility.PUBLIC)
                 .setFinal(true)
                 .setName("NODE_NAME")
                 .setType(String.class)
                 .setStringInitializer(javaClass.getCanonicalName())
                 .setStatic(true);
+
 
         StringBuilder indexedProperties = null;
         String indexName = null;
@@ -271,7 +285,7 @@ class NodeTypeGenerator {
                 case "Boolean":
                     throw new RuntimeException("boolean arrays are not supported yet!");
                 default:
-                    throw new RuntimeException("unknown type");
+                    throw new RuntimeException("type " + attribute.type() + " is unknown");
             }
         } else {
             switch (attribute.type()) {
@@ -286,7 +300,7 @@ class NodeTypeGenerator {
                 case "Boolean":
                     return boolean.class.getCanonicalName();
                 default:
-                    throw new RuntimeException("unknown type");
+                    throw new RuntimeException("type " + attribute.type() + " is unknown");
             }
         }
     }

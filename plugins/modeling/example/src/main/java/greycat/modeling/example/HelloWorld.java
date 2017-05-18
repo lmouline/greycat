@@ -35,7 +35,7 @@ public class HelloWorld {
 
                 Device device = (Device) graph.newTypedNode(0, 0, Device.NODE_NAME);
                 Device device1 = graph.newTypedNode(0, 0, Device.NODE_NAME, Device.class);
-//                Device device2 = Device.create(graph, 0, System.currentTimeMillis());
+                Device device2 = Device.create(0, 0, graph);
 
             }
         });
