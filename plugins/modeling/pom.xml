@@ -30,7 +30,7 @@
     </parent>
 
     <properties>
-        <antlr.version>4.5.3</antlr.version>
+        <antlr.version>4.7</antlr.version>
         <roaster.version>2.20.0.Final</roaster.version>
         <header.path>${basedir}/../../HEADER</header.path>
     </properties>

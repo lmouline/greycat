@@ -46,8 +46,8 @@
                 <artifactId>antlr4-maven-plugin</artifactId>
                 <version>${antlr.version}</version>
                 <configuration>
-                    <visitor>true</visitor>
-                    <listener>true</listener>
+                    <!--<visitor>true</visitor>-->
+                    <!--<listener>true</listener>-->
                     <arguments>
                         <argument>-package</argument>
                         <argument>greycat.modeling.language</argument>

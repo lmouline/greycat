@@ -34,6 +34,9 @@ public class HelloWorld {
             public void on(Boolean result) {
 
                 Device device = (Device) graph.newTypedNode(0, 0, Device.NODE_NAME);
+                device.setName("addsf");
+                device.setIdentifier(3);
+
                 Device device1 = graph.newTypedNode(0, 0, Device.NODE_NAME, Device.class);
                 Device device2 = Device.create(0, 0, graph);
 
