@@ -16,9 +16,8 @@
 package greycat.modeling.generator;
 
 import greycat.Graph;
-import greycat.modeling.language.ast.Classifier;
 import greycat.modeling.language.ast.Class;
-import greycat.modeling.language.ast.Index;
+import greycat.modeling.language.ast.Classifier;
 import greycat.modeling.language.ast.Model;
 import greycat.plugin.NodeFactory;
 import greycat.plugin.Plugin;
@@ -38,39 +37,6 @@ class PluginClassGenerator {
         pluginClass.setName(pluginName);
 
         pluginClass.addInterface(Plugin.class);
-
-
-        for (int i = 0; i < model.classifiers().length; i++) {
-            if (model.classifiers()[i] instanceof Index) {
-                Index casted = (Index) model.classifiers()[i];
-                pluginClass.addField()
-                        .setVisibility(Visibility.PUBLIC)
-                        .setStatic(true)
-                        .setFinal(true)
-                        .setName("IDX_" + casted.name().toUpperCase())
-                        .setType(String.class)
-                        .setStringInitializer(casted.name());
-
-
-                StringBuilder initArrayAtt = new StringBuilder();
-                initArrayAtt.append("new String[]{");
-                for (int j = 0; j < casted.properties().length; j++) {
-                    initArrayAtt.append(casted.type().name() + "." + casted.properties()[j].name().toUpperCase());
-
-                    if (j < casted.properties().length - 1) {
-                        initArrayAtt.append(",");
-                    }
-                }
-                initArrayAtt.append("};");
-                pluginClass.addField()
-                        .setVisibility(Visibility.PUBLIC)
-                        .setStatic(true)
-                        .setFinal(true)
-                        .setName("IDX_" + casted.name().toUpperCase() + "_ATT")
-                        .setType(String[].class)
-                        .setLiteralInitializer(initArrayAtt.toString());
-            }
-        }
 
         pluginClass.addMethod().setReturnTypeVoid()
                 .setVisibility(Visibility.PUBLIC)

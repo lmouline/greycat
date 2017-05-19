@@ -18,7 +18,6 @@ package greycat.modeling.language.ast;
 public abstract class Property implements Comparable<Property> {
 
     private final String name;
-
     private final String type;
 
     public Property(String p_name, String p_type) {
@@ -41,4 +40,6 @@ public abstract class Property implements Comparable<Property> {
             return name().compareTo(p.name);
         }
     }
+
+
 }

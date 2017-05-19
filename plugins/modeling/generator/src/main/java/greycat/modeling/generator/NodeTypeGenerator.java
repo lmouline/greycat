@@ -42,8 +42,6 @@ class NodeTypeGenerator {
             } else if (classifier instanceof Class) {
                 sources[i] = generateClass(packageName, name, (Class) classifier);
             }
-
-            // nothing to generate for indexes here
         }
 
         return sources;
@@ -79,9 +77,9 @@ class NodeTypeGenerator {
                 .setName("create")
                 .setVisibility(Visibility.PUBLIC)
                 .setStatic(true);
-        create.addParameter("long","p_world");
-        create.addParameter("long","p_time");
-        create.addParameter(Graph.class,"p_graph");
+        create.addParameter("long", "p_world");
+        create.addParameter("long", "p_time");
+        create.addParameter(Graph.class, "p_graph");
         create.setReturnType(classClassifier.name());
         create.setBody("return (" + javaClass.getName() + ") p_graph.newTypedNode(p_world, p_time, " + javaClass.getName() + ".NODE_NAME);");
 
@@ -105,8 +103,6 @@ class NodeTypeGenerator {
                 .setStatic(true);
 
 
-        StringBuilder indexedProperties = null;
-        String indexName = null;
         for (Property prop : classClassifier.properties()) {
 
             //add helper name
@@ -152,17 +148,6 @@ class NodeTypeGenerator {
                         )
                         .addParameter(typeToClassName(casted), "value");
 
-                if (casted.indexes().length > 0) {
-                    if (indexedProperties == null) {
-                        indexedProperties = new StringBuilder();
-                        indexName = casted.indexes()[0].name().toUpperCase();
-                    } else {
-                        indexedProperties.append(",");
-                    }
-
-                    indexedProperties.append(prop.name().toUpperCase());
-
-                }
 
             } else if (prop instanceof Relation) {
                 Relation casted = (Relation) prop;
@@ -213,25 +198,42 @@ class NodeTypeGenerator {
             }
         }
 
-        if (indexedProperties != null) {
+
+        // indexes
+        if (classClassifier.indexes().length > 0) {
+            StringBuilder indexMethodBody = new StringBuilder();
+            indexMethodBody.append("\t\tfinal " + classClassifier.name() + " self = this;\n");
+
+            for (Index idx : classClassifier.indexes()) {
+                String idxName = idx.name();
+                StringBuilder indexedProperties = new StringBuilder();
+                for (Property property : idx.properties()) {
+                    indexedProperties.append("\"" + property.name() + "\"");
+                    indexedProperties.append(",");
+                }
+                indexedProperties.deleteCharAt(indexedProperties.length() - 1);
+
+                indexMethodBody.append(
+                        "\t\tthis.graph().index(world(), time(),  \"" + idxName + "\" , new greycat.Callback<greycat.NodeIndex>() {\n" +
+                                "\t\t\t@Override\n" +
+                                "\t\t\tpublic void on(greycat.NodeIndex indexNode) {\n" +
+                                "\t\t\t\tindexNode.removeFromIndex(self, " + indexedProperties + " );\n" +
+                                "\t\t\t\tindexNode.addToIndex(self," + indexedProperties + ");\n" +
+                                "\t\t\t\tcallback.on(true);\n" +
+                                "\t\t\t}\n" +
+                                "\t\t});"
+                );
+            }
             javaClass.addMethod()
                     .setName("index" + classClassifier.name())
                     .setVisibility(Visibility.PUBLIC)
                     .setFinal(true)
                     .setReturnTypeVoid()
-                    .setBody("\t\tfinal " + classClassifier.name() + " self = this;\n" +
-                            "\t\tthis.graph().index(world(), time(), " + name + ".IDX_" + indexName + ", new greycat.Callback<greycat.NodeIndex>() {\n" +
-                            "\t\t\t@Override\n" +
-                            "\t\t\tpublic void on(greycat.NodeIndex indexNode) {\n" +
-                            "\t\t\t\tindexNode.removeFromIndex(self, " + indexedProperties + " );\n" +
-                            "\t\t\t\tindexNode.addToIndex(self," + indexedProperties + ");\n" +
-                            "\t\t\t\tcallback.on(true);\n" +
-                            "\t\t\t}\n" +
-                            "\t\t});")
+                    .setBody(indexMethodBody.toString())
                     .addParameter("Callback<Boolean>", "callback");
             javaClass.addImport(Callback.class);
-
         }
+
 
         return javaClass;
     }

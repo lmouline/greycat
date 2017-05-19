@@ -17,17 +17,21 @@ package greycat.modeling.language.ast;
 
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 public class Class implements Classifier {
     private final String name;
     private final Map<String, Property> properties;
+    private final Set<Index> indexes;
 
     private Class parent;
 
     public Class(String p_name) {
         name = p_name;
-        properties = new HashMap<String, Property>();
+        properties = new HashMap<>();
+        indexes = new HashSet<>();
     }
 
     public Property[] properties() {
@@ -53,6 +57,14 @@ public class Class implements Classifier {
 
     public void setParent(Class parent) {
         this.parent = parent;
+    }
+
+    public void addIndex(Index index) {
+        indexes.add(index);
+    }
+
+    public Index[] indexes() {
+        return indexes.toArray(new Index[indexes.size()]);
     }
 
     @Override

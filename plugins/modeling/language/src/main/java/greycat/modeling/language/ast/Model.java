@@ -15,6 +15,8 @@
  */
 package greycat.modeling.language.ast;
 
+import greycat.modeling.language.GreyCatModelLexer;
+import greycat.modeling.language.GreyCatModelParser;
 import org.antlr.v4.runtime.ANTLRFileStream;
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.BufferedTokenStream;
@@ -30,7 +32,7 @@ public class Model {
     private final Map<String, Classifier> classifiers;
 
     public Model() {
-        classifiers = new HashMap<String, Classifier>();
+        classifiers = new HashMap<>();
     }
 
     public Classifier[] classifiers() {
@@ -51,13 +53,12 @@ public class Model {
     }
 
     private static Model build(ANTLRInputStream in, Model model) {
+        BufferedTokenStream tokens = new CommonTokenStream(new GreyCatModelLexer(in));
+        GreyCatModelParser parser = new GreyCatModelParser(tokens);
+        GreyCatModelParser.ModelContext mctx = parser.model();
 
-        BufferedTokenStream tokens = new CommonTokenStream(new greycat.modeling.language.GreyCatModelLexer(in));
-        greycat.modeling.language.GreyCatModelParser parser = new greycat.modeling.language.GreyCatModelParser(tokens);
-        greycat.modeling.language.GreyCatModelParser.ModelContext mmctx = parser.model();
-
-        // Generate the enumeration
-        for (greycat.modeling.language.GreyCatModelParser.EnumDeclrContext enumDeclrContext : mmctx.enumDeclr()) {
+        // enums
+        for (GreyCatModelParser.EnumDecContext enumDeclrContext : mctx.enumDec()) {
             String fqn = null;
             if (enumDeclrContext.TYPE_NAME() != null) {
                 fqn = enumDeclrContext.TYPE_NAME().toString();
@@ -71,68 +72,78 @@ public class Model {
             }
         }
 
-        for (greycat.modeling.language.GreyCatModelParser.ClassDeclrContext classDeclrContext : mmctx.classDeclr()) {
+        // classes
+        for (GreyCatModelParser.ClassDecContext classDeclContext : mctx.classDec()) {
             String classFqn = null;
-            if (classDeclrContext.TYPE_NAME() != null) {
-                classFqn = classDeclrContext.TYPE_NAME().toString();
+            if (classDeclContext.TYPE_NAME() != null) {
+                classFqn = classDeclContext.TYPE_NAME().toString();
             }
-            if (classDeclrContext.IDENT() != null) {
-                classFqn = classDeclrContext.IDENT().toString();
+            if (classDeclContext.IDENT() != null) {
+                classFqn = classDeclContext.IDENT().toString();
             }
             final Class newClass = (Class) getOrAddClass(model, classFqn);
-            //process parents
-            if (classDeclrContext.parentsDeclr() != null) {
-                if (classDeclrContext.parentsDeclr().TYPE_NAME() != null) {
-                    final Class newClassTT = (Class) getOrAddClass(model, classDeclrContext.parentsDeclr().TYPE_NAME().toString());
+
+            // parents
+            if (classDeclContext.parentDec() != null) {
+                if (classDeclContext.parentDec().TYPE_NAME() != null) {
+                    final Class newClassTT = (Class) getOrAddClass(model, classDeclContext.parentDec().TYPE_NAME().toString());
                     newClass.setParent(newClassTT);
                 }
-                if (classDeclrContext.parentsDeclr().IDENT() != null) {
-                    final Class newClassTT = (Class) getOrAddClass(model, classDeclrContext.parentsDeclr().IDENT().toString());
+                if (classDeclContext.parentDec().IDENT() != null) {
+                    final Class newClassTT = (Class) getOrAddClass(model, classDeclContext.parentDec().IDENT().toString());
                     newClass.setParent(newClassTT);
                 }
             }
-            for (greycat.modeling.language.GreyCatModelParser.AttributeDeclarationContext attDecl : classDeclrContext.attributeDeclaration()) {
-                String name = attDecl.IDENT().getText();
-                greycat.modeling.language.GreyCatModelParser.AttributeTypeContext attType = attDecl.attributeType();
+
+            // attributes
+            for (GreyCatModelParser.AttributeDecContext attDec : classDeclContext.attributeDec()) {
+                String name = attDec.IDENT().getText();
+                GreyCatModelParser.AttributeTypeContext attType = attDec.attributeType();
                 String value = attType.getText();
                 boolean isArray = false;
-                if(value.endsWith("[]")) {
-                    value = value.substring(0,value.length()-2);
+                if (value.endsWith("[]")) {
+                    value = value.substring(0, value.length() - 2);
                     isArray = true;
                 }
 
-                final Attribute attribute = new Attribute(name, value,isArray);
+                final Attribute attribute = new Attribute(name, value, isArray);
                 newClass.addProperty(attribute);
             }
-            for (greycat.modeling.language.GreyCatModelParser.RelationDeclarationContext relDecl : classDeclrContext.relationDeclaration()) {
-                String name = relDecl.IDENT().get(0).getText();
+
+            // relations
+            for (GreyCatModelParser.RelationDecContext relDec : classDeclContext.relationDec()) {
+                String name = relDec.IDENT().get(0).getText();
                 String type;
-                if (relDecl.TYPE_NAME() == null) {
-                    type = relDecl.IDENT(1).toString();
+                if (relDec.TYPE_NAME() == null) {
+                    type = relDec.IDENT(1).toString();
                 } else {
-                    type = relDecl.TYPE_NAME().toString();
+                    type = relDec.TYPE_NAME().toString();
                 }
                 final Relation relation = new Relation(name, type);
                 newClass.addProperty(relation);
             }
+
+            // indexes
+            for (int i = 0; i < classDeclContext.indexDec().size(); i++) {
+                GreyCatModelParser.IndexDecContext indexDecContext = classDeclContext.indexDec().get(i);
+                String idxName = newClass.name() + "Idx" + i;
+                if (indexDecContext.indexName() != null) {
+                    idxName = indexDecContext.indexName().getText();
+                }
+                Index idx = new Index(idxName);
+                for (TerminalNode idxIdent : indexDecContext.IDENT()) {
+                    Property indexedProperty = newClass.property(idxIdent.getText());
+                    idx.addProperty(indexedProperty);
+                }
+
+                newClass.addIndex(idx);
+            }
         }
 
-        for (greycat.modeling.language.GreyCatModelParser.IndexDeclrContext indexDeclrContext : mmctx.indexDeclr()) {
-            String name = indexDeclrContext.IDENT().get(0).getText();
-            String type;
-            if (indexDeclrContext.TYPE_NAME() == null) {
-                type = indexDeclrContext.IDENT(1).toString();
-            } else {
-                type = indexDeclrContext.TYPE_NAME().toString();
-            }
-            final Index indexClass = (Index) getOrAddIndex(model, name, (Class) model.get(type));
-            for (TerminalNode literal : indexDeclrContext.indexLiterals().IDENT()) {
-                indexClass.addProperty(literal.getText());
-            }
-        }
 
         return model;
     }
+
 
     private static Classifier getOrAddClass(Model model, String fqn) {
         Classifier previous = model.get(fqn);
@@ -140,16 +151,6 @@ public class Model {
             return previous;
         }
         previous = new Class(fqn);
-        model.addClassifier(previous);
-        return previous;
-    }
-
-    private static Classifier getOrAddIndex(Model model, String fqn, Class clazz) {
-        Classifier previous = model.get(fqn);
-        if (previous != null) {
-            return previous;
-        }
-        previous = new Index(fqn, clazz);
         model.addClassifier(previous);
         return previous;
     }
@@ -163,4 +164,5 @@ public class Model {
         model.addClassifier(previous);
         return previous;
     }
+
 }

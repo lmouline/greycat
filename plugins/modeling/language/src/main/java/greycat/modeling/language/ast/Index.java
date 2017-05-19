@@ -15,46 +15,37 @@
  */
 package greycat.modeling.language.ast;
 
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.LinkedList;
+import java.util.List;
 
-public class Index implements Classifier {
+public class Index {
     private final String name;
-    private final Set<Property> literals;
-    private final Class clazz;
+    private final List<Property> properties;
 
-    public Index(String p_name, Class clazz) {
-        name = p_name;
-        this.clazz = clazz;
-        literals = new TreeSet<Property>();
+    public Index(String p_name) {
+        this.name = p_name;
+        this.properties = new LinkedList<>();
     }
 
     public Property[] properties() {
-        return literals.toArray(new Property[literals.size()]);
+        return properties.toArray(new Property[properties.size()]);
     }
 
-    public void addProperty(String value) {
-        Property prop = clazz.property(value);
-        literals.add(prop);
-        if(prop instanceof Attribute) {
-            ((Attribute)prop).addIndex(this);
-        }
-    }
 
-    public Class type() {
-        return this.clazz;
+    public void addProperty(Property property) {
+        properties.add(property);
     }
 
     public boolean equals(Object obj) {
-        if(obj == null) {
+        if (obj == null) {
             return false;
         }
 
-        if(!(obj instanceof Index)) {
+        if (!(obj instanceof Index)) {
             return false;
         }
 
-        return this.name().equals(((Index)obj).name());
+        return this.name().equals(((Index) obj).name());
     }
 
     @Override
@@ -62,7 +53,6 @@ public class Index implements Classifier {
         return this.name().hashCode();
     }
 
-    @Override
     public String name() {
         return name;
     }

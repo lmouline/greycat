@@ -26,18 +26,16 @@ NUMBER : [\-]?[0-9]+'.'?[0-9]*;
 WS : ([ \t\r\n]+ | SL_COMMENT) -> skip ; // skip spaces, tabs, newlines
 SL_COMMENT :  '//' ~('\r' | '\n')* ;
 
-model: (enumDeclr | classDeclr | indexDeclr)* ;
+model: (enumDec | classDec)* ;
 
-indexDeclr : 'index' IDENT ':' (TYPE_NAME|IDENT) '{' indexLiterals '}';
-indexLiterals : IDENT (',' IDENT)*;
-
-enumDeclr : 'enum' (TYPE_NAME|IDENT) '{' enumLiterals '}';
+enumDec : 'enum' (TYPE_NAME|IDENT) '{' enumLiterals '}';
 enumLiterals : IDENT (',' IDENT)*;
 
-classDeclr : 'class' (TYPE_NAME|IDENT) parentsDeclr? '{' (attributeDeclaration | relationDeclaration)* '}';
-parentsDeclr : 'extends' (TYPE_NAME|IDENT);
+classDec : 'class' (TYPE_NAME|IDENT) parentDec? '{' (attributeDec | relationDec | indexDec)* '}';
+parentDec : 'extends' (TYPE_NAME|IDENT);
 attributeType : ('String' | 'Double' | 'Long' | 'Integer' | 'Boolean') ('[]')?;
-attributeDeclaration : 'att' IDENT ':' attributeType;
-relationDeclaration : 'rel' IDENT ':' (TYPE_NAME|IDENT);
+attributeDec : 'att' IDENT ':' attributeType;
+relationDec : 'rel' IDENT ':' (TYPE_NAME|IDENT);
 
-
+indexDec : 'index' IDENT (',' IDENT)* ('as' indexName)?;
+indexName : IDENT;

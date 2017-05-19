@@ -15,28 +15,17 @@
  */
 package greycat.modeling.language.ast;
 
-import java.util.HashSet;
-import java.util.Set;
-
 public class Attribute extends Property {
     private final boolean isArray;
-    private final Set<Index> indexes;
 
-    public Attribute(String name, String type, boolean isArray) {
-        super(name, type);
-        this.isArray = isArray;
-        this.indexes = new HashSet<>();
+    public Attribute(String p_name, String p_type, boolean p_isArray) {
+        super(p_name, p_type);
+        this.isArray = p_isArray;
     }
 
     public boolean isArray() {
-        return isArray;
+        return this.isArray;
     }
 
-    public Index[] indexes() {
-        return indexes.toArray(new Index[indexes.size()]);
-    }
 
-    public void addIndex(Index index) {
-        indexes.add(index);
-    }
 }
