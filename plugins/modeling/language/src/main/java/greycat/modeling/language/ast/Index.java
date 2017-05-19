@@ -36,16 +36,11 @@ public class Index {
         properties.add(property);
     }
 
-    public boolean equals(Object obj) {
-        if (obj == null) {
-            return false;
-        }
-
-        if (!(obj instanceof Index)) {
-            return false;
-        }
-
-        return this.name().equals(((Index) obj).name());
+    public boolean equals(Object other) {
+        if (this == other) return true;
+        if (!(other instanceof Index)) return false;
+        final Index that = (Index) other;
+        return this.name().equals(that.name());
     }
 
     @Override

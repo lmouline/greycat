@@ -24,7 +24,7 @@ public class Enum implements Classifier {
 
     public Enum(String p_name) {
         name = p_name;
-        literals = new TreeSet<String>();
+        literals = new TreeSet<>();
     }
 
     public String[] literals() {
