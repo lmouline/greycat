@@ -19,7 +19,6 @@ import greycat.Constants;
 import greycat.chunk.ChunkSpace;
 import greycat.chunk.ChunkType;
 import greycat.chunk.TimeTreeChunk;
-import greycat.chunk.TreeWalker;
 import greycat.plugin.MemoryFactory;
 import greycat.struct.Buffer;
 import org.junit.Assert;

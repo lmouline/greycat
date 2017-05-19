@@ -369,6 +369,9 @@ public class HeapChunkSpace implements ChunkSpace {
             case ChunkType.SUPER_TIME_TREE_CHUNK:
                 toInsert = new HeapSuperTimeTreeChunk(this, currentVictimIndex);
                 break;
+            case ChunkType.TIME_TREE_DVALUE_CHUNK:
+                toInsert = new HeapTimeTreeDValueChunk(this, currentVictimIndex);
+                break;
             case ChunkType.GEN_CHUNK:
                 toInsert = new HeapGenChunk(this, id, currentVictimIndex);
                 break;

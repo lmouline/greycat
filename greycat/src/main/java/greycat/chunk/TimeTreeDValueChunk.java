@@ -17,6 +17,12 @@ package greycat.chunk;
 
 public interface TimeTreeDValueChunk extends TimeTreeChunk {
 
+    int previousOffset(long key);
+
+    long getKey(int offset);
+
+    double getValue(int offset);
+
     void insertValue(long key, double value);
 
     void rangeValue(long startKey, long endKey, long maxElements, TreeDValueWalker walker);
