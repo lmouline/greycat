@@ -6,6 +6,8 @@ class Device {
     rel modules : Module
 
     index by name,identifier timed as MyIndex
+    index by name timed as MyIndex2
+
 
 }
 

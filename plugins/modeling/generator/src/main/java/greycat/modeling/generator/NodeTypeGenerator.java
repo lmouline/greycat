@@ -237,6 +237,39 @@ class NodeTypeGenerator {
         }
 
 
+        // find methods for global indexes
+        if (classClassifier.indexes().length > 0) {
+            for (Index idx : classClassifier.indexes()) {
+                StringBuilder indexedProperties = new StringBuilder();
+                for (Property property : idx.properties()) {
+                    indexedProperties.append("\"" + property.name() + "\"");
+                    indexedProperties.append(",");
+                }
+                indexedProperties.deleteCharAt(indexedProperties.length() - 1);
+                String time = idx.timed() ? "time()" : "greycat.Constants.BEGINNING_OF_TIME";
+
+                MethodSource method = javaClass.addMethod()
+                        .setName("findFrom" + idx.name())
+                        .setVisibility(Visibility.PUBLIC)
+                        .setFinal(true)
+                        .setReturnTypeVoid();
+                method.addParameter("greycat.Graph", "g");
+                method.addParameter("long", "world");
+                for (Property indexedProperty : idx.properties()) {
+                    method.addParameter("String", indexedProperty.name());
+                }
+                method.addParameter("greycat.Callback<greycat.Node[]>", "cb");
+                method.setBody("\t\tg.index(world(), " + time + ", " + "\"" + idx.name() + "\"," + "new greycat.Callback<greycat.NodeIndex>() {\n" +
+                        "\t\t\t@Override\n" +
+                        "\t\t\tpublic void on(greycat.NodeIndex indexNode) {\n" +
+                        "\t\t\t\tindexNode.find(cb," + indexedProperties + ");\n" +
+                        "\t\t\t}\n" +
+                        "\t\t});"
+                );
+            }
+        }
+
+
         return javaClass;
     }
 
