@@ -126,17 +126,23 @@ public class Model {
             // indexes
             for (int i = 0; i < classDeclContext.indexDec().size(); i++) {
                 GreyCatModelParser.IndexDecContext indexDecContext = classDeclContext.indexDec().get(i);
-                String idxName = newClass.name() + "Idx" + i;
-                if (indexDecContext.indexName() != null) {
-                    idxName = indexDecContext.indexName().getText();
-                }
-                Index idx = new Index(idxName);
-                for (TerminalNode idxIdent : indexDecContext.IDENT()) {
-                    Property indexedProperty = newClass.property(idxIdent.getText());
-                    idx.addProperty(indexedProperty);
-                }
+                // global indexes
+                if (indexDecContext.globalIndex() != null) {
+                    String idxName = newClass.name() + "Idx" + i;
+                    if (indexDecContext.globalIndex().indexName() != null) {
+                        idxName = indexDecContext.globalIndex().indexName().getText();
+                    }
+                    Index idx = new Index(idxName);
+                    for (TerminalNode idxIdent : indexDecContext.globalIndex().IDENT()) {
+                        Property indexedProperty = newClass.property(idxIdent.getText());
+                        idx.addProperty(indexedProperty);
+                    }
+                    if (indexDecContext.globalIndex().getText().contains("timed")) {
+                        idx.setTimed(true);
+                    }
 
-                newClass.addIndex(idx);
+                    newClass.addIndex(idx);
+                }
             }
         }
 

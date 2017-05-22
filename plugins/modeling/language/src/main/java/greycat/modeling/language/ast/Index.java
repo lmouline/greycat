@@ -22,9 +22,12 @@ public class Index {
     private final String name;
     private final List<Property> properties;
 
+    private boolean timed;
+
     public Index(String p_name) {
         this.name = p_name;
         this.properties = new LinkedList<>();
+        this.timed = false;
     }
 
     public Property[] properties() {
@@ -32,14 +35,14 @@ public class Index {
     }
 
 
-    public void addProperty(Property property) {
-        properties.add(property);
+    public void addProperty(Property p_property) {
+        properties.add(p_property);
     }
 
-    public boolean equals(Object other) {
-        if (this == other) return true;
-        if (!(other instanceof Index)) return false;
-        final Index that = (Index) other;
+    public boolean equals(Object p_other) {
+        if (this == p_other) return true;
+        if (!(p_other instanceof Index)) return false;
+        final Index that = (Index) p_other;
         return this.name().equals(that.name());
     }
 
@@ -49,6 +52,14 @@ public class Index {
     }
 
     public String name() {
-        return name;
+        return this.name;
+    }
+
+    public boolean timed() {
+        return this.timed;
+    }
+
+    public void setTimed(boolean p_timed) {
+        this.timed = p_timed;
     }
 }

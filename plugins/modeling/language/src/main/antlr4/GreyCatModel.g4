@@ -37,5 +37,6 @@ attributeType : ('String' | 'Double' | 'Long' | 'Integer' | 'Boolean') ('[]')?;
 attributeDec : 'att' IDENT ':' attributeType;
 relationDec : 'rel' IDENT ':' (TYPE_NAME|IDENT);
 
-indexDec : 'index' IDENT (',' IDENT)* ('as' indexName)?;
+indexDec : globalIndex;
+globalIndex : 'index by' IDENT (',' IDENT)* ('timed')? ('as' indexName)?;
 indexName : IDENT;

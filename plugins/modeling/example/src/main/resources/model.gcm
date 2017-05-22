@@ -1,10 +1,15 @@
 
+
 class Device {
     att name: String
     att identifier: Integer
+    rel modules : Module
 
-    index name,identifier as MyIndex
-    index identifier
+    index by name,identifier as MyIndex
+
+
 }
 
-
+class Module {
+    att name: String
+}

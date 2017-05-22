@@ -16,6 +16,7 @@
 package greycat.modeling.generator;
 
 import greycat.Callback;
+import greycat.Constants;
 import greycat.Graph;
 import greycat.Type;
 import greycat.modeling.language.ast.*;
@@ -212,9 +213,10 @@ class NodeTypeGenerator {
                     indexedProperties.append(",");
                 }
                 indexedProperties.deleteCharAt(indexedProperties.length() - 1);
+                String time = idx.timed() ? "time()" : "greycat.Constants.BEGINNING_OF_TIME";
 
                 indexMethodBody.append(
-                        "\t\tthis.graph().index(world(), time(),  \"" + idxName + "\" , new greycat.Callback<greycat.NodeIndex>() {\n" +
+                        "\t\tthis.graph().index(world(), " + time + ",  \"" + idxName + "\" , new greycat.Callback<greycat.NodeIndex>() {\n" +
                                 "\t\t\t@Override\n" +
                                 "\t\t\tpublic void on(greycat.NodeIndex indexNode) {\n" +
                                 "\t\t\t\tindexNode.removeFromIndex(self, " + indexedProperties + " );\n" +
