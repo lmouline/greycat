@@ -221,11 +221,15 @@ class NodeTypeGenerator {
                                 "\t\t\tpublic void on(greycat.NodeIndex indexNode) {\n" +
                                 "\t\t\t\tindexNode.removeFromIndex(self, " + indexedProperties + " );\n" +
                                 "\t\t\t\tindexNode.addToIndex(self," + indexedProperties + ");\n" +
-                                "\t\t\t\tcallback.on(true);\n" +
+                                "\t\t\t\tif(callback!=null){\n" +
+                                "\t\t\t\t\tcallback.on(true);\n" +
+                                "\t\t\t\t}\n" +
                                 "\t\t\t}\n" +
                                 "\t\t});"
                 );
             }
+
+
             javaClass.addMethod()
                     .setName("index" + classClassifier.name())
                     .setVisibility(Visibility.PUBLIC)
@@ -248,24 +252,44 @@ class NodeTypeGenerator {
                 indexedProperties.deleteCharAt(indexedProperties.length() - 1);
                 String time = idx.timed() ? "time()" : "greycat.Constants.BEGINNING_OF_TIME";
 
-                MethodSource method = javaClass.addMethod()
+                MethodSource findFromMethod = javaClass.addMethod()
                         .setName("findFrom" + idx.name())
                         .setVisibility(Visibility.PUBLIC)
+                        .setStatic(true)
                         .setFinal(true)
                         .setReturnTypeVoid();
-                method.addParameter("greycat.Graph", "g");
-                method.addParameter("long", "world");
+                findFromMethod.addParameter("greycat.Graph", "g");
+                findFromMethod.addParameter("long", "world");
                 for (Property indexedProperty : idx.properties()) {
-                    method.addParameter("String", indexedProperty.name());
+                    findFromMethod.addParameter("String", indexedProperty.name());
                 }
-                method.addParameter("greycat.Callback<greycat.Node[]>", "cb");
-                method.setBody("\t\tg.index(world(), " + time + ", " + "\"" + idx.name() + "\"," + "new greycat.Callback<greycat.NodeIndex>() {\n" +
+                findFromMethod.addParameter("greycat.Callback<greycat.Node[]>", "cb");
+                findFromMethod.setBody("\t\tg.index(world, " + time + ", " + "\"" + idx.name() + "\"," + "new greycat.Callback<greycat.NodeIndex>() {\n" +
                         "\t\t\t@Override\n" +
                         "\t\t\tpublic void on(greycat.NodeIndex indexNode) {\n" +
                         "\t\t\t\tindexNode.find(cb," + indexedProperties + ");\n" +
                         "\t\t\t}\n" +
                         "\t\t});"
                 );
+
+                MethodSource getAllMethod = javaClass.addMethod()
+                        .setName("getAllFrom" + idx.name())
+                        .setVisibility(Visibility.PUBLIC)
+                        .setStatic(true)
+                        .setFinal(true)
+                        .setReturnTypeVoid();
+                getAllMethod.addParameter("greycat.Graph", "g");
+                getAllMethod.addParameter("long", "world");
+                getAllMethod.addParameter("greycat.Callback<greycat.Node[]>", "cb");
+                getAllMethod.setBody("\t\tg.index(world, " + time + ", " + "\"" + idx.name() + "\"," + "new greycat.Callback<greycat.NodeIndex>() {\n" +
+                        "\t\t\t@Override\n" +
+                        "\t\t\tpublic void on(greycat.NodeIndex indexNode) {\n" +
+                        "\t\t\t\tindexNode.find(cb);\n" +
+                        "\t\t\t}\n" +
+                        "\t\t});"
+                );
+
+
             }
         }
 
