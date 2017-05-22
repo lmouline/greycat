@@ -19,12 +19,12 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.datathings.greycat-modeling</groupId>
     <artifactId>examples</artifactId>
-    <version>7-SNAPSHOT</version>
+    <version>8-SNAPSHOT</version>
     <name>Modeling :: Examples</name>
 
     <properties>
-        <greycat-modeling.version>7-SNAPSHOT</greycat-modeling.version>
-        <greycat.version>7-SNAPSHOT</greycat.version>
+        <greycat-modeling.version>8-SNAPSHOT</greycat-modeling.version>
+        <greycat.version>8-SNAPSHOT</greycat.version>
     </properties>
 
     <dependencies>
