@@ -137,7 +137,7 @@ public class Model {
                         Property indexedProperty = newClass.property(idxIdent.getText());
                         idx.addProperty(indexedProperty);
                     }
-                    if (indexDecContext.globalIndex().getText().contains("timed")) {
+                    if (indexDecContext.globalIndex().timed() != null) {
                         idx.setTimed(true);
                     }
 

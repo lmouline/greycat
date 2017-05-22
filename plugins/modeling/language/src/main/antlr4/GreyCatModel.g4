@@ -38,5 +38,6 @@ attributeDec : 'att' IDENT ':' attributeType;
 relationDec : 'rel' IDENT ':' (TYPE_NAME|IDENT);
 
 indexDec : globalIndex;
-globalIndex : 'index by' IDENT (',' IDENT)* ('timed')? ('as' indexName)?;
+globalIndex : 'index by' IDENT (',' IDENT)* timed? ('as' indexName)?;
+timed: 'timed';
 indexName : IDENT;

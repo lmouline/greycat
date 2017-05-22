@@ -5,8 +5,7 @@ class Device {
     att identifier: Integer
     rel modules : Module
 
-    index by name,identifier as MyIndex
-
+    index by name,identifier timed as MyIndex
 
 }
 
