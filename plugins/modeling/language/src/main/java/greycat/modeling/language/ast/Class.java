@@ -24,14 +24,16 @@ import java.util.Set;
 public class Class implements Classifier {
     private final String name;
     private final Map<String, Property> properties;
-    private final Set<Index> indexes;
+    private final Set<GlobalIndex> globalIndexes;
+    private final Set<LocalIndex> localIndexes;
 
     private Class parent;
 
     public Class(String p_name) {
         name = p_name;
         properties = new HashMap<>();
-        indexes = new HashSet<>();
+        globalIndexes = new HashSet<>();
+        localIndexes = new HashSet<>();
     }
 
     public Property[] properties() {
@@ -59,12 +61,20 @@ public class Class implements Classifier {
         this.parent = parent;
     }
 
-    public void addIndex(Index index) {
-        indexes.add(index);
+    public void addGlobalIndex(GlobalIndex index) {
+        globalIndexes.add(index);
     }
 
-    public Index[] indexes() {
-        return indexes.toArray(new Index[indexes.size()]);
+    public GlobalIndex[] globalIndexes() {
+        return globalIndexes.toArray(new GlobalIndex[globalIndexes.size()]);
+    }
+
+    public void addLocalIndex(LocalIndex index) {
+        localIndexes.add(index);
+    }
+
+    public LocalIndex[] localIndexes() {
+        return localIndexes.toArray(new LocalIndex[localIndexes.size()]);
     }
 
     @Override

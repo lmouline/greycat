@@ -126,13 +126,13 @@ public class Model {
             // indexes
             for (int i = 0; i < classDeclContext.indexDec().size(); i++) {
                 GreyCatModelParser.IndexDecContext indexDecContext = classDeclContext.indexDec().get(i);
-                // global indexes
+                //  global indexes
                 if (indexDecContext.globalIndex() != null) {
                     String idxName = newClass.name() + "Idx" + i;
                     if (indexDecContext.globalIndex().indexName() != null) {
                         idxName = indexDecContext.globalIndex().indexName().getText();
                     }
-                    Index idx = new Index(idxName);
+                    GlobalIndex idx = new GlobalIndex(idxName);
                     for (TerminalNode idxIdent : indexDecContext.globalIndex().IDENT()) {
                         Property indexedProperty = newClass.property(idxIdent.getText());
                         idx.addProperty(indexedProperty);
@@ -140,9 +140,20 @@ public class Model {
                     if (indexDecContext.globalIndex().timed() != null) {
                         idx.setTimed(true);
                     }
-
-                    newClass.addIndex(idx);
+                    newClass.addGlobalIndex(idx);
                 }
+
+                // local indexes
+                if (indexDecContext.localIndex() != null) {
+                    String indexedRel = indexDecContext.localIndex().indexedRel().getText();
+                    LocalIndex idx = new LocalIndex(indexedRel);
+                    for (TerminalNode idxIdent : indexDecContext.localIndex().IDENT()) {
+                        Property indexedProperty = newClass.property(idxIdent.getText());
+                        idx.addIndexedProperty(indexedProperty);
+                    }
+                    newClass.addLocalIndex(idx);
+                }
+
             }
         }
 

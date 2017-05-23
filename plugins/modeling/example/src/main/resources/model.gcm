@@ -8,9 +8,14 @@ class Device {
     index by name,identifier timed as MyIndex
     index by name timed as MyIndex2
 
-
+    index modules by name
 }
 
 class Module {
+    att name: String
+}
+
+
+class Room {
     att name: String
 }

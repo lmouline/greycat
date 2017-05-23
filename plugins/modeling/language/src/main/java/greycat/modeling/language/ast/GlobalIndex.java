@@ -1,3 +1,8 @@
+package greycat.modeling.language.ast;
+
+import java.util.LinkedList;
+import java.util.List;
+
 /**
  * Copyright 2017 The GreyCat Authors.  All rights reserved.
  * <p>
@@ -13,18 +18,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package greycat.modeling.language.ast;
-
-import java.util.LinkedList;
-import java.util.List;
-
-public class Index {
+public class GlobalIndex {
     private final String name;
     private final List<Property> properties;
 
     private boolean timed;
 
-    public Index(String p_name) {
+
+    public GlobalIndex(String p_name) {
         this.name = p_name;
         this.properties = new LinkedList<>();
         this.timed = false;
@@ -41,8 +42,8 @@ public class Index {
 
     public boolean equals(Object p_other) {
         if (this == p_other) return true;
-        if (!(p_other instanceof Index)) return false;
-        final Index that = (Index) p_other;
+        if (!(p_other instanceof GlobalIndex)) return false;
+        final GlobalIndex that = (GlobalIndex) p_other;
         return this.name().equals(that.name());
     }
 

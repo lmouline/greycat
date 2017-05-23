@@ -16,7 +16,6 @@
 package greycat.modeling.generator;
 
 import greycat.Callback;
-import greycat.Constants;
 import greycat.Graph;
 import greycat.Type;
 import greycat.modeling.language.ast.*;
@@ -152,6 +151,7 @@ class NodeTypeGenerator {
 
             } else if (prop instanceof Relation) {
                 Relation casted = (Relation) prop;
+
                 //generate getter
                 String resultType = casted.type();
                 MethodSource<JavaClassSource> getter = javaClass.addMethod();
@@ -174,38 +174,51 @@ class NodeTypeGenerator {
                 );
 
 
-                //generate setter
+                StringBuilder indexed = new StringBuilder();
+                if (locallyIndexed(classClassifier, prop)) {
+                    LocalIndex idx = findLocalIndex(classClassifier, prop);
+                    for (Property indexedProp : idx.indexedProperties()) {
+                        indexed.append("\"" + indexedProp.name()+ "\"");
+                        indexed.append(",");
+                    }
+                    indexed.deleteCharAt(indexed.length() - 1);
+                } else {
+                    indexed.append("null");
+                }
+
+                //generate addTo
                 StringBuilder bodyBuilder = new StringBuilder();
                 MethodSource<JavaClassSource> add = javaClass.addMethod();
                 add.setVisibility(Visibility.PUBLIC).setFinal(true);
                 add.setName("addTo" + upperCaseFirstChar(prop.name()));
                 add.setReturnType(classClassifier.name());
                 add.addParameter(casted.type(), "value");
-                bodyBuilder.append("super.addToRelation(").append(prop.name().toUpperCase()).append(",(greycat.Node)value);");
+                bodyBuilder.append("super.addToRelation(").append(prop.name().toUpperCase()).append(",(greycat.Node)value, " + indexed + ");");
                 bodyBuilder.append("return this;");
                 add.setBody(bodyBuilder.toString());
 
+                //generate removeFrom
                 bodyBuilder = new StringBuilder();
-                //generate setter
                 MethodSource<JavaClassSource> remove = javaClass.addMethod();
                 remove.setVisibility(Visibility.PUBLIC).setFinal(true);
                 remove.setName("removeFrom" + upperCaseFirstChar(prop.name()));
                 remove.setReturnType(classClassifier.name());
                 remove.addParameter(casted.type(), "value");
-                bodyBuilder.append("super.removeFromRelation(").append(prop.name().toUpperCase()).append(",(greycat.Node)value);");
+                bodyBuilder.append("super.removeFromRelation(").append(prop.name().toUpperCase()).append(",(greycat.Node)value, " + indexed + ");");
                 bodyBuilder.append("return this;");
                 remove.setBody(bodyBuilder.toString());
+
 
             }
         }
 
 
-        // indexes
-        if (classClassifier.indexes().length > 0) {
+        // globalIndexes
+        if (classClassifier.globalIndexes().length > 0) {
             StringBuilder indexMethodBody = new StringBuilder();
             indexMethodBody.append("\t\tfinal " + classClassifier.name() + " self = this;\n");
 
-            for (Index idx : classClassifier.indexes()) {
+            for (GlobalIndex idx : classClassifier.globalIndexes()) {
                 String idxName = idx.name();
                 StringBuilder indexedProperties = new StringBuilder();
                 for (Property property : idx.properties()) {
@@ -241,9 +254,9 @@ class NodeTypeGenerator {
         }
 
 
-        // find methods for global indexes
-        if (classClassifier.indexes().length > 0) {
-            for (Index idx : classClassifier.indexes()) {
+        // find methods for global globalIndexes
+        if (classClassifier.globalIndexes().length > 0) {
+            for (GlobalIndex idx : classClassifier.globalIndexes()) {
                 StringBuilder indexedProperties = new StringBuilder();
                 for (Property property : idx.properties()) {
                     indexedProperties.append("\"" + property.name() + "\"");
@@ -364,6 +377,24 @@ class NodeTypeGenerator {
                     throw new RuntimeException("type " + attribute.type() + " is unknown");
             }
         }
+    }
+
+    private static boolean locallyIndexed(Class clazz, Property property) {
+        for (LocalIndex idx : clazz.localIndexes()) {
+            if (idx.indexedRel().equals(property.name())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static LocalIndex findLocalIndex(Class clazz, Property property) {
+        for (LocalIndex idx : clazz.localIndexes()) {
+            if (idx.indexedRel().equals(property.name())) {
+                return idx;
+            }
+        }
+        return null;
     }
 
 
