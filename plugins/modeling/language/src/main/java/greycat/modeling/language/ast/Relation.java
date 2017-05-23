@@ -16,8 +16,26 @@
 package greycat.modeling.language.ast;
 
 
+import java.util.LinkedList;
+import java.util.List;
+
 public class Relation extends Property {
+    private final List<String> indexedAttributes;
+
     public Relation(String name, String type) {
         super(name, type);
+        indexedAttributes = new LinkedList<>();
+    }
+
+    public void addIndexedAttribute(String att) {
+        this.indexedAttributes.add(att);
+    }
+
+    public List<String> indexedAttributes() {
+        return this.indexedAttributes;
+    }
+
+    public boolean isIndexedRelation() {
+        return (this.indexedAttributes != null && !this.indexedAttributes.isEmpty());
     }
 }

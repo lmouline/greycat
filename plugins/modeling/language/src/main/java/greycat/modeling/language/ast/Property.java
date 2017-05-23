@@ -20,9 +20,9 @@ public abstract class Property implements Comparable<Property> {
     private final String name;
     private final String type;
 
-    public Property(String p_name, String p_type) {
-        this.name = p_name;
-        this.type = p_type;
+    public Property(String name, String type) {
+        this.name = name;
+        this.type = type;
     }
 
     public String name() {
@@ -34,7 +34,7 @@ public abstract class Property implements Comparable<Property> {
     }
 
     public int compareTo(Property p) {
-        if(p.name().equals(name)){
+        if (p.name().equals(name)) {
             return 0;
         } else {
             return name().compareTo(p.name);

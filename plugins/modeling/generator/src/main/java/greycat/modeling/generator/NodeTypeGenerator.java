@@ -150,15 +150,15 @@ class NodeTypeGenerator {
 
 
             } else if (prop instanceof Relation) {
-                Relation casted = (Relation) prop;
+                Relation rel = (Relation) prop;
 
                 //generate getter
-                String resultType = casted.type();
+                String resultType = rel.type();
                 MethodSource<JavaClassSource> getter = javaClass.addMethod();
                 getter.setVisibility(Visibility.PUBLIC);
                 getter.setFinal(true);
                 getter.setReturnTypeVoid();
-                getter.setName("get" + upperCaseFirstChar(casted.name()));
+                getter.setName("get" + upperCaseFirstChar(rel.name()));
                 getter.addParameter("greycat.Callback<" + resultType + "[]>", "callback");
                 getter.setBody(
                         "this.relation(" + prop.name().toUpperCase() + ",new greycat.Callback<greycat.Node[]>() {\n" +
@@ -174,16 +174,16 @@ class NodeTypeGenerator {
                 );
 
 
-                StringBuilder indexed = new StringBuilder();
-                if (locallyIndexed(classClassifier, prop)) {
-                    LocalIndex idx = findLocalIndex(classClassifier, prop);
-                    for (Property indexedProp : idx.indexedProperties()) {
-                        indexed.append("\"" + indexedProp.name()+ "\"");
-                        indexed.append(",");
+                // relation indexes
+                StringBuilder relIdxBuilder = new StringBuilder();
+                if (rel.isIndexedRelation()) {
+                    for (String att : rel.indexedAttributes()) {
+                        relIdxBuilder.append("\"" + att + "\"");
+                        relIdxBuilder.append(",");
                     }
-                    indexed.deleteCharAt(indexed.length() - 1);
+                    relIdxBuilder.deleteCharAt(relIdxBuilder.length() - 1);
                 } else {
-                    indexed.append("null");
+                    relIdxBuilder.append("null");
                 }
 
                 //generate addTo
@@ -192,8 +192,8 @@ class NodeTypeGenerator {
                 add.setVisibility(Visibility.PUBLIC).setFinal(true);
                 add.setName("addTo" + upperCaseFirstChar(prop.name()));
                 add.setReturnType(classClassifier.name());
-                add.addParameter(casted.type(), "value");
-                bodyBuilder.append("super.addToRelation(").append(prop.name().toUpperCase()).append(",(greycat.Node)value, " + indexed + ");");
+                add.addParameter(rel.type(), "value");
+                bodyBuilder.append("super.addToRelation(").append(prop.name().toUpperCase()).append(",(greycat.Node)value, " + relIdxBuilder + ");");
                 bodyBuilder.append("return this;");
                 add.setBody(bodyBuilder.toString());
 
@@ -203,8 +203,8 @@ class NodeTypeGenerator {
                 remove.setVisibility(Visibility.PUBLIC).setFinal(true);
                 remove.setName("removeFrom" + upperCaseFirstChar(prop.name()));
                 remove.setReturnType(classClassifier.name());
-                remove.addParameter(casted.type(), "value");
-                bodyBuilder.append("super.removeFromRelation(").append(prop.name().toUpperCase()).append(",(greycat.Node)value, " + indexed + ");");
+                remove.addParameter(rel.type(), "value");
+                bodyBuilder.append("super.removeFromRelation(").append(prop.name().toUpperCase()).append(",(greycat.Node)value, " + relIdxBuilder + ");");
                 bodyBuilder.append("return this;");
                 remove.setBody(bodyBuilder.toString());
 
@@ -213,20 +213,20 @@ class NodeTypeGenerator {
         }
 
 
-        // globalIndexes
-        if (classClassifier.globalIndexes().length > 0) {
+        // indexes
+        if (classClassifier.indexes().length > 0) {
             StringBuilder indexMethodBody = new StringBuilder();
             indexMethodBody.append("\t\tfinal " + classClassifier.name() + " self = this;\n");
 
-            for (GlobalIndex idx : classClassifier.globalIndexes()) {
+            for (Index idx : classClassifier.indexes()) {
                 String idxName = idx.name();
                 StringBuilder indexedProperties = new StringBuilder();
-                for (Property property : idx.properties()) {
+                for (Property property : idx.attributes()) {
                     indexedProperties.append("\"" + property.name() + "\"");
                     indexedProperties.append(",");
                 }
                 indexedProperties.deleteCharAt(indexedProperties.length() - 1);
-                String time = idx.timed() ? "time()" : "greycat.Constants.BEGINNING_OF_TIME";
+                String time = idx.isWithTime() ? "time()" : "greycat.Constants.BEGINNING_OF_TIME";
 
                 indexMethodBody.append(
                         "\t\tthis.graph().index(world(), " + time + ",  \"" + idxName + "\" , new greycat.Callback<greycat.NodeIndex>() {\n" +
@@ -242,7 +242,6 @@ class NodeTypeGenerator {
                 );
             }
 
-
             javaClass.addMethod()
                     .setName("index" + classClassifier.name())
                     .setVisibility(Visibility.PUBLIC)
@@ -251,59 +250,6 @@ class NodeTypeGenerator {
                     .setBody(indexMethodBody.toString())
                     .addParameter("Callback<Boolean>", "callback");
             javaClass.addImport(Callback.class);
-        }
-
-
-        // find methods for global globalIndexes
-        if (classClassifier.globalIndexes().length > 0) {
-            for (GlobalIndex idx : classClassifier.globalIndexes()) {
-                StringBuilder indexedProperties = new StringBuilder();
-                for (Property property : idx.properties()) {
-                    indexedProperties.append("\"" + property.name() + "\"");
-                    indexedProperties.append(",");
-                }
-                indexedProperties.deleteCharAt(indexedProperties.length() - 1);
-                String time = idx.timed() ? "time()" : "greycat.Constants.BEGINNING_OF_TIME";
-
-                MethodSource findFromMethod = javaClass.addMethod()
-                        .setName("findFrom" + idx.name())
-                        .setVisibility(Visibility.PUBLIC)
-                        .setStatic(true)
-                        .setFinal(true)
-                        .setReturnTypeVoid();
-                findFromMethod.addParameter("greycat.Graph", "g");
-                findFromMethod.addParameter("long", "world");
-                for (Property indexedProperty : idx.properties()) {
-                    findFromMethod.addParameter("String", indexedProperty.name());
-                }
-                findFromMethod.addParameter("greycat.Callback<greycat.Node[]>", "cb");
-                findFromMethod.setBody("\t\tg.index(world, " + time + ", " + "\"" + idx.name() + "\"," + "new greycat.Callback<greycat.NodeIndex>() {\n" +
-                        "\t\t\t@Override\n" +
-                        "\t\t\tpublic void on(greycat.NodeIndex indexNode) {\n" +
-                        "\t\t\t\tindexNode.find(cb," + indexedProperties + ");\n" +
-                        "\t\t\t}\n" +
-                        "\t\t});"
-                );
-
-                MethodSource getAllMethod = javaClass.addMethod()
-                        .setName("getAllFrom" + idx.name())
-                        .setVisibility(Visibility.PUBLIC)
-                        .setStatic(true)
-                        .setFinal(true)
-                        .setReturnTypeVoid();
-                getAllMethod.addParameter("greycat.Graph", "g");
-                getAllMethod.addParameter("long", "world");
-                getAllMethod.addParameter("greycat.Callback<greycat.Node[]>", "cb");
-                getAllMethod.setBody("\t\tg.index(world, " + time + ", " + "\"" + idx.name() + "\"," + "new greycat.Callback<greycat.NodeIndex>() {\n" +
-                        "\t\t\t@Override\n" +
-                        "\t\t\tpublic void on(greycat.NodeIndex indexNode) {\n" +
-                        "\t\t\t\tindexNode.find(cb);\n" +
-                        "\t\t\t}\n" +
-                        "\t\t});"
-                );
-
-
-            }
         }
 
 
@@ -377,24 +323,6 @@ class NodeTypeGenerator {
                     throw new RuntimeException("type " + attribute.type() + " is unknown");
             }
         }
-    }
-
-    private static boolean locallyIndexed(Class clazz, Property property) {
-        for (LocalIndex idx : clazz.localIndexes()) {
-            if (idx.indexedRel().equals(property.name())) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private static LocalIndex findLocalIndex(Class clazz, Property property) {
-        for (LocalIndex idx : clazz.localIndexes()) {
-            if (idx.indexedRel().equals(property.name())) {
-                return idx;
-            }
-        }
-        return null;
     }
 
 

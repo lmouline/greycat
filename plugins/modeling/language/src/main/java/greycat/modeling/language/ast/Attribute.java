@@ -18,9 +18,9 @@ package greycat.modeling.language.ast;
 public class Attribute extends Property {
     private final boolean isArray;
 
-    public Attribute(String p_name, String p_type, boolean p_isArray) {
-        super(p_name, p_type);
-        this.isArray = p_isArray;
+    public Attribute(String name, String type, boolean isArray) {
+        super(name, type);
+        this.isArray = isArray;
     }
 
     public boolean isArray() {

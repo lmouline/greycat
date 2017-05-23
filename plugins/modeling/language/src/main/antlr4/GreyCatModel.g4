@@ -26,20 +26,18 @@ NUMBER : [\-]?[0-9]+'.'?[0-9]*;
 WS : ([ \t\r\n]+ | SL_COMMENT) -> skip ; // skip spaces, tabs, newlines
 SL_COMMENT :  '//' ~('\r' | '\n')* ;
 
-model: (enumDec | classDec)* ;
+modelDcl: (enumDcl | classDcl)*;
 
-enumDec : 'enum' (TYPE_NAME|IDENT) '{' enumLiterals '}';
-enumLiterals : IDENT (',' IDENT)*;
+enumDcl: 'enum' (TYPE_NAME|IDENT) '{' enumLiteralsDcl '}';
+enumLiteralsDcl: IDENT (',' IDENT)*;
 
-classDec : 'class' (TYPE_NAME|IDENT) parentDec? '{' (attributeDec | relationDec | indexDec)* '}';
-parentDec : 'extends' (TYPE_NAME|IDENT);
-attributeType : ('String' | 'Double' | 'Long' | 'Integer' | 'Boolean') ('[]')?;
-attributeDec : 'att' IDENT ':' attributeType;
-relationDec : 'rel' IDENT ':' (TYPE_NAME|IDENT);
+classDcl: 'class' (TYPE_NAME|IDENT) parentDcl? '{' (attributeDcl | relationDcl | indexDcl)* '}';
+parentDcl: 'extends' (TYPE_NAME|IDENT);
+attributeDcl: 'att' IDENT ':' attributeTypeDcl;
+attributeTypeDcl: ('String' | 'Double' | 'Long' | 'Integer' | 'Boolean') ('[]')?;
+relationDcl: 'rel' IDENT ':' (TYPE_NAME|IDENT) relationIndexDcl?;
+relationIndexDcl: 'indexed' 'by' IDENT (',' IDENT)*;
 
-indexDec : globalIndex | localIndex;
-globalIndex : 'index by' IDENT (',' IDENT)* timed? ('as' indexName)?;
-timed: 'timed';
-indexName : IDENT;
-localIndex : 'index' indexedRel 'by' IDENT (',' IDENT)*;
-indexedRel : IDENT;
+indexDcl: 'indexed' withTimeDcl? 'by' IDENT (',' IDENT)* ('as' indexNameDcl)?;
+withTimeDcl: 'with time';
+indexNameDcl: IDENT;

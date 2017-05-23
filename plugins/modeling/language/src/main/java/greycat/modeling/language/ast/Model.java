@@ -55,51 +55,51 @@ public class Model {
     private static Model build(ANTLRInputStream in, Model model) {
         BufferedTokenStream tokens = new CommonTokenStream(new GreyCatModelLexer(in));
         GreyCatModelParser parser = new GreyCatModelParser(tokens);
-        GreyCatModelParser.ModelContext mctx = parser.model();
+        GreyCatModelParser.ModelDclContext modelDclCtx = parser.modelDcl();
 
         // enums
-        for (GreyCatModelParser.EnumDecContext enumDeclrContext : mctx.enumDec()) {
+        for (GreyCatModelParser.EnumDclContext enumDclCtx : modelDclCtx.enumDcl()) {
             String fqn = null;
-            if (enumDeclrContext.TYPE_NAME() != null) {
-                fqn = enumDeclrContext.TYPE_NAME().toString();
+            if (enumDclCtx.TYPE_NAME() != null) {
+                fqn = enumDclCtx.TYPE_NAME().toString();
             }
-            if (enumDeclrContext.IDENT() != null) {
-                fqn = enumDeclrContext.IDENT().toString();
+            if (enumDclCtx.IDENT() != null) {
+                fqn = enumDclCtx.IDENT().toString();
             }
             final Enum enumClass = (Enum) getOrAddEnum(model, fqn);
-            for (TerminalNode literal : enumDeclrContext.enumLiterals().IDENT()) {
+            for (TerminalNode literal : enumDclCtx.enumLiteralsDcl().IDENT()) {
                 enumClass.addLiteral(literal.getText());
             }
         }
 
         // classes
-        for (GreyCatModelParser.ClassDecContext classDeclContext : mctx.classDec()) {
+        for (GreyCatModelParser.ClassDclContext classDclCxt : modelDclCtx.classDcl()) {
             String classFqn = null;
-            if (classDeclContext.TYPE_NAME() != null) {
-                classFqn = classDeclContext.TYPE_NAME().toString();
+            if (classDclCxt.TYPE_NAME() != null) {
+                classFqn = classDclCxt.TYPE_NAME().toString();
             }
-            if (classDeclContext.IDENT() != null) {
-                classFqn = classDeclContext.IDENT().toString();
+            if (classDclCxt.IDENT() != null) {
+                classFqn = classDclCxt.IDENT().toString();
             }
             final Class newClass = (Class) getOrAddClass(model, classFqn);
 
             // parents
-            if (classDeclContext.parentDec() != null) {
-                if (classDeclContext.parentDec().TYPE_NAME() != null) {
-                    final Class newClassTT = (Class) getOrAddClass(model, classDeclContext.parentDec().TYPE_NAME().toString());
+            if (classDclCxt.parentDcl() != null) {
+                if (classDclCxt.parentDcl().TYPE_NAME() != null) {
+                    final Class newClassTT = (Class) getOrAddClass(model, classDclCxt.parentDcl().TYPE_NAME().toString());
                     newClass.setParent(newClassTT);
                 }
-                if (classDeclContext.parentDec().IDENT() != null) {
-                    final Class newClassTT = (Class) getOrAddClass(model, classDeclContext.parentDec().IDENT().toString());
+                if (classDclCxt.parentDcl().IDENT() != null) {
+                    final Class newClassTT = (Class) getOrAddClass(model, classDclCxt.parentDcl().IDENT().toString());
                     newClass.setParent(newClassTT);
                 }
             }
 
             // attributes
-            for (GreyCatModelParser.AttributeDecContext attDec : classDeclContext.attributeDec()) {
-                String name = attDec.IDENT().getText();
-                GreyCatModelParser.AttributeTypeContext attType = attDec.attributeType();
-                String value = attType.getText();
+            for (GreyCatModelParser.AttributeDclContext attDcl : classDclCxt.attributeDcl()) {
+                String name = attDcl.IDENT().getText();
+                GreyCatModelParser.AttributeTypeDclContext attTypeDclCxt = attDcl.attributeTypeDcl();
+                String value = attTypeDclCxt.getText();
                 boolean isArray = false;
                 if (value.endsWith("[]")) {
                     value = value.substring(0, value.length() - 2);
@@ -111,48 +111,46 @@ public class Model {
             }
 
             // relations
-            for (GreyCatModelParser.RelationDecContext relDec : classDeclContext.relationDec()) {
-                String name = relDec.IDENT().get(0).getText();
+            for (GreyCatModelParser.RelationDclContext relDecCxt : classDclCxt.relationDcl()) {
+                String name = relDecCxt.IDENT().get(0).getText();
                 String type;
-                if (relDec.TYPE_NAME() == null) {
-                    type = relDec.IDENT(1).toString();
+                if (relDecCxt.TYPE_NAME() == null) {
+                    type = relDecCxt.IDENT(1).toString();
                 } else {
-                    type = relDec.TYPE_NAME().toString();
+                    type = relDecCxt.TYPE_NAME().toString();
                 }
                 final Relation relation = new Relation(name, type);
+
+                // relation indexes
+                if (relDecCxt.relationIndexDcl() != null) {
+                    for (TerminalNode relationIdxIdent : relDecCxt.relationIndexDcl().IDENT()) {
+                        relation.addIndexedAttribute(relationIdxIdent.getText());
+                    }
+                }
+
                 newClass.addProperty(relation);
             }
 
-            // indexes
-            for (int i = 0; i < classDeclContext.indexDec().size(); i++) {
-                GreyCatModelParser.IndexDecContext indexDecContext = classDeclContext.indexDec().get(i);
-                //  global indexes
-                if (indexDecContext.globalIndex() != null) {
-                    String idxName = newClass.name() + "Idx" + i;
-                    if (indexDecContext.globalIndex().indexName() != null) {
-                        idxName = indexDecContext.globalIndex().indexName().getText();
-                    }
-                    GlobalIndex idx = new GlobalIndex(idxName);
-                    for (TerminalNode idxIdent : indexDecContext.globalIndex().IDENT()) {
-                        Property indexedProperty = newClass.property(idxIdent.getText());
-                        idx.addProperty(indexedProperty);
-                    }
-                    if (indexDecContext.globalIndex().timed() != null) {
-                        idx.setTimed(true);
-                    }
-                    newClass.addGlobalIndex(idx);
+            // global indexes
+            for (int i = 0; i < classDclCxt.indexDcl().size(); i++) {
+                GreyCatModelParser.IndexDclContext indexDclCxt = classDclCxt.indexDcl().get(i);
+                String idxName = newClass.name() + "Idx" + i;
+                if (indexDclCxt.indexNameDcl() != null) {
+                    idxName = indexDclCxt.indexNameDcl().getText();
                 }
-
-                // local indexes
-                if (indexDecContext.localIndex() != null) {
-                    String indexedRel = indexDecContext.localIndex().indexedRel().getText();
-                    LocalIndex idx = new LocalIndex(indexedRel);
-                    for (TerminalNode idxIdent : indexDecContext.localIndex().IDENT()) {
-                        Property indexedProperty = newClass.property(idxIdent.getText());
-                        idx.addIndexedProperty(indexedProperty);
+                Index idx = new Index(idxName);
+                for (TerminalNode idxDclIdent : indexDclCxt.IDENT()) {
+                    Property indexedProperty = newClass.getProperty(idxDclIdent.getText());
+                    if (!(indexedProperty instanceof Attribute)) {
+                        throw new RuntimeException("index declaration invalid: " + idxDclIdent.getText() + " is not a valid attribute");
                     }
-                    newClass.addLocalIndex(idx);
+                    Attribute att = (Attribute) indexedProperty;
+                    idx.addAttribute(att);
                 }
+                if (indexDclCxt.withTimeDcl() != null) {
+                    idx.setWithTime(true);
+                }
+                newClass.addIndex(idx);
 
             }
         }

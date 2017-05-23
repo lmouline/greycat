@@ -18,32 +18,32 @@ import java.util.List;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-public class GlobalIndex {
+public class Index {
     private final String name;
-    private final List<Property> properties;
+    private final List<Attribute> attributes;
 
-    private boolean timed;
+    private boolean withTime;
 
 
-    public GlobalIndex(String p_name) {
-        this.name = p_name;
-        this.properties = new LinkedList<>();
-        this.timed = false;
+    public Index(String name) {
+        this.name = name;
+        this.attributes = new LinkedList<>();
+        this.withTime = false;
     }
 
-    public Property[] properties() {
-        return properties.toArray(new Property[properties.size()]);
+    public Attribute[] attributes() {
+        return this.attributes.toArray(new Attribute[this.attributes.size()]);
     }
 
 
-    public void addProperty(Property p_property) {
-        properties.add(p_property);
+    public void addAttribute(Attribute attribute) {
+        this.attributes.add(attribute);
     }
 
-    public boolean equals(Object p_other) {
-        if (this == p_other) return true;
-        if (!(p_other instanceof GlobalIndex)) return false;
-        final GlobalIndex that = (GlobalIndex) p_other;
+    public boolean equals(Object other) {
+        if (this == other) return true;
+        if (!(other instanceof Index)) return false;
+        final Index that = (Index) other;
         return this.name().equals(that.name());
     }
 
@@ -56,11 +56,11 @@ public class GlobalIndex {
         return this.name;
     }
 
-    public boolean timed() {
-        return this.timed;
+    public boolean isWithTime() {
+        return this.withTime;
     }
 
-    public void setTimed(boolean p_timed) {
-        this.timed = p_timed;
+    public void setWithTime(boolean withTime) {
+        this.withTime = withTime;
     }
 }

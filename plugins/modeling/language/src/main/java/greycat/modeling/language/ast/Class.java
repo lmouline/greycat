@@ -16,31 +16,26 @@
 package greycat.modeling.language.ast;
 
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class Class implements Classifier {
     private final String name;
     private final Map<String, Property> properties;
-    private final Set<GlobalIndex> globalIndexes;
-    private final Set<LocalIndex> localIndexes;
+    private final List<Index> indexes;
 
     private Class parent;
 
-    public Class(String p_name) {
-        name = p_name;
-        properties = new HashMap<>();
-        globalIndexes = new HashSet<>();
-        localIndexes = new HashSet<>();
+    public Class(String name) {
+        this.name = name;
+        this.properties = new HashMap<>();
+        this.indexes = new LinkedList<>();
     }
 
     public Property[] properties() {
         return properties.values().toArray(new Property[properties.size()]);
     }
 
-    public Property property(String name) {
+    public Property getProperty(String name) {
         for (Property property : properties()) {
             if (property.name().equals(name)) {
                 return property;
@@ -61,21 +56,14 @@ public class Class implements Classifier {
         this.parent = parent;
     }
 
-    public void addGlobalIndex(GlobalIndex index) {
-        globalIndexes.add(index);
+    public void addIndex(Index index) {
+        indexes.add(index);
     }
 
-    public GlobalIndex[] globalIndexes() {
-        return globalIndexes.toArray(new GlobalIndex[globalIndexes.size()]);
+    public Index[] indexes() {
+        return indexes.toArray(new Index[indexes.size()]);
     }
 
-    public void addLocalIndex(LocalIndex index) {
-        localIndexes.add(index);
-    }
-
-    public LocalIndex[] localIndexes() {
-        return localIndexes.toArray(new LocalIndex[localIndexes.size()]);
-    }
 
     @Override
     public String name() {
