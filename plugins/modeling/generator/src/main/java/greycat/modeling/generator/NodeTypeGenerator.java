@@ -178,7 +178,8 @@ class NodeTypeGenerator {
                 StringBuilder relIdxBuilder = new StringBuilder();
                 if (rel.isIndexedRelation()) {
                     for (String att : rel.indexedAttributes()) {
-                        relIdxBuilder.append("\"" + att + "\"");
+//                        relIdxBuilder.append("\"" + att + "\"");
+                        relIdxBuilder.append(rel.type() + "." + att.toUpperCase());
                         relIdxBuilder.append(",");
                     }
                     relIdxBuilder.deleteCharAt(relIdxBuilder.length() - 1);
@@ -222,7 +223,8 @@ class NodeTypeGenerator {
                 String idxName = idx.name();
                 StringBuilder indexedProperties = new StringBuilder();
                 for (Property property : idx.attributes()) {
-                    indexedProperties.append("\"" + property.name() + "\"");
+//                    indexedProperties.append("\"" + property.name() + "\"");
+                    indexedProperties.append(property.name().toUpperCase());
                     indexedProperties.append(",");
                 }
                 indexedProperties.deleteCharAt(indexedProperties.length() - 1);

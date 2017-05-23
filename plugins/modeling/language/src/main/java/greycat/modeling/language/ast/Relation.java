@@ -31,8 +31,8 @@ public class Relation extends Property {
         this.indexedAttributes.add(att);
     }
 
-    public List<String> indexedAttributes() {
-        return this.indexedAttributes;
+    public String[] indexedAttributes() {
+        return this.indexedAttributes.toArray(new String[indexedAttributes.size()]);
     }
 
     public boolean isIndexedRelation() {
