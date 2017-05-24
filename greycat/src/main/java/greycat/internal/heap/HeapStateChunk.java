@@ -24,6 +24,7 @@ import greycat.chunk.StateChunk;
 import greycat.internal.CoreConstants;
 import greycat.internal.tree.KDTree;
 import greycat.internal.tree.NDTree;
+import greycat.internal.tree.ndmanager.IndexManager;
 import greycat.plugin.NodeStateCallback;
 import greycat.struct.*;
 import greycat.utility.Base64;
@@ -127,7 +128,7 @@ class HeapStateChunk implements StateChunk, HeapContainer {
             if (result != null) {
                 switch (_type[found]) {
                     case Type.NDTREE:
-                        return new NDTree((EGraph) result);
+                        return new NDTree((EGraph) result, new IndexManager());
                     case Type.KDTREE:
                         return new KDTree((EGraph) result);
                     default:
@@ -177,7 +178,7 @@ class HeapStateChunk implements StateChunk, HeapContainer {
             if (result != null) {
                 switch (_type[found]) {
                     case Type.NDTREE:
-                        return new NDTree((EGraph) result);
+                        return new NDTree((EGraph) result, new IndexManager());
                     case Type.KDTREE:
                         return new KDTree((EGraph) result);
                     default:
@@ -277,7 +278,10 @@ class HeapStateChunk implements StateChunk, HeapContainer {
         final int found = internal_find(p_key);
         if (found != -1) {
             if (_type[found] == p_type) {
-                return _v[found];
+                Object foundValue = _v[found];
+                if(foundValue != null){
+                    return _v[found];
+                }
             }
         }
         Object toSet = null;
@@ -327,6 +331,14 @@ class HeapStateChunk implements StateChunk, HeapContainer {
                 toSet = new HeapLongLongMap(this);
                 toGet = toSet;
                 break;
+            case Type.INT_TO_INT_MAP:
+                toSet = new HeapIntIntMap(this);
+                toGet = toSet;
+                break;
+            case Type.INT_TO_STRING_MAP:
+                toSet = new HeapIntStringMap(this);
+                toGet = toSet;
+                break;
             case Type.LONG_TO_LONG_ARRAY_MAP:
                 toSet = new HeapLongLongArrayMap(this);
                 toGet = toSet;
@@ -343,7 +355,7 @@ class HeapStateChunk implements StateChunk, HeapContainer {
             case Type.NDTREE:
                 EGraph tempND = new HeapEGraph(this, null, _space.graph());
                 toSet = tempND;
-                toGet = new NDTree(tempND);
+                toGet = new NDTree(tempND, new IndexManager());
                 break;
         }
         internal_set(p_key, p_type, toSet, true, false);
@@ -488,6 +500,32 @@ class HeapStateChunk implements StateChunk, HeapContainer {
                             }
                         });
                         break;
+                    case Type.INT_TO_INT_MAP:
+                        HeapIntIntMap castedIntIntMap = (HeapIntIntMap) loopValue;
+                        Base64.encodeIntToBuffer(castedIntIntMap.size(), buffer);
+                        castedIntIntMap.unsafe_each(new IntIntMapCallBack() {
+                            @Override
+                            public void on(final int key, final int value) {
+                                buffer.write(CoreConstants.CHUNK_VAL_SEP);
+                                Base64.encodeIntToBuffer(key, buffer);
+                                buffer.write(CoreConstants.CHUNK_VAL_SEP);
+                                Base64.encodeIntToBuffer(value, buffer);
+                            }
+                        });
+                        break;
+                    case Type.INT_TO_STRING_MAP:
+                        HeapIntStringMap castedIntStringMap = (HeapIntStringMap) loopValue;
+                        Base64.encodeIntToBuffer(castedIntStringMap.size(), buffer);
+                        castedIntStringMap.unsafe_each(new IntStringMapCallBack() {
+                            @Override
+                            public void on(final int key, final String value) {
+                                buffer.write(CoreConstants.CHUNK_VAL_SEP);
+                                Base64.encodeIntToBuffer(key, buffer);
+                                buffer.write(CoreConstants.CHUNK_VAL_SEP);
+                                Base64.encodeStringToBuffer(value, buffer);
+                            }
+                        });
+                        break;
                     case Type.RELATION_INDEXED:
                     case Type.LONG_TO_LONG_ARRAY_MAP:
                         HeapLongLongArrayMap castedLongLongArrayMap = (HeapLongLongArrayMap) loopValue;
@@ -596,6 +634,16 @@ class HeapStateChunk implements StateChunk, HeapContainer {
                                 _v[i] = ((HeapStringIntMap) casted._v[i]).cloneFor(this);
                             }
                             break;
+                        case Type.INT_TO_INT_MAP:
+                            if (casted._v[i] != null) {
+                                _v[i] = ((HeapIntIntMap) casted._v[i]).cloneFor(this);
+                            }
+                            break;
+                        case Type.INT_TO_STRING_MAP:
+                            if (casted._v[i] != null) {
+                                _v[i] = ((HeapIntStringMap) casted._v[i]).cloneFor(this);
+                            }
+                            break;
                         case Type.RELATION:
                             if (casted._v[i] != null) {
                                 _v[i] = new HeapRelation(this, (HeapRelation) casted._v[i]);
@@ -637,8 +685,8 @@ class HeapStateChunk implements StateChunk, HeapContainer {
                             }
                             break;
                         case Type.BOOL_ARRAY:
-                            if(casted._v[i] != null) {
-                                _v[i] = ((HeapBoolArray)casted._v[i]).cloneFor(this);
+                            if (casted._v[i] != null) {
+                                _v[i] = ((HeapBoolArray) casted._v[i]).cloneFor(this);
                             }
                             break;
                         default:
@@ -648,7 +696,7 @@ class HeapStateChunk implements StateChunk, HeapContainer {
                 }
             }
         }
-    }
+        }
 
     private void internal_set(final int p_key, final byte p_type, final Object p_unsafe_elem, boolean replaceIfPresent, boolean initial) {
         Object param_elem = null;
@@ -748,6 +796,12 @@ class HeapStateChunk implements StateChunk, HeapContainer {
                         break;
                     case Type.LONG_TO_LONG_MAP:
                         param_elem = (LongLongMap) p_unsafe_elem;
+                        break;
+                    case Type.INT_TO_INT_MAP:
+                        param_elem = (IntIntMap) p_unsafe_elem;
+                        break;
+                    case Type.INT_TO_STRING_MAP:
+                        param_elem = (IntStringMap) p_unsafe_elem;
                         break;
                     case Type.LONG_TO_LONG_ARRAY_MAP:
                         param_elem = (LongLongArrayMap) p_unsafe_elem;
@@ -1121,6 +1175,34 @@ class HeapStateChunk implements StateChunk, HeapContainer {
                                         }
                                     }
                                     break;
+                                case Type.INT_TO_INT_MAP:
+                                    HeapIntIntMap i2imap = new HeapIntIntMap(this);
+                                    cursor++;
+                                    cursor = i2imap.load(buffer, cursor, payloadSize);
+                                    internal_set(read_key, read_type, i2imap, true, initial);
+                                    if (cursor < payloadSize) {
+                                        current = buffer.read(cursor);
+                                        if (current == Constants.CHUNK_SEP && cursor < payloadSize) {
+                                            state = LOAD_WAITING_TYPE;
+                                            cursor++;
+                                            previous = cursor;
+                                        }
+                                    }
+                                    break;
+                                case Type.INT_TO_STRING_MAP:
+                                    HeapIntStringMap i2smap = new HeapIntStringMap(this);
+                                    cursor++;
+                                    cursor = i2smap.load(buffer, cursor, payloadSize);
+                                    internal_set(read_key, read_type, i2smap, true, initial);
+                                    if (cursor < payloadSize) {
+                                        current = buffer.read(cursor);
+                                        if (current == Constants.CHUNK_SEP && cursor < payloadSize) {
+                                            state = LOAD_WAITING_TYPE;
+                                            cursor++;
+                                            previous = cursor;
+                                        }
+                                    }
+                                    break;
                                 case Type.LONG_TO_LONG_ARRAY_MAP:
                                     HeapLongLongArrayMap l2lrmap = new HeapLongLongArrayMap(this);
                                     cursor++;
@@ -1300,6 +1382,16 @@ class HeapStateChunk implements StateChunk, HeapContainer {
     @Override
     public final LongLongMap getLongLongMap(String name) {
         return (LongLongMap) get(name);
+    }
+
+    @Override
+    public IntIntMap getIntIntMap(String name) {
+        return (IntIntMap) get(name);
+    }
+
+    @Override
+    public IntStringMap getIntStringMap(String name) {
+        return (IntStringMap) get(name);
     }
 
     @Override
