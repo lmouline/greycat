@@ -45,13 +45,13 @@ public class Generator {
             } else {
                 for (String name : files) {
                     if (name.trim().endsWith(FILE_EXTENSION)) {
-                        Model.parse(new File(target, name), model);
+                        this.model.parse(new File(target, name));
                     }
                 }
             }
 
         } else if (target.getName().endsWith(FILE_EXTENSION)) {
-            Model.parse(target, model);
+            this.model.parse(target);
         } else {
             throw new RuntimeException("no file with correct extension found");
         }
@@ -65,7 +65,7 @@ public class Generator {
             } else {
                 for (String name : files) {
                     if (name.trim().endsWith(FILE_EXTENSION)) {
-                        Model.parse(new File(target, name), model);
+                        this.model.parse(new File(target, name));
                     } else {
                         File current = new File(target, name);
                         if (current.isDirectory()) {
@@ -76,7 +76,7 @@ public class Generator {
             }
 
         } else if (target.getName().endsWith(FILE_EXTENSION)) {
-            Model.parse(target, model);
+            this.model.parse(target);
         }
     }
 
