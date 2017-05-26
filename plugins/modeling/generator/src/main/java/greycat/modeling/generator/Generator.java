@@ -16,6 +16,7 @@
 package greycat.modeling.generator;
 
 import greycat.modeling.language.ast.Model;
+import greycat.modeling.language.ast.ModelChecker;
 import java2typescript.SourceTranslator;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.project.MavenProject;
@@ -32,9 +33,11 @@ public class Generator {
     public static final String FILE_EXTENSION = ".gcm";
 
     private final Model model;
+    private final ModelChecker modelChecker;
 
     public Generator() {
         this.model = new Model();
+        this.modelChecker = new ModelChecker();
     }
 
     public void scan(File target) throws Exception {
@@ -45,12 +48,14 @@ public class Generator {
             } else {
                 for (String name : files) {
                     if (name.trim().endsWith(FILE_EXTENSION)) {
+                        this.modelChecker.check(new File(target, name));
                         this.model.parse(new File(target, name));
                     }
                 }
             }
 
         } else if (target.getName().endsWith(FILE_EXTENSION)) {
+            this.modelChecker.check(target);
             this.model.parse(target);
         } else {
             throw new RuntimeException("no file with correct extension found");
@@ -65,6 +70,7 @@ public class Generator {
             } else {
                 for (String name : files) {
                     if (name.trim().endsWith(FILE_EXTENSION)) {
+                        this.modelChecker.check(new File(target, name));
                         this.model.parse(new File(target, name));
                     } else {
                         File current = new File(target, name);
@@ -76,6 +82,7 @@ public class Generator {
             }
 
         } else if (target.getName().endsWith(FILE_EXTENSION)) {
+            this.modelChecker.check(target);
             this.model.parse(target);
         }
     }

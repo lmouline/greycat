@@ -141,9 +141,6 @@ public class Model {
                 Index idx = new Index(idxName);
                 for (TerminalNode idxDclIdent : indexDclCxt.IDENT()) {
                     Property indexedProperty = newClass.getProperty(idxDclIdent.getText());
-                    if (!(indexedProperty instanceof Attribute)) {
-                        throw new RuntimeException("index declaration invalid: " + idxDclIdent.getText() + " is not a valid attribute");
-                    }
                     Attribute att = (Attribute) indexedProperty;
                     idx.addAttribute(att);
                 }
