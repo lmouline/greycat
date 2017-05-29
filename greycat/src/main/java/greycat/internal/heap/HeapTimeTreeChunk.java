@@ -352,7 +352,9 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
     }
 
     private void setColor(int p_currentIndex, boolean p_paramIndex) {
-        _colors[p_currentIndex] = p_paramIndex;
+        if (p_currentIndex != -1) {
+            _colors[p_currentIndex] = p_paramIndex;
+        }
     }
 
     private int grandParent(int p_currentIndex) {
@@ -583,7 +585,7 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
             boolean left = false;
             while (leaf != -1) {
                 father = leaf;
-                if(_k[father] == p_key){
+                if (_k[father] == p_key) {
                     return false;
                 }
                 if (key(father) < p_key) {
