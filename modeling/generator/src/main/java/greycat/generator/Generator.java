@@ -183,6 +183,9 @@ public class Generator {
                 "  \"main\": \"lib/" + packageName + "\",\n" +
                 "  \"author\": \"\",\n" +
                 "  \"types\": \"lib/" + packageName + "\",\n" +
+                "  \"description\":\"empty\",\n" +
+                "  \"repository\":\"empty\",\n" +
+                "  \"license\":\"UNLICENSED\"," +
                 "  \"dependencies\": {\n" +
                 "    \"greycat\": \"" + gcVersion + "\"\n" +
                 "  },\n" +
@@ -200,81 +203,92 @@ public class Generator {
 
 
         // Generate a base of NPM project
-        /*
-        File npmProject = new File(target.getAbsolutePath() + "js");
+        File npmProject = new File(target.getAbsolutePath() + "-starter");
         npmProject.mkdirs();
         File mainJS = new File(npmProject, "main.js");
         File packageJson2 = new File(npmProject, "package.json");
-
-        File npmModule = new File(npmProject.getAbsolutePath() + "/" + packageName);
-        npmModule.mkdirs();
-        File packageJson3 = new File(npmModule, "package.json");
-
+        File readme = new File(npmProject, "readme.md");
+        File mainTS = new File(npmProject, "main2.ts");
         try {
             mainJS.createNewFile();
             Files.write(mainJS.toPath(), ("var greycat = require(\"greycat\");\n" +
                     "var " + packageName + " = require(\"" + packageName + "\");\n" +
                     "\n" +
-                    "var builder = new greycat.GraphBuilder().withPlugin(new " + packageName + "." + pluginName + "());\n" +
-                    "var graph = builder.build();\n" +
+                    "var g = greycat.GraphBuilder.newBuilder().withPlugin(new " + packageName + "." + pluginName + "()).build();\n" +
                     "\n" +
-                    "graph.connect(function (isSucceed) {\n" +
-                    "\n" +
+                    "g.connect(function (isSucceed) {\n" +
+                    "console.log(\"--- GreyCat ready ---\");\n" +
+                    "    var n = g.newNode(0,0);\n" +
+                    "    n.set(\"name\",greycat.Type.STRING, \"myName\");\n" +
+                    "    console.log(n.toString());\n" +
                     "});").getBytes());
 
             packageJson2.createNewFile();
             Files.write(packageJson2.toPath(), ("{\n" +
-                    "  \"name\": \"" + packageName + "\",\n" +
+                    "  \"name\": \"" + packageName + "-starter\",\n" +
                     "  \"version\": \"1.0.0\",\n" +
                     "  \"description\": \"\",\n" +
                     "  \"main\": \"main.js\",\n" +
                     "  \"author\": \"\",\n" +
+                    "  \"description\":\"empty\",\n" +
+                            "  \"repository\":\"empty\",\n" +
+                            "  \"license\":\"UNLICENSED\","+
                     "  \"dependencies\": {\n" +
                     "    \"greycat\": \"" + gcVersion + "\",\n" +
-                    "    \"" + packageName + "\": \"./" + packageName + "\"\n" +
-                    "  }\n" +
+                    "    \"" + packageName + "\": \"../greycat-modeling-ts\"\n" +
+                    "  },\n" +
+                    "  \"devDependencies\": {\n" +
+                    "    \"typescript\": \"^2.1.5\",\n" +
+                    "    \"ts-node\": \"^3.0.4\"\n" +
+                    "  }" +
                     "}").getBytes());
 
-            packageJson3.createNewFile();
-            Files.write(packageJson3.toPath(), ("{\n" +
-                    "  \"name\": \"" + packageName + "\",\n" +
-                    "  \"description\": \"Model\",\n" +
-                    "  \"version\": \"1.0.0\",\n" +
-                    "  \"main\": \"" + packageName + ".js\",\n" +
-                    "  \"typings\": \"" + packageName + ".d.ts\",\n" +
-                    "  \"dependencies\": {\n" +
-                    "    \"greycat\": \"" + gcVersion + "\"\n" +
-                    "  }\n" +
-                    "}").getBytes());
+            Files.write(readme.toPath(), ("# JavaScript usage\n" +
+                    "\n" +
+                    "`node main.js\n" +
+                    "\n" +
+                    "# TypeScript usage\n" +
+                    "\n" +
+                    "*(only the first time)*\n" +
+                    "\n" +
+                    "`npm install -g ts-node typescript`\n" +
+                    "\n" +
+                    "then\n" +
+                    "\n" +
+                    "`ts-node main2.ts`").getBytes());
+            Files.write(mainTS.toPath(), ("import * as greycat from 'greycat';\n" +
+                    "import * as " + packageName + " from '" + packageName + "';\n" +
+                    "\n" +
+                    "var g = greycat.GraphBuilder.newBuilder().withPlugin(new " + packageName + ".ModelPlugin()).build();\n" +
+                    "\n" +
+                    "g.connect(function (isSucceed) {\n" +
+                    "    console.log(\"--- GreyCat ready ---\");\n" +
+                    "    var n = g.newNode(0,0);\n" +
+                    "    n.set(\"name\",greycat.Type.STRING, \"myName\");\n" +
+                    "    console.log(n.toString());\n" +
+                    "})\n").getBytes());
 
         } catch (IOException e) {
             e.printStackTrace();
         }
-        */
-
 
         File workingDFir = new File(target.getAbsolutePath() + "-ts");
-
         // Install required package in TS
         ProcessBuilder processBuilder = new ProcessBuilder("npm", "install");
         processBuilder.directory(workingDFir);
         processBuilder.inheritIO();
-
         // Run TSC
         ProcessBuilder processBuilder2 = new ProcessBuilder("node", "node_modules/typescript/lib/tsc.js");
         processBuilder2.directory(workingDFir);
         processBuilder2.inheritIO();
-
-        //Intsall required packaged in JS project
-            /*
-            ProcessBuilder processBuilder3 = new ProcessBuilder("npm", "install");
-            processBuilder3.directory(npmProject);
-            processBuilder3.inheritIO();
-*/
+        //Install required packaged in JS project
+        ProcessBuilder processBuilder3 = new ProcessBuilder("npm", "install");
+        processBuilder3.directory(npmProject);
+        processBuilder3.inheritIO();
         try {
             processBuilder.start().waitFor();
             processBuilder2.start().waitFor();
-            //processBuilder3.start().waitFor();
+            processBuilder3.start().waitFor();
         } catch (Exception e) {
             e.printStackTrace();
         }
