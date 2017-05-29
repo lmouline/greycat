@@ -439,7 +439,9 @@ public class HeapSuperTimeTreeChunk implements SuperTimeTreeChunk {
     }
 
     private void setColor(int p_currentIndex, boolean p_paramIndex) {
-        _colors[p_currentIndex] = p_paramIndex;
+        if(p_currentIndex != -1){
+            _colors[p_currentIndex] = p_paramIndex;
+        }
     }
 
     private int sibling(int p_currentIndex) {

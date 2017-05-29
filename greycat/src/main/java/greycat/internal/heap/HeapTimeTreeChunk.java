@@ -357,6 +357,7 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
         }
     }
 
+    /*
     private int grandParent(int p_currentIndex) {
         if (p_currentIndex == -1) {
             return -1;
@@ -366,7 +367,7 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
         } else {
             return -1;
         }
-    }
+    }*/
 
     private int sibling(int p_currentIndex) {
         if (parent(p_currentIndex) == -1) {
