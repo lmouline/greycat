@@ -341,7 +341,9 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
     }
 
     private void setParent(int p_currentIndex, int p_paramIndex) {
-        _back_meta[(p_currentIndex * META_SIZE) + 2] = p_paramIndex;
+        if (p_currentIndex != -1) {
+            _back_meta[(p_currentIndex * META_SIZE) + 2] = p_paramIndex;
+        }
     }
 
     private boolean color(int p_currentIndex) {
@@ -456,8 +458,7 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
             }
         }
         return n;
-    }
-    */
+    }*/
 
 
     private int internal_previousOrEqual_index(long p_key) {
