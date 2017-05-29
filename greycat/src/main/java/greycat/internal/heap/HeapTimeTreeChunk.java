@@ -522,43 +522,47 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
     }
 
     private void rotateLeft(int n) {
-        int child = right(n);
-        setRight(n, left(child));
-        if (left(child) != -1) {
-            setParent(left(child), n);
-        }
-        setParent(child, parent(n));
-        if (n == _root) {
-            _root = child;
-        } else {
-            if (n == left(parent(n))) {
-                setLeft(parent(n), child);
-            } else {
-                setRight(parent(n), child);
+        if (n != -1) {
+            int child = right(n);
+            setRight(n, left(child));
+            if (left(child) != -1) {
+                setParent(left(child), n);
             }
+            setParent(child, parent(n));
+            if (n == _root) {
+                _root = child;
+            } else {
+                if (n == left(parent(n))) {
+                    setLeft(parent(n), child);
+                } else {
+                    setRight(parent(n), child);
+                }
+            }
+            setLeft(child, n);
+            setParent(n, child);
         }
-        setLeft(child, n);
-        setParent(n, child);
     }
 
     private void rotateRight(int n) {
-        int child = left(n);
-        setLeft(n, right(child));
-        if (right(child) != -1) {
-            setParent(right(child), n);
-        }
-        setParent(child, parent(n));
-        if (n == _root) {
-            _root = child;
-        } else {
-            if (n == left(parent(n))) {
-                setLeft(parent(n), child);
-            } else {
-                setRight(parent(n), child);
+        if (n != -1) {
+            int child = left(n);
+            setLeft(n, right(child));
+            if (right(child) != -1) {
+                setParent(right(child), n);
             }
+            setParent(child, parent(n));
+            if (n == _root) {
+                _root = child;
+            } else {
+                if (n == left(parent(n))) {
+                    setLeft(parent(n), child);
+                } else {
+                    setRight(parent(n), child);
+                }
+            }
+            setRight(child, n);
+            setParent(n, child);
         }
-        setRight(child, n);
-        setParent(n, child);
     }
 
     @SuppressWarnings("Duplicates")
