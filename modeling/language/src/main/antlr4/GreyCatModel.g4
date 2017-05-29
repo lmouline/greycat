@@ -35,8 +35,10 @@ classDcl: 'class' (TYPE_NAME|IDENT) parentDcl? '{' (attributeDcl | relationDcl |
 parentDcl: 'extends' (TYPE_NAME|IDENT);
 attributeDcl: 'att' IDENT ':' attributeTypeDcl;
 attributeTypeDcl: ('String' | 'Double' | 'Long' | 'Integer' | 'Boolean') ('[]')?;
-relationDcl: 'rel' IDENT ':' (TYPE_NAME|IDENT) relationIndexDcl?;
+relationDcl: (toManyDcl | toOneDcl);
+toManyDcl : 'rel' IDENT ':' (TYPE_NAME|IDENT) relationIndexDcl?;
 relationIndexDcl: 'indexed' 'by' IDENT (',' IDENT)*;
+toOneDcl : 'ref' IDENT ':' (TYPE_NAME|IDENT);
 
 indexDcl: 'indexed' withTimeDcl? 'by' IDENT (',' IDENT)* ('as' indexNameDcl)?;
 withTimeDcl: 'with time';

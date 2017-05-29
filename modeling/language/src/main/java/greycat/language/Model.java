@@ -111,20 +111,34 @@ public class Model {
             }
 
             // relations
-            for (GreyCatModelParser.RelationDclContext relDecCxt : classDclCxt.relationDcl()) {
-                String name = relDecCxt.IDENT().get(0).getText();
-                String type;
-                if (relDecCxt.TYPE_NAME() == null) {
-                    type = relDecCxt.IDENT(1).toString();
+            for (GreyCatModelParser.RelationDclContext relDclCxt : classDclCxt.relationDcl()) {
+                String name, type;
+                boolean isToOne = relDclCxt.toOneDcl() != null;
+                if (isToOne) {
+                    // toOne
+                    name = relDclCxt.toOneDcl().IDENT().get(0).getText();
+                    if (relDclCxt.toOneDcl().TYPE_NAME() == null) {
+                        type = relDclCxt.toOneDcl().IDENT(1).toString();
+                    } else {
+                        type = relDclCxt.toOneDcl().TYPE_NAME().toString();
+                    }
                 } else {
-                    type = relDecCxt.TYPE_NAME().toString();
+                    // toMany
+                    name = relDclCxt.toManyDcl().IDENT().get(0).getText();
+                    if (relDclCxt.toManyDcl().TYPE_NAME() == null) {
+                        type = relDclCxt.toManyDcl().IDENT(1).toString();
+                    } else {
+                        type = relDclCxt.toManyDcl().TYPE_NAME().toString();
+                    }
                 }
-                final Relation relation = new Relation(name, type);
+                final Relation relation = new Relation(name, type, isToOne);
 
-                // relation indexes
-                if (relDecCxt.relationIndexDcl() != null) {
-                    for (TerminalNode relationIdxIdent : relDecCxt.relationIndexDcl().IDENT()) {
-                        relation.addIndexedAttribute(relationIdxIdent.getText());
+                if (!isToOne) {
+                    // relation indexes
+                    if (relDclCxt.toManyDcl().relationIndexDcl() != null) {
+                        for (TerminalNode relationIdxIdent : relDclCxt.toManyDcl().relationIndexDcl().IDENT()) {
+                            relation.addIndexedAttribute(relationIdxIdent.getText());
+                        }
                     }
                 }
 
@@ -152,7 +166,6 @@ public class Model {
             }
         }
     }
-
 
 
     private Class getOrCreateAndAddClass(String fqn) {

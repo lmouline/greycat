@@ -21,10 +21,12 @@ import java.util.List;
 
 public class Relation extends Property {
     private final List<String> indexedAttributes;
+    private final boolean isToOne;
 
-    public Relation(String name, String type) {
+    public Relation(String name, String type, boolean isToOne) {
         super(name, type);
-        indexedAttributes = new LinkedList<>();
+        this.indexedAttributes = new LinkedList<>();
+        this.isToOne = isToOne;
     }
 
     public void addIndexedAttribute(String att) {
@@ -37,5 +39,9 @@ public class Relation extends Property {
 
     public boolean isIndexedRelation() {
         return (this.indexedAttributes != null && !this.indexedAttributes.isEmpty());
+    }
+
+    public boolean isToOne() {
+        return this.isToOne;
     }
 }

@@ -15,8 +15,6 @@
  */
 package greycat.language;
 
-import greycat.language.GreyCatModelLexer;
-import greycat.language.GreyCatModelParser;
 import org.antlr.v4.runtime.ANTLRFileStream;
 import org.antlr.v4.runtime.BufferedTokenStream;
 import org.antlr.v4.runtime.CommonTokenStream;
@@ -28,6 +26,7 @@ import java.io.File;
 public class ModelChecker {
 
 
+    @SuppressWarnings("Duplicates")
     public void check(File content) throws Exception {
         BufferedTokenStream tokens = new CommonTokenStream(new GreyCatModelLexer(new ANTLRFileStream(content.getAbsolutePath())));
         GreyCatModelParser parser = new GreyCatModelParser(tokens);
@@ -62,23 +61,38 @@ public class ModelChecker {
 
             // relations
             for (GreyCatModelParser.RelationDclContext relDecCxt : classDclCxt.relationDcl()) {
-                String relName = relDecCxt.IDENT().get(0).getText();
-                String relType;
-                if (relDecCxt.TYPE_NAME() == null) {
-                    relType = relDecCxt.IDENT(1).toString();
+                String relName, relType;
+                boolean isToOne = relDecCxt.toOneDcl() != null;
+                if (isToOne) {
+                    // toOne
+                    relName = relDecCxt.toOneDcl().IDENT().get(0).getText();
+                    if (relDecCxt.toOneDcl().TYPE_NAME() == null) {
+                        relType = relDecCxt.toOneDcl().IDENT(1).toString();
+                    } else {
+                        relType = relDecCxt.toOneDcl().TYPE_NAME().toString();
+                    }
                 } else {
-                    relType = relDecCxt.TYPE_NAME().toString();
+                    // toMany
+                    relName = relDecCxt.toManyDcl().IDENT().get(0).getText();
+                    if (relDecCxt.toManyDcl().TYPE_NAME() == null) {
+                        relType = relDecCxt.toManyDcl().IDENT(1).toString();
+                    } else {
+                        relType = relDecCxt.toManyDcl().TYPE_NAME().toString();
+                    }
+
                 }
                 if (!isClassifierDeclared(relType, modelDclCtx)) {
                     throw new RuntimeException(relType + " is specified as relation of " + classFqn + " but is not declared");
                 }
 
-                // relation indexes
-                if (relDecCxt.relationIndexDcl() != null) {
-                    for (TerminalNode relationIdxIdent : relDecCxt.relationIndexDcl().IDENT()) {
-                        String relIndexedAttName = relationIdxIdent.getText();
-                        if (!isAttOfCassifier(relType, relIndexedAttName, modelDclCtx)) {
-                            throw new RuntimeException(relIndexedAttName + " is specified as index of relation " + relType + " but is not an attribute of " + relType);
+                if (!isToOne) {
+                    // relation indexes
+                    if (relDecCxt.toManyDcl().relationIndexDcl() != null) {
+                        for (TerminalNode relationIdxIdent : relDecCxt.toManyDcl().relationIndexDcl().IDENT()) {
+                            String relIndexedAttName = relationIdxIdent.getText();
+                            if (!isAttOfCassifier(relType, relIndexedAttName, modelDclCtx)) {
+                                throw new RuntimeException(relIndexedAttName + " is specified as index of relation " + relType + " but is not an attribute of " + relType);
+                            }
                         }
                     }
                 }

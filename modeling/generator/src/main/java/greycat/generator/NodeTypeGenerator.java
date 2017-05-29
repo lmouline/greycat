@@ -94,7 +94,7 @@ class NodeTypeGenerator {
         constructor.setVisibility(Visibility.PUBLIC);
 
         // helper name
-        FieldSource helperName = javaClass.addField()
+        javaClass.addField()
                 .setVisibility(Visibility.PUBLIC)
                 .setFinal(true)
                 .setName("NODE_NAME")
@@ -153,32 +153,49 @@ class NodeTypeGenerator {
                 Relation rel = (Relation) prop;
 
                 //generate getter
-                String resultType = rel.type();
-                MethodSource<JavaClassSource> getter = javaClass.addMethod();
-                getter.setVisibility(Visibility.PUBLIC);
-                getter.setFinal(true);
-                getter.setReturnTypeVoid();
-                getter.setName("get" + upperCaseFirstChar(rel.name()));
-                getter.addParameter("greycat.Callback<" + resultType + "[]>", "callback");
-                getter.setBody(
-                        "this.relation(" + prop.name().toUpperCase() + ",new greycat.Callback<greycat.Node[]>() {\n" +
-                                "@Override\n" +
-                                "public void on(greycat.Node[] nodes) {\n" +
-                                resultType + "[] result = new " + resultType + "[nodes.length];\n" +
-                                "for(int i=0;i<result.length;i++) {\n" +
-                                "result[i] = (" + resultType + ") nodes[i];\n" +
-                                "}\n" +
-                                "callback.on(result);" +
-                                "}\n" +
-                                "});"
-                );
-
+                if (rel.isToOne()) {
+                    String resultType = rel.type();
+                    MethodSource<JavaClassSource> getter = javaClass.addMethod();
+                    getter.setVisibility(Visibility.PUBLIC);
+                    getter.setFinal(true);
+                    getter.setReturnTypeVoid();
+                    getter.setName("get" + upperCaseFirstChar(rel.name()));
+                    getter.addParameter("greycat.Callback<" + resultType + ">", "callback");
+                    getter.setBody(
+                            "this.relation(" + prop.name().toUpperCase() + ",new greycat.Callback<greycat.Node[]>() {\n" +
+                                    "@Override\n" +
+                                    "public void on(greycat.Node[] nodes) {\n" +
+                                    resultType + " result = (" + resultType + ") nodes[0];\n" +
+                                    "callback.on(result);" +
+                                    "}\n" +
+                                    "});"
+                    );
+                } else {
+                    String resultType = rel.type();
+                    MethodSource<JavaClassSource> getter = javaClass.addMethod();
+                    getter.setVisibility(Visibility.PUBLIC);
+                    getter.setFinal(true);
+                    getter.setReturnTypeVoid();
+                    getter.setName("get" + upperCaseFirstChar(rel.name()));
+                    getter.addParameter("greycat.Callback<" + resultType + "[]>", "callback");
+                    getter.setBody(
+                            "this.relation(" + prop.name().toUpperCase() + ",new greycat.Callback<greycat.Node[]>() {\n" +
+                                    "@Override\n" +
+                                    "public void on(greycat.Node[] nodes) {\n" +
+                                    resultType + "[] result = new " + resultType + "[nodes.length];\n" +
+                                    "for(int i=0;i<result.length;i++) {\n" +
+                                    "result[i] = (" + resultType + ") nodes[i];\n" +
+                                    "}\n" +
+                                    "callback.on(result);" +
+                                    "}\n" +
+                                    "});"
+                    );
+                }
 
                 // relation indexes
                 StringBuilder relIdxBuilder = new StringBuilder();
                 if (rel.isIndexedRelation()) {
                     for (String att : rel.indexedAttributes()) {
-//                        relIdxBuilder.append("\"" + att + "\"");
                         relIdxBuilder.append(rel.type() + "." + att.toUpperCase());
                         relIdxBuilder.append(",");
                     }
@@ -187,28 +204,66 @@ class NodeTypeGenerator {
                     relIdxBuilder.append("null");
                 }
 
-                //generate addTo
-                StringBuilder bodyBuilder = new StringBuilder();
-                MethodSource<JavaClassSource> add = javaClass.addMethod();
-                add.setVisibility(Visibility.PUBLIC).setFinal(true);
-                add.setName("addTo" + upperCaseFirstChar(prop.name()));
-                add.setReturnType(classClassifier.name());
-                add.addParameter(rel.type(), "value");
-                bodyBuilder.append("super.addToRelation(").append(prop.name().toUpperCase()).append(",(greycat.Node)value, " + relIdxBuilder + ");");
-                bodyBuilder.append("return this;");
-                add.setBody(bodyBuilder.toString());
 
-                //generate removeFrom
-                bodyBuilder = new StringBuilder();
-                MethodSource<JavaClassSource> remove = javaClass.addMethod();
-                remove.setVisibility(Visibility.PUBLIC).setFinal(true);
-                remove.setName("removeFrom" + upperCaseFirstChar(prop.name()));
-                remove.setReturnType(classClassifier.name());
-                remove.addParameter(rel.type(), "value");
-                bodyBuilder.append("super.removeFromRelation(").append(prop.name().toUpperCase()).append(",(greycat.Node)value, " + relIdxBuilder + ");");
-                bodyBuilder.append("return this;");
-                remove.setBody(bodyBuilder.toString());
+                if (rel.isToOne()) {
+                    //generate set
+                    StringBuilder addToBodyBuilder = new StringBuilder();
+                    MethodSource<JavaClassSource> add = javaClass.addMethod();
+                    add.setVisibility(Visibility.PUBLIC).setFinal(true);
+                    add.setName("set" + upperCaseFirstChar(prop.name()));
+                    add.setReturnType(classClassifier.name());
+                    add.addParameter(rel.type(), "value");
+                    addToBodyBuilder.append("if(value != null) {");
+                    addToBodyBuilder.append("super.removeFromRelation(").append(prop.name().toUpperCase()).append(",(greycat.Node)value );");
+                    addToBodyBuilder.append("super.addToRelation(").append(prop.name().toUpperCase()).append(",(greycat.Node)value );");
+                    addToBodyBuilder.append("}");
+                    addToBodyBuilder.append("return this;");
+                    add.setBody(addToBodyBuilder.toString());
 
+                } else {
+                    //generate addTo
+                    StringBuilder addToBodyBuilder = new StringBuilder();
+                    MethodSource<JavaClassSource> add = javaClass.addMethod();
+                    add.setVisibility(Visibility.PUBLIC).setFinal(true);
+                    add.setName("addTo" + upperCaseFirstChar(prop.name()));
+                    add.setReturnType(classClassifier.name());
+                    add.addParameter(rel.type(), "value");
+                    addToBodyBuilder.append("super.addToRelation(").append(prop.name().toUpperCase()).append(",(greycat.Node)value, " + relIdxBuilder + ");");
+                    addToBodyBuilder.append("return this;");
+                    add.setBody(addToBodyBuilder.toString());
+                }
+
+
+                if (rel.isToOne()) {
+                    //generate remove
+                    StringBuilder removeFromBodyBuilder = new StringBuilder();
+                    MethodSource<JavaClassSource> remove = javaClass.addMethod();
+                    remove.setVisibility(Visibility.PUBLIC).setFinal(true);
+                    String refType = upperCaseFirstChar(prop.name());
+                    remove.setName("remove" + refType);
+                    remove.setReturnTypeVoid();
+                    remove.addParameter("greycat.Callback<Void>", "callback");
+                    removeFromBodyBuilder.append(classClassifier.name() + " self = this;");
+                    removeFromBodyBuilder.append("get" + refType + "(new greycat.Callback<" + refType + ">() {");
+                    removeFromBodyBuilder.append("@Override\n");
+                    removeFromBodyBuilder.append("public void on(" + refType + " result) {");
+                    removeFromBodyBuilder.append("self.removeFromRelation(").append(prop.name().toUpperCase()).append(", result);");
+                    removeFromBodyBuilder.append("callback.on(null);");
+                    removeFromBodyBuilder.append("}");
+                    removeFromBodyBuilder.append("});");
+                    remove.setBody(removeFromBodyBuilder.toString());
+                } else {
+                    //generate removeFrom
+                    StringBuilder removeFromBodyBuilder = new StringBuilder();
+                    MethodSource<JavaClassSource> remove = javaClass.addMethod();
+                    remove.setVisibility(Visibility.PUBLIC).setFinal(true);
+                    remove.setName("removeFrom" + upperCaseFirstChar(prop.name()));
+                    remove.setReturnType(classClassifier.name());
+                    remove.addParameter(rel.type(), "value");
+                    removeFromBodyBuilder.append("super.removeFromRelation(").append(prop.name().toUpperCase()).append(",(greycat.Node)value, " + relIdxBuilder + ");");
+                    removeFromBodyBuilder.append("return this;");
+                    remove.setBody(removeFromBodyBuilder.toString());
+                }
 
             }
         }
