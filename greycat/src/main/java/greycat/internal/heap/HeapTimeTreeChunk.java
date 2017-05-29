@@ -462,8 +462,7 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
             }
         }
         return n;
-    }
-    */
+    }*/
 
 
     private int internal_previousOrEqual_index(long p_key) {
