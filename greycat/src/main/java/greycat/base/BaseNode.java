@@ -51,6 +51,7 @@ public class BaseNode implements Node {
     public volatile long _index_worldOrder = -1;
     public volatile long _index_superTimeTree = -1;
     public volatile long _index_timeTree = -1;
+    public volatile int _index_timeTree_offset = -1;
     public volatile long _index_stateChunk = -1;
     public volatile long _world_magic = -1;
     public volatile long _super_time_magic = -1;

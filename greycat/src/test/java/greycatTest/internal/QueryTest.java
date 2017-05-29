@@ -17,6 +17,7 @@ package greycatTest.internal;
 
 import greycat.*;
 import greycat.chunk.ChunkSpace;
+import greycat.internal.CoreNodeValue;
 import greycat.internal.CoreQuery;
 import greycat.internal.heap.HeapMemoryFactory;
 import greycat.plugin.*;

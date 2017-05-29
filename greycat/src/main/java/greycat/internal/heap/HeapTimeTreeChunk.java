@@ -190,7 +190,8 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
                     previous = cursor + 1;
                     break;
                 case Constants.CHUNK_VAL_SEP:
-                    boolean insertResult = internal_insert(Base64.decodeToLongWithBounds(buffer, previous, cursor), initial);
+                    final int index = internal_insert(Base64.decodeToLongWithBounds(buffer, previous, cursor), initial);
+                    boolean insertResult = (index > 0);
                     isDirty = isDirty || insertResult;
                     previous = cursor + 1;
                     break;
@@ -220,7 +221,7 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
     }
 
     @Override
-    public synchronized long next(long key) {
+    public final synchronized long next(long key) {
         long resultKey;
         int result = internal_previousOrEqual_index(key);
         if (result != -1) {
@@ -232,6 +233,11 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
             resultKey = CoreConstants.NULL_LONG;
         }
         return resultKey;
+    }
+
+    @Override
+    public final long getKey(int offset) {
+        return _k[offset];
     }
 
     @Override
@@ -248,14 +254,23 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
     }
 
     @Override
+    public synchronized int previousOrEqualOffset(long key) {
+        return internal_previousOrEqual_index(key);
+    }
+
+    @Override
     public final long magic() {
         return this._magic;
     }
 
     @Override
-    public synchronized final void insert(final long p_key) {
-        if (internal_insert(p_key, false)) {
+    public synchronized final int insert(final long p_key) {
+        final int index = internal_insert(p_key, false);
+        if (index > 0) {
             internal_set_dirty();
+            return index;
+        } else {
+            return -index;
         }
     }
 
@@ -563,7 +578,7 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
     }
 
     @SuppressWarnings("Duplicates")
-    private boolean internal_insert(long p_key, boolean initial) {
+    private int internal_insert(long p_key, boolean initial) {
         if (_k == null || _k.length == _size) {
             int length = _size;
             if (length == 0) {
@@ -588,7 +603,7 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
             while (leaf != -1) {
                 father = leaf;
                 if (_k[father] == p_key) {
-                    return false;
+                    return -father;
                 }
                 if (key(father) < p_key) {
                     leaf = right(father);
@@ -646,7 +661,7 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
             setColor(_root, true);
         }
         _size++;
-        return true;
+        return _size-1;
     }
 
     private void internal_set_dirty() {
