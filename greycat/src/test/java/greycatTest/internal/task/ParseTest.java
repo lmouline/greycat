@@ -15,9 +15,14 @@
  */
 package greycatTest.internal.task;
 
-import greycat.Task;
+import greycat.*;
+import greycat.internal.task.TaskHelper;
+import greycat.plugin.ActionFactory;
+import greycat.struct.Buffer;
 import org.junit.Assert;
 import org.junit.Test;
+
+import javax.print.DocFlavor;
 
 import static greycat.Tasks.newTask;
 
@@ -113,5 +118,62 @@ public class ParseTest extends AbstractActionTest {
 
         removeGraph();
     }
+
+
+/*
+    private static final String stringParam = "a\nb\"\'";
+    private class CheckParamAction implements Action {
+
+        private String _param;
+        public CheckParamAction(String param) {
+            Assert.assertEquals(stringParam, param);
+            this._param = param;
+        }
+
+        @Override
+        public void eval(TaskContext ctx) {
+
+        }
+
+        @Override
+        public void serialize(Buffer builder) {
+            builder.writeString("checkParam");
+            builder.writeChar(Constants.TASK_PARAM_OPEN);
+            TaskHelper.serializeString(this._param, builder, true);
+            builder.writeChar(Constants.TASK_PARAM_CLOSE);
+        }
+
+        @Override
+        public String name() {
+            return "checkParam";
+        }
+    }
+
+    @Test
+    public void testTAskParamSerialization() {
+
+        initGraph();
+
+        graph.actionRegistry().getOrCreateDeclaration("checkParam").setParams(Type.STRING).setFactory(new ActionFactory() {
+            @Override
+            public Action create(Object[] params) {
+                return new CheckParamAction((String)params[0]);
+            }
+        });
+
+        Task t = newTask()
+                .action("checkParam", stringParam);
+        Buffer buffer = graph.newBuffer();
+        t.saveToBuffer(buffer);
+
+        Task loaded = newTask();
+        loaded.loadFromBuffer(buffer, graph);
+
+        removeGraph();
+    }
+*/
+
+
+
 
 }
