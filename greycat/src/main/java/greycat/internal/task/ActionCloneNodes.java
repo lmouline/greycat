@@ -23,7 +23,7 @@ import greycat.utility.Tuple;
 class ActionCloneNodes implements Action {
 
     @Override
-    public void eval(final TaskContext ctx) {
+    public final void eval(final TaskContext ctx) {
         TaskResult previousResult = ctx.result();
         if (previousResult == null) {
             ctx.continueTask();
@@ -42,7 +42,7 @@ class ActionCloneNodes implements Action {
     }
 
     @Override
-    public void serialize(final Buffer builder) {
+    public final void serialize(final Buffer builder) {
         builder.writeString(CoreActionNames.CLONE_NODES);
         builder.writeChar(Constants.TASK_PARAM_OPEN);
         builder.writeChar(Constants.TASK_PARAM_CLOSE);
