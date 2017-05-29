@@ -18,6 +18,7 @@ package greycat.generator;
 import greycat.language.Model;
 import greycat.language.ModelChecker;
 import java2typescript.SourceTranslator;
+import jline.internal.Log;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.project.MavenProject;
 import org.jboss.forge.roaster.model.source.JavaSource;
@@ -122,7 +123,9 @@ public class Generator {
 
     private void generateJS(String packageName, String pluginName, File target, String gcVersion, MavenProject mvnProject) {
         // Generate TS
-        SourceTranslator transpiler = new SourceTranslator(Arrays.asList(target.getAbsolutePath()), target.getAbsolutePath() + "ts", packageName);
+
+
+        SourceTranslator transpiler = new SourceTranslator(Arrays.asList(target.getAbsolutePath()), target.getAbsolutePath() + "-ts", packageName);
 
         if (mvnProject != null) {
             for (Artifact a : mvnProject.getArtifacts()) {
@@ -141,8 +144,7 @@ public class Generator {
         transpiler.addHeader("import * as greycat from 'greycat'");
         transpiler.generate();
 
-
-        File tsGen = new File(target.getAbsolutePath() + "ts/" + packageName + ".ts");
+        File tsGen = new File(target.getAbsolutePath() + "-ts" + File.separator + packageName + ".ts");
         try {
             Files.write(tsGen.toPath(), ("export = " + packageName).getBytes(), StandardOpenOption.APPEND);
         } catch (IOException e) {
@@ -167,7 +169,7 @@ public class Generator {
 
 
         try {
-            File tsConfig = new File(target.getAbsolutePath() + "ts/tsconfig.json");
+            File tsConfig = new File(target.getAbsolutePath() + "-ts" + File.separator + "tsconfig.json");
             tsConfig.createNewFile();
             Files.write(tsConfig.toPath(), tsConfigContent.getBytes());
         } catch (IOException e) {
@@ -176,13 +178,13 @@ public class Generator {
 
 
         boolean isSnaphot = (gcVersion.contains("SNAPSHOT"));
-        gcVersion = isSnaphot ? "./greycat" : "^" + gcVersion + ".0.0";
+        gcVersion = isSnaphot ? "../../../../../greycat/target/classes-npm" : "^" + gcVersion + ".0.0";
 
         String packageJsonContent = "{\n" +
                 "  \"name\": \"" + packageName + "\",\n" +
                 "  \"version\": \"1.0.0\",\n" +
                 "  \"description\": \"\",\n" +
-                "  \"main\": \"main.js\",\n" +
+                //"  \"main\": \"main.js\",\n" +
                 "  \"author\": \"\",\n" +
                 "  \"dependencies\": {\n" +
                 "    \"greycat\": \"" + gcVersion + "\"\n" +
@@ -192,7 +194,7 @@ public class Generator {
                 "  }" +
                 "}";
         try {
-            File packageJson = new File(target.getAbsolutePath() + "ts/package.json");
+            File packageJson = new File(target.getAbsolutePath() + "-ts" + File.separator + "package.json");
             packageJson.createNewFile();
             Files.write(packageJson.toPath(), packageJsonContent.getBytes());
         } catch (IOException e) {
@@ -201,6 +203,7 @@ public class Generator {
 
 
         // Generate a base of NPM project
+        /*
         File npmProject = new File(target.getAbsolutePath() + "js");
         npmProject.mkdirs();
         File mainJS = new File(npmProject, "main.js");
@@ -231,17 +234,17 @@ public class Generator {
                     "  \"author\": \"\",\n" +
                     "  \"dependencies\": {\n" +
                     "    \"greycat\": \"" + gcVersion + "\",\n" +
-                    "    \""+packageName+"\": \"./"+packageName+"\"\n" +
+                    "    \"" + packageName + "\": \"./" + packageName + "\"\n" +
                     "  }\n" +
                     "}").getBytes());
 
             packageJson3.createNewFile();
-            Files.write(packageJson3.toPath(),("{\n" +
-                    "  \"name\": \""+packageName+"\",\n" +
+            Files.write(packageJson3.toPath(), ("{\n" +
+                    "  \"name\": \"" + packageName + "\",\n" +
                     "  \"description\": \"Model\",\n" +
                     "  \"version\": \"1.0.0\",\n" +
-                    "  \"main\": \""+packageName+".js\",\n" +
-                    "  \"typings\": \""+packageName+".d.ts\",\n" +
+                    "  \"main\": \"" + packageName + ".js\",\n" +
+                    "  \"typings\": \"" + packageName + ".d.ts\",\n" +
                     "  \"dependencies\": {\n" +
                     "    \"greycat\": \"" + gcVersion + "\"\n" +
                     "  }\n" +
@@ -250,9 +253,10 @@ public class Generator {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        */
 
         if (!isSnaphot) {
-            File workingDFir = new File(target.getAbsolutePath() + "ts");
+            File workingDFir = new File(target.getAbsolutePath() + "-ts");
 
             // Install required package in TS
             ProcessBuilder processBuilder = new ProcessBuilder("npm", "install");
@@ -265,20 +269,22 @@ public class Generator {
             processBuilder2.inheritIO();
 
             //Intsall required packaged in JS project
+            /*
             ProcessBuilder processBuilder3 = new ProcessBuilder("npm", "install");
             processBuilder3.directory(npmProject);
             processBuilder3.inheritIO();
-
+*/
 
             try {
                 processBuilder.start().waitFor();
                 processBuilder2.start().waitFor();
-                processBuilder3.start().waitFor();
+                //processBuilder3.start().waitFor();
             } catch (IOException | InterruptedException e) {
                 e.printStackTrace();
             }
         } else {
-            System.out.println("Do not forget to copy past the greycat.js file and update the path in package.json if needed");
+            Log.info("Your using a GreyCat snapshot, do not forget to update the path in package.json if needed");
+            //System.out.println();
         }
     }
 
@@ -286,12 +292,10 @@ public class Generator {
         if (generateJava || generateJS) {
             generateJava(packageName, pluginName, target);
         }
-
         if (generateJS) {
             generateJS(packageName, pluginName, target, gcVersion, project);
         }
     }
-
 
     public void generate(String packageName, String pluginName, File target, boolean generateJava, boolean generateJS, String gcVersion) {
         if (generateJava || generateJS) {
@@ -302,7 +306,6 @@ public class Generator {
             generateJS(packageName, pluginName, target, gcVersion, null);
         }
     }
-
 
     private void addToTransClassPath(SourceTranslator transpiler) {
         String classPath = System.getProperty("java.class.path");
