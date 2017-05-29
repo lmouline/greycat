@@ -319,7 +319,9 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
     }
 
     private void setLeft(int p_currentIndex, int p_paramIndex) {
-        _back_meta[p_currentIndex * META_SIZE] = p_paramIndex;
+        if (p_currentIndex != -1) {
+            _back_meta[p_currentIndex * META_SIZE] = p_paramIndex;
+        }
     }
 
     private int right(int p_currentIndex) {
@@ -330,7 +332,9 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
     }
 
     private void setRight(int p_currentIndex, int p_paramIndex) {
-        _back_meta[(p_currentIndex * META_SIZE) + 1] = p_paramIndex;
+        if (p_currentIndex != -1) {
+            _back_meta[(p_currentIndex * META_SIZE) + 1] = p_paramIndex;
+        }
     }
 
     private int parent(int p_currentIndex) {
@@ -341,7 +345,9 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
     }
 
     private void setParent(int p_currentIndex, int p_paramIndex) {
-        _back_meta[(p_currentIndex * META_SIZE) + 2] = p_paramIndex;
+        if (p_currentIndex != -1) {
+            _back_meta[(p_currentIndex * META_SIZE) + 2] = p_paramIndex;
+        }
     }
 
     private boolean color(int p_currentIndex) {
@@ -370,7 +376,7 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
     }*/
 
     private int sibling(int p_currentIndex) {
-        if (parent(p_currentIndex) == -1) {
+        if (p_currentIndex == -1 && parent(p_currentIndex) == -1) {
             return -1;
         } else {
             if (p_currentIndex == left(parent(p_currentIndex))) {
@@ -382,7 +388,7 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
     }
 
     private int uncle(int p_currentIndex) {
-        if (parent(p_currentIndex) != -1) {
+        if (p_currentIndex != -1 && parent(p_currentIndex) != -1) {
             return sibling(parent(p_currentIndex));
         } else {
             return -1;
