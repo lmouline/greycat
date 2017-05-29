@@ -319,9 +319,8 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
     }
 
     private void setLeft(int p_currentIndex, int p_paramIndex) {
-        if(p_currentIndex != -1){
             _back_meta[p_currentIndex * META_SIZE] = p_paramIndex;
-        }
+
     }
 
     private int right(int p_currentIndex) {
@@ -332,9 +331,7 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
     }
 
     private void setRight(int p_currentIndex, int p_paramIndex) {
-        if(p_currentIndex != -1){
             _back_meta[(p_currentIndex * META_SIZE) + 1] = p_paramIndex;
-        }
     }
 
     private int parent(int p_currentIndex) {
@@ -345,9 +342,7 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
     }
 
     private void setParent(int p_currentIndex, int p_paramIndex) {
-        if (p_currentIndex != -1) {
             _back_meta[(p_currentIndex * META_SIZE) + 2] = p_paramIndex;
-        }
     }
 
     private boolean color(int p_currentIndex) {
@@ -358,9 +353,8 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
     }
 
     private void setColor(int p_currentIndex, boolean p_paramIndex) {
-        if (p_currentIndex != -1) {
             _colors[p_currentIndex] = p_paramIndex;
-        }
+
     }
 
     /*
@@ -376,7 +370,7 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
     }*/
 
     private int sibling(int p_currentIndex) {
-        if (parent(p_currentIndex) == -1) {
+        if (p_currentIndex == -1 && parent(p_currentIndex) == -1) {
             return -1;
         } else {
             if (p_currentIndex == left(parent(p_currentIndex))) {
@@ -388,7 +382,7 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
     }
 
     private int uncle(int p_currentIndex) {
-        if (parent(p_currentIndex) != -1) {
+        if (p_currentIndex != -1 && parent(p_currentIndex) != -1) {
             return sibling(parent(p_currentIndex));
         } else {
             return -1;
@@ -527,47 +521,45 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
     }
 
     private void rotateLeft(int n) {
-        if (n != -1) {
-            int child = right(n);
-            setRight(n, left(child));
-            if (left(child) != -1) {
-                setParent(left(child), n);
-            }
-            setParent(child, parent(n));
-            if (n == _root) {
-                _root = child;
-            } else {
-                if (n == left(parent(n))) {
-                    setLeft(parent(n), child);
-                } else {
-                    setRight(parent(n), child);
-                }
-            }
-            setLeft(child, n);
-            setParent(n, child);
+        int child = right(n);
+        setRight(n, left(child));
+        if (left(child) != -1) {
+            setParent(left(child), n);
         }
+        setParent(child, parent(n));
+        if (n == _root) {
+            _root = child;
+        } else {
+            if (n == left(parent(n))) {
+                setLeft(parent(n), child);
+            } else {
+                setRight(parent(n), child);
+            }
+        }
+        setLeft(child, n);
+        setParent(n, child);
+
     }
 
     private void rotateRight(int n) {
-        if (n != -1) {
-            int child = left(n);
-            setLeft(n, right(child));
-            if (right(child) != -1) {
-                setParent(right(child), n);
-            }
-            setParent(child, parent(n));
-            if (n == _root) {
-                _root = child;
-            } else {
-                if (n == left(parent(n))) {
-                    setLeft(parent(n), child);
-                } else {
-                    setRight(parent(n), child);
-                }
-            }
-            setRight(child, n);
-            setParent(n, child);
+        int child = left(n);
+        setLeft(n, right(child));
+        if (right(child) != -1) {
+            setParent(right(child), n);
         }
+        setParent(child, parent(n));
+        if (n == _root) {
+            _root = child;
+        } else {
+            if (n == left(parent(n))) {
+                setLeft(parent(n), child);
+            } else {
+                setRight(parent(n), child);
+            }
+        }
+        setRight(child, n);
+        setParent(n, child);
+
     }
 
     @SuppressWarnings("Duplicates")
@@ -631,9 +623,9 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
                     if (father == left(greatFather)) {
                         if (nodeStudy == right(father)) {
                             nodeStudy = father;
-                            father = greatFather;
-                            greatFather = parent(father);
                             rotateLeft(nodeStudy);
+                            father = parent(nodeStudy);
+                            greatFather = parent(father);
                         }
                         setColor(father, true);
                         setColor(greatFather, false);
@@ -641,9 +633,9 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
                     } else {
                         if (nodeStudy == left(father)) {
                             nodeStudy = father;
-                            father = greatFather;
-                            greatFather = parent(father);
                             rotateRight(nodeStudy);
+                            father = parent(nodeStudy);
+                            greatFather = parent(father);
                         }
                         setColor(father, true);
                         setColor(greatFather, false);
@@ -664,5 +656,6 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
             _space.notifyUpdate(_index);
         }
     }
+
 
 }
