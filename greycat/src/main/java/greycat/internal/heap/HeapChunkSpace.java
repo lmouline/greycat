@@ -279,7 +279,7 @@ public class HeapChunkSpace implements ChunkSpace {
             if (before > 0) {
                 after = before - 1;
             } else {
-                System.err.println("WARNING: DOUBLE UNMARK");
+                System.err.println("WARNING: DOUBLE UNMARK " + _chunkTypes.get(castedIndex));
                 after = before;
             }
         } while (!_chunkMarks.compareAndSet(castedIndex, before, after));
