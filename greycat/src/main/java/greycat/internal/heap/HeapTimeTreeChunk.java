@@ -319,9 +319,8 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
     }
 
     private void setLeft(int p_currentIndex, int p_paramIndex) {
-        if (p_currentIndex != -1) {
             _back_meta[p_currentIndex * META_SIZE] = p_paramIndex;
-        }
+
     }
 
     private int right(int p_currentIndex) {
@@ -332,9 +331,7 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
     }
 
     private void setRight(int p_currentIndex, int p_paramIndex) {
-        if (p_currentIndex != -1) {
             _back_meta[(p_currentIndex * META_SIZE) + 1] = p_paramIndex;
-        }
     }
 
     private int parent(int p_currentIndex) {
@@ -345,9 +342,7 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
     }
 
     private void setParent(int p_currentIndex, int p_paramIndex) {
-        if (p_currentIndex != -1) {
             _back_meta[(p_currentIndex * META_SIZE) + 2] = p_paramIndex;
-        }
     }
 
     private boolean color(int p_currentIndex) {
@@ -358,9 +353,8 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
     }
 
     private void setColor(int p_currentIndex, boolean p_paramIndex) {
-        if (p_currentIndex != -1) {
             _colors[p_currentIndex] = p_paramIndex;
-        }
+
     }
 
     /*
@@ -527,44 +521,44 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
     }
 
     private void rotateLeft(int n) {
-            int child = right(n);
-            setRight(n, left(child));
-            if (left(child) != -1) {
-                setParent(left(child), n);
-            }
-            setParent(child, parent(n));
-            if (n == _root) {
-                _root = child;
+        int child = right(n);
+        setRight(n, left(child));
+        if (left(child) != -1) {
+            setParent(left(child), n);
+        }
+        setParent(child, parent(n));
+        if (n == _root) {
+            _root = child;
+        } else {
+            if (n == left(parent(n))) {
+                setLeft(parent(n), child);
             } else {
-                if (n == left(parent(n))) {
-                    setLeft(parent(n), child);
-                } else {
-                    setRight(parent(n), child);
-                }
+                setRight(parent(n), child);
             }
-            setLeft(child, n);
-            setParent(n, child);
+        }
+        setLeft(child, n);
+        setParent(n, child);
 
     }
 
     private void rotateRight(int n) {
-            int child = left(n);
-            setLeft(n, right(child));
-            if (right(child) != -1) {
-                setParent(right(child), n);
-            }
-            setParent(child, parent(n));
-            if (n == _root) {
-                _root = child;
+        int child = left(n);
+        setLeft(n, right(child));
+        if (right(child) != -1) {
+            setParent(right(child), n);
+        }
+        setParent(child, parent(n));
+        if (n == _root) {
+            _root = child;
+        } else {
+            if (n == left(parent(n))) {
+                setLeft(parent(n), child);
             } else {
-                if (n == left(parent(n))) {
-                    setLeft(parent(n), child);
-                } else {
-                    setRight(parent(n), child);
-                }
+                setRight(parent(n), child);
             }
-            setRight(child, n);
-            setParent(n, child);
+        }
+        setRight(child, n);
+        setParent(n, child);
 
     }
 
@@ -662,8 +656,6 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
             _space.notifyUpdate(_index);
         }
     }
-
-
 
 
 }

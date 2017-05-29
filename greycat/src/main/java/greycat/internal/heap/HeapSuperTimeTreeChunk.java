@@ -406,7 +406,9 @@ public class HeapSuperTimeTreeChunk implements SuperTimeTreeChunk {
     }
 
     private void setLeft(int p_currentIndex, int p_paramIndex) {
-        _back_meta[p_currentIndex * META_SIZE] = p_paramIndex;
+        if (p_currentIndex != -1) {
+            _back_meta[p_currentIndex * META_SIZE] = p_paramIndex;
+        }
     }
 
     private int right(int p_currentIndex) {
@@ -417,7 +419,9 @@ public class HeapSuperTimeTreeChunk implements SuperTimeTreeChunk {
     }
 
     private void setRight(int p_currentIndex, int p_paramIndex) {
-        _back_meta[(p_currentIndex * META_SIZE) + 1] = p_paramIndex;
+        if (p_currentIndex != -1) {
+            _back_meta[(p_currentIndex * META_SIZE) + 1] = p_paramIndex;
+        }
     }
 
     private int parent(int p_currentIndex) {
@@ -428,7 +432,9 @@ public class HeapSuperTimeTreeChunk implements SuperTimeTreeChunk {
     }
 
     private void setParent(int p_currentIndex, int p_paramIndex) {
-        _back_meta[(p_currentIndex * META_SIZE) + 2] = p_paramIndex;
+        if (p_currentIndex != -1) {
+            _back_meta[(p_currentIndex * META_SIZE) + 2] = p_paramIndex;
+        }
     }
 
     private boolean color(int p_currentIndex) {
@@ -597,43 +603,47 @@ public class HeapSuperTimeTreeChunk implements SuperTimeTreeChunk {
     }
 
     private void rotateLeft(int n) {
-        int child = right(n);
-        setRight(n, left(child));
-        if (left(child) != -1) {
-            setParent(left(child), n);
-        }
-        setParent(child, parent(n));
-        if (n == _root) {
-            _root = child;
-        } else {
-            if (n == left(parent(n))) {
-                setLeft(parent(n), child);
-            } else {
-                setRight(parent(n), child);
+        if (n != -1) {
+            int child = right(n);
+            setRight(n, left(child));
+            if (left(child) != -1) {
+                setParent(left(child), n);
             }
+            setParent(child, parent(n));
+            if (n == _root) {
+                _root = child;
+            } else {
+                if (n == left(parent(n))) {
+                    setLeft(parent(n), child);
+                } else {
+                    setRight(parent(n), child);
+                }
+            }
+            setLeft(child, n);
+            setParent(n, child);
         }
-        setLeft(child, n);
-        setParent(n, child);
     }
 
     private void rotateRight(int n) {
-        int child = left(n);
-        setLeft(n, right(child));
-        if (right(child) != -1) {
-            setParent(right(child), n);
-        }
-        setParent(child, parent(n));
-        if (n == _root) {
-            _root = child;
-        } else {
-            if (n == left(parent(n))) {
-                setLeft(parent(n), child);
-            } else {
-                setRight(parent(n), child);
+        if (n != -1) {
+            int child = left(n);
+            setLeft(n, right(child));
+            if (right(child) != -1) {
+                setParent(right(child), n);
             }
+            setParent(child, parent(n));
+            if (n == _root) {
+                _root = child;
+            } else {
+                if (n == left(parent(n))) {
+                    setLeft(parent(n), child);
+                } else {
+                    setRight(parent(n), child);
+                }
+            }
+            setRight(child, n);
+            setParent(n, child);
         }
-        setRight(child, n);
-        setParent(n, child);
     }
 
     private boolean internal_insert(long p_key, long p_value, boolean initial) {
