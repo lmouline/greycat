@@ -439,7 +439,7 @@ public class HeapSuperTimeTreeChunk implements SuperTimeTreeChunk {
     }
 
     private void setColor(int p_currentIndex, boolean p_paramIndex) {
-        if(p_currentIndex != -1){
+        if (p_currentIndex != -1) {
             _colors[p_currentIndex] = p_paramIndex;
         }
     }
@@ -703,9 +703,9 @@ public class HeapSuperTimeTreeChunk implements SuperTimeTreeChunk {
                     if (father == left(greatFather)) {
                         if (nodeStudy == right(father)) {
                             nodeStudy = father;
-                            father = greatFather;
-                            greatFather = parent(father);
                             rotateLeft(nodeStudy);
+                            father = parent(nodeStudy);
+                            greatFather = parent(father);
                         }
                         setColor(father, true);
                         setColor(greatFather, false);
@@ -713,9 +713,9 @@ public class HeapSuperTimeTreeChunk implements SuperTimeTreeChunk {
                     } else {
                         if (nodeStudy == left(father)) {
                             nodeStudy = father;
-                            father = greatFather;
-                            greatFather = parent(father);
                             rotateRight(nodeStudy);
+                            father = parent(nodeStudy);
+                            greatFather = parent(father);
                         }
                         setColor(father, true);
                         setColor(greatFather, false);

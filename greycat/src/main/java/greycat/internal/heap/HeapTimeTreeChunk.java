@@ -527,7 +527,6 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
     }
 
     private void rotateLeft(int n) {
-        if (n != -1) {
             int child = right(n);
             setRight(n, left(child));
             if (left(child) != -1) {
@@ -545,11 +544,10 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
             }
             setLeft(child, n);
             setParent(n, child);
-        }
+
     }
 
     private void rotateRight(int n) {
-        if (n != -1) {
             int child = left(n);
             setLeft(n, right(child));
             if (right(child) != -1) {
@@ -567,7 +565,7 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
             }
             setRight(child, n);
             setParent(n, child);
-        }
+
     }
 
     @SuppressWarnings("Duplicates")
@@ -631,9 +629,9 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
                     if (father == left(greatFather)) {
                         if (nodeStudy == right(father)) {
                             nodeStudy = father;
-                            father = greatFather;
-                            greatFather = parent(father);
                             rotateLeft(nodeStudy);
+                            father = parent(nodeStudy);
+                            greatFather = parent(father);
                         }
                         setColor(father, true);
                         setColor(greatFather, false);
@@ -641,9 +639,9 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
                     } else {
                         if (nodeStudy == left(father)) {
                             nodeStudy = father;
-                            father = greatFather;
-                            greatFather = parent(father);
                             rotateRight(nodeStudy);
+                            father = parent(nodeStudy);
+                            greatFather = parent(father);
                         }
                         setColor(father, true);
                         setColor(greatFather, false);
@@ -664,5 +662,8 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
             _space.notifyUpdate(_index);
         }
     }
+
+
+
 
 }
