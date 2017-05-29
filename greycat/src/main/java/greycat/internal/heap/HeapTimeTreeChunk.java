@@ -319,7 +319,9 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
     }
 
     private void setLeft(int p_currentIndex, int p_paramIndex) {
-        _back_meta[p_currentIndex * META_SIZE] = p_paramIndex;
+        if(p_currentIndex != -1){
+            _back_meta[p_currentIndex * META_SIZE] = p_paramIndex;
+        }
     }
 
     private int right(int p_currentIndex) {
@@ -330,7 +332,9 @@ class HeapTimeTreeChunk implements TimeTreeChunk {
     }
 
     private void setRight(int p_currentIndex, int p_paramIndex) {
-        _back_meta[(p_currentIndex * META_SIZE) + 1] = p_paramIndex;
+        if(p_currentIndex != -1){
+            _back_meta[(p_currentIndex * META_SIZE) + 1] = p_paramIndex;
+        }
     }
 
     private int parent(int p_currentIndex) {
