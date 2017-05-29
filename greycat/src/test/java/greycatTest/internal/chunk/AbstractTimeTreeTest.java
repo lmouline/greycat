@@ -269,11 +269,7 @@ public abstract class AbstractTimeTreeTest {
 
     }
 
-
-
-
-
-
+/*
     @Test
     public void loadTest() {
         ChunkSpace space = factory.newSpace(1000000, -1, null, false);
@@ -286,7 +282,6 @@ public abstract class AbstractTimeTreeTest {
 
         space.free(chunk);
         space.freeAll();
-    }
-
+    }*/
 
 }

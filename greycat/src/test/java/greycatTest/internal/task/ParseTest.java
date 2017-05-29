@@ -119,7 +119,7 @@ public class ParseTest extends AbstractActionTest {
 
     //private static final String stringParam = "a\\b\'";
     //private static final String stringParam = "a\nb\"\'";
-     private static final String stringParam = "a\nb\"\'";
+    static final String stringParam = "a\nb\"\'";
 
     private class CheckParamAction implements Action {
 
