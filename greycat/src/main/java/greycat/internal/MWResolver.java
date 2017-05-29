@@ -1300,6 +1300,7 @@ final class MWResolver implements Resolver {
             _space.unmark(newSuperTimeTree.index());
         }
         nodeWorldOrder.unlock();
+        castedNode.cacheUnlock();
     }
 
     @Override
