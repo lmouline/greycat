@@ -424,7 +424,7 @@ public class HeapChunkSpace implements ChunkSpace {
     }
 
     @Override
-    public final void notifyUpdate(long index) {
+    public final void notifyUpdate(final long index) {
         if (_dirtiesStack.enqueue(index)) {
             mark(index);
         }
