@@ -1384,6 +1384,7 @@ final class MWResolver implements Resolver {
                 if (superTimeTree.lastKey() == timeTree.time()) {
                     superTimeTree.setLastValue(timeTree.size());
                 } else {
+                    castedNode.cacheUnlock();
                     throw new RuntimeException("GreyCat internal error");
                 }
             } else {
