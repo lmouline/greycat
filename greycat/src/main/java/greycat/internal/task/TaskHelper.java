@@ -44,7 +44,6 @@ public class TaskHelper {
         if (toFLat instanceof BaseNode) {
             return new Node[]{(Node) toFLat};
         }
-
         if (toFLat instanceof Object[]) {
             Object[] resAsArray = (Object[]) toFLat;
             Node[] nodes = new Node[0];

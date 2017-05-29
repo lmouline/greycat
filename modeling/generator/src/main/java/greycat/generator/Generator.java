@@ -150,7 +150,6 @@ public class Generator {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
         String tsConfigContent = "{\n" +
                 "  \"compilerOptions\": {\n" +
                 "    \"module\": \"commonjs\",\n" +
@@ -160,14 +159,12 @@ public class Generator {
                 "    \"sourceMap\": true,\n" +
                 "    \"target\": \"es5\",\n" +
                 "    \"declaration\": true,\n" +
-                "    \"outDir\": \"../" + target.getName() + "js/" + packageName + "\"\n" +
+                "    \"outDir\": \"lib\"\n" +
                 "  },\n" +
                 "  \"files\": [\n" +
                 "    \"" + packageName + ".ts\"\n" +
                 "  ]\n" +
                 "}";
-
-
         try {
             File tsConfig = new File(target.getAbsolutePath() + "-ts" + File.separator + "tsconfig.json");
             tsConfig.createNewFile();
@@ -176,7 +173,6 @@ public class Generator {
             e.printStackTrace();
         }
 
-
         boolean isSnaphot = (gcVersion.contains("SNAPSHOT"));
         gcVersion = isSnaphot ? "../../../../../greycat/target/classes-npm" : "^" + gcVersion + ".0.0";
 
@@ -184,8 +180,9 @@ public class Generator {
                 "  \"name\": \"" + packageName + "\",\n" +
                 "  \"version\": \"1.0.0\",\n" +
                 "  \"description\": \"\",\n" +
-                //"  \"main\": \"main.js\",\n" +
+                "  \"main\": \"lib/" + packageName + "\",\n" +
                 "  \"author\": \"\",\n" +
+                "  \"types\": \"lib/" + packageName + "\",\n" +
                 "  \"dependencies\": {\n" +
                 "    \"greycat\": \"" + gcVersion + "\"\n" +
                 "  },\n" +
@@ -255,36 +252,31 @@ public class Generator {
         }
         */
 
-        if (!isSnaphot) {
-            File workingDFir = new File(target.getAbsolutePath() + "-ts");
 
-            // Install required package in TS
-            ProcessBuilder processBuilder = new ProcessBuilder("npm", "install");
-            processBuilder.directory(workingDFir);
-            processBuilder.inheritIO();
+        File workingDFir = new File(target.getAbsolutePath() + "-ts");
 
-            // Run TSC
-            ProcessBuilder processBuilder2 = new ProcessBuilder("node", "node_modules/typescript/lib/tsc.js");
-            processBuilder2.directory(workingDFir);
-            processBuilder2.inheritIO();
+        // Install required package in TS
+        ProcessBuilder processBuilder = new ProcessBuilder("npm", "install");
+        processBuilder.directory(workingDFir);
+        processBuilder.inheritIO();
 
-            //Intsall required packaged in JS project
+        // Run TSC
+        ProcessBuilder processBuilder2 = new ProcessBuilder("node", "node_modules/typescript/lib/tsc.js");
+        processBuilder2.directory(workingDFir);
+        processBuilder2.inheritIO();
+
+        //Intsall required packaged in JS project
             /*
             ProcessBuilder processBuilder3 = new ProcessBuilder("npm", "install");
             processBuilder3.directory(npmProject);
             processBuilder3.inheritIO();
 */
-
-            try {
-                processBuilder.start().waitFor();
-                processBuilder2.start().waitFor();
-                //processBuilder3.start().waitFor();
-            } catch (IOException | InterruptedException e) {
-                e.printStackTrace();
-            }
-        } else {
-            Log.info("Your using a GreyCat snapshot, do not forget to update the path in package.json if needed");
-            //System.out.println();
+        try {
+            processBuilder.start().waitFor();
+            processBuilder2.start().waitFor();
+            //processBuilder3.start().waitFor();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
