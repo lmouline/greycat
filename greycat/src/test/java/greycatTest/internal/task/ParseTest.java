@@ -15,14 +15,9 @@
  */
 package greycatTest.internal.task;
 
-import greycat.*;
-import greycat.internal.task.TaskHelper;
-import greycat.plugin.ActionFactory;
-import greycat.struct.Buffer;
+import greycat.Task;
 import org.junit.Assert;
 import org.junit.Test;
-
-import javax.print.DocFlavor;
 
 import static greycat.Tasks.newTask;
 
