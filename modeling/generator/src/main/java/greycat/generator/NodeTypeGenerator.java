@@ -274,6 +274,10 @@ class NodeTypeGenerator {
             StringBuilder indexMethodBody = new StringBuilder();
             indexMethodBody.append("\t\tfinal " + classClassifier.name() + " self = this;\n");
 
+            StringBuilder unindexMethodBody = new StringBuilder();
+            unindexMethodBody.append("\t\tfinal " + classClassifier.name() + " self = this;\n");
+
+
             for (Index idx : classClassifier.indexes()) {
                 String idxName = idx.name();
 
@@ -306,6 +310,18 @@ class NodeTypeGenerator {
                                 "\t\t\t}\n" +
                                 "\t\t});"
                 );
+
+                unindexMethodBody.append(
+                        "\t\tthis.graph().index(world(), " + time + "," + idxName.toUpperCase() + " , new greycat.Callback<greycat.NodeIndex>() {\n" +
+                                "\t\t\t@Override\n" +
+                                "\t\t\tpublic void on(greycat.NodeIndex indexNode) {\n" +
+                                "\t\t\t\tindexNode.removeFromIndex(self, " + indexedProperties + " );\n" +
+                                "\t\t\t\tif(callback!=null){\n" +
+                                "\t\t\t\t\tcallback.on(true);\n" +
+                                "\t\t\t\t}\n" +
+                                "\t\t\t}\n" +
+                                "\t\t});"
+                );
             }
 
             javaClass.addMethod()
@@ -314,6 +330,15 @@ class NodeTypeGenerator {
                     .setFinal(true)
                     .setReturnTypeVoid()
                     .setBody(indexMethodBody.toString())
+                    .addParameter("Callback<Boolean>", "callback");
+            javaClass.addImport(Callback.class);
+
+            javaClass.addMethod()
+                    .setName("unindex" + classClassifier.name())
+                    .setVisibility(Visibility.PUBLIC)
+                    .setFinal(true)
+                    .setReturnTypeVoid()
+                    .setBody(unindexMethodBody.toString())
                     .addParameter("Callback<Boolean>", "callback");
             javaClass.addImport(Callback.class);
         }
