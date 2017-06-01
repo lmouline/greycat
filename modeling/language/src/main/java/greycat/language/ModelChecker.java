@@ -52,7 +52,8 @@ public class ModelChecker {
                     parentClassFqn = classDclCxt.parentDcl().IDENT().toString();
                 }
                 if (!isClassifierDeclared(parentClassFqn, modelDclCtx)) {
-                    throw new RuntimeException(parentClassFqn + " is specified as parent of " + classFqn + " but is not declared");
+                    long line = classDclCxt.parentDcl().getStart().getLine();
+                    raiseModelCheckingException(line, parentClassFqn + " is specified as parent of " + classFqn + " but is not declared");
                 }
             }
 
@@ -82,16 +83,18 @@ public class ModelChecker {
 
                 }
                 if (!isClassifierDeclared(relType, modelDclCtx)) {
-                    throw new RuntimeException(relType + " is specified as relation of " + classFqn + " but is not declared");
+                    long line = relDecCxt.getStart().getLine();
+                    raiseModelCheckingException(line, relType + " is specified as relation of " + classFqn + " but is not declared");
                 }
 
                 if (!isToOne) {
                     // relation indexes
                     if (relDecCxt.toManyDcl().relationIndexDcl() != null) {
+                        long line = relDecCxt.toManyDcl().relationIndexDcl().getStart().getLine();
                         for (TerminalNode relationIdxIdent : relDecCxt.toManyDcl().relationIndexDcl().IDENT()) {
                             String relIndexedAttName = relationIdxIdent.getText();
                             if (!isAttOfCassifier(relType, relIndexedAttName, modelDclCtx)) {
-                                throw new RuntimeException(relIndexedAttName + " is specified as index of relation " + relType + " but is not an attribute of " + relType);
+                                raiseModelCheckingException(line, relIndexedAttName + " is specified as index of relation " + relType + " but is not an attribute of " + relType);
                             }
                         }
                     }
@@ -101,15 +104,14 @@ public class ModelChecker {
             // global indexes
             for (int i = 0; i < classDclCxt.indexDcl().size(); i++) {
                 GreyCatModelParser.IndexDclContext indexDclCxt = classDclCxt.indexDcl().get(i);
+                long line = indexDclCxt.getStart().getLine();
                 for (TerminalNode idxDclIdent : indexDclCxt.IDENT()) {
                     String indexedAttName = idxDclIdent.getText();
 
                     if (!isAttOfCassifier(classFqn, indexedAttName, modelDclCtx)) {
-                        throw new RuntimeException(indexedAttName + " is specified as index of " + classFqn + " but is not an attribute of " + classFqn);
+                        raiseModelCheckingException(line, indexedAttName + " is specified as index of " + classFqn + " but is not an attribute of " + classFqn);
                     }
-
                 }
-
             }
         }
     }
@@ -167,6 +169,10 @@ public class ModelChecker {
         }
         return false;
 
+    }
+
+    private void raiseModelCheckingException(long line, String message) {
+        throw new RuntimeException("Line " + line + ": " + message);
     }
 
 }
