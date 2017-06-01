@@ -272,11 +272,21 @@ class NodeTypeGenerator {
         // indexes
         if (classClassifier.indexes().length > 0) {
             StringBuilder indexMethodBody = new StringBuilder();
-            indexMethodBody.append("\t\tfinal " + classClassifier.name() + " self = this;\n");
-
             StringBuilder unindexMethodBody = new StringBuilder();
-            unindexMethodBody.append("\t\tfinal " + classClassifier.name() + " self = this;\n");
 
+            String deferPart = "\t\tfinal " + classClassifier.name() + " self = this;\n" +
+                    "\t\tgreycat.DeferCounter deferCounter = this.graph().newCounter(" + classClassifier.indexes().length + ");\n" +
+                    "\t\tdeferCounter.then(new greycat.plugin.Job() {\n" +
+                    "\t\t\t@Override\n" +
+                    "\t\t\tpublic void run() {\n" +
+                    "\t\t\t\tif (callback != null) {\n" +
+                    "\t\t\t\t\tcallback.on(true);\n" +
+                    "\t\t\t\t}\n" +
+                    "\t\t\t}\n" +
+                    "\t\t});\n";
+
+            indexMethodBody.append(deferPart);
+            unindexMethodBody.append(deferPart);
 
             for (Index idx : classClassifier.indexes()) {
                 String idxName = idx.name();
@@ -304,9 +314,7 @@ class NodeTypeGenerator {
                                 "\t\t\tpublic void on(greycat.NodeIndex indexNode) {\n" +
                                 "\t\t\t\tindexNode.removeFromIndex(self, " + indexedProperties + " );\n" +
                                 "\t\t\t\tindexNode.addToIndex(self," + indexedProperties + ");\n" +
-                                "\t\t\t\tif(callback!=null){\n" +
-                                "\t\t\t\t\tcallback.on(true);\n" +
-                                "\t\t\t\t}\n" +
+                                "\t\t\t\tdeferCounter.count();\n" +
                                 "\t\t\t}\n" +
                                 "\t\t});"
                 );
@@ -316,9 +324,7 @@ class NodeTypeGenerator {
                                 "\t\t\t@Override\n" +
                                 "\t\t\tpublic void on(greycat.NodeIndex indexNode) {\n" +
                                 "\t\t\t\tindexNode.removeFromIndex(self, " + indexedProperties + " );\n" +
-                                "\t\t\t\tif(callback!=null){\n" +
-                                "\t\t\t\t\tcallback.on(true);\n" +
-                                "\t\t\t\t}\n" +
+                                "\t\t\t\tdeferCounter.count();\n" +
                                 "\t\t\t}\n" +
                                 "\t\t});"
                 );
