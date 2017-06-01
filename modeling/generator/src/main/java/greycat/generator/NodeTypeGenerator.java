@@ -242,13 +242,13 @@ class NodeTypeGenerator {
                     String refType = upperCaseFirstChar(prop.name());
                     remove.setName("remove" + refType);
                     remove.setReturnTypeVoid();
-                    remove.addParameter("greycat.Callback<Void>", "callback");
+                    remove.addParameter("greycat.Callback<Boolean>", "callback");
                     removeFromBodyBuilder.append(classClassifier.name() + " self = this;");
                     removeFromBodyBuilder.append("get" + refType + "(new greycat.Callback<" + refType + ">() {");
                     removeFromBodyBuilder.append("@Override\n");
                     removeFromBodyBuilder.append("public void on(" + refType + " result) {");
                     removeFromBodyBuilder.append("self.removeFromRelation(").append(prop.name().toUpperCase()).append(", result);");
-                    removeFromBodyBuilder.append("callback.on(null);");
+                    removeFromBodyBuilder.append("callback.on(true);");
                     removeFromBodyBuilder.append("}");
                     removeFromBodyBuilder.append("});");
                     remove.setBody(removeFromBodyBuilder.toString());
