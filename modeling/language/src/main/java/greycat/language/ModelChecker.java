@@ -127,9 +127,13 @@ public class ModelChecker {
                         return true;
                     }
                 }
+                // recursively check parents
+                if (classDclCxt.parentDcl() != null) {
+                    return isAttOfCassifier(classDclCxt.parentDcl().name.getText(), att, modelDclCtx);
+                }
             }
-
         }
+
         return false;
     }
 
