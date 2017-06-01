@@ -18,9 +18,6 @@ package greycatTest.utility;
 import greycat.utility.L3GMap;
 import org.junit.Test;
 
-/**
- * Created by Gregory NAIN on 31/05/2017.
- */
 public class L3GMapTest {
 
     @Test
