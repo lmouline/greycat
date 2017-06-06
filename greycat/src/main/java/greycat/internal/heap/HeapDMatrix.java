@@ -305,6 +305,9 @@ class HeapDMatrix implements DMatrix {
             backend[INDEX_OFFSET + index] = value;
             parent.declareDirty();
         }
+        else {
+            throw new RuntimeException("Please init the Matrix first!");
+        }
     }
 
     final double[] unsafe_data() {
