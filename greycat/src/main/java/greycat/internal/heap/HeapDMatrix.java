@@ -103,6 +103,9 @@ class HeapDMatrix implements DMatrix {
                 aligned = true;
             }
         }
+        if(newColumn.length!=nbRows){
+            throw new RuntimeException("Vector has different row size than Matrix");
+        }
         //just insert
         System.arraycopy(newColumn, 0, backend, (nbMaxColumn * nbRows) + INDEX_OFFSET, newColumn.length);
         backend[INDEX_MAX_COLUMN] = nbMaxColumn + 1;
