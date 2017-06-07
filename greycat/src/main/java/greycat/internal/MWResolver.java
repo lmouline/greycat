@@ -156,6 +156,22 @@ final class MWResolver implements Resolver {
     }
 
     @Override
+    public final void drop(final Node target, final Callback callback) {
+        final BaseNode casted = (BaseNode) target;
+        final WorldOrderChunk worldOrderChunk = (WorldOrderChunk) this._space.get(casted._index_worldOrder);
+        //TODO
+        worldOrderChunk.each(new LongLongMapCallBack() {
+            @Override
+            public void on(long key, long value) {
+
+            }
+        });
+        //TODO
+        //final WorldOrderChunk worldOrderChunk = (WorldOrderChunk) this._space.get(casted._index_worldOrder);
+        //TODO
+    }
+
+    @Override
     public final <A extends Node> void lookup(final long world, final long time, final long id, final Callback<A> callback) {
         final MWResolver selfPointer = this;
         selfPointer._space.getOrLoadAndMark(ChunkType.WORLD_ORDER_CHUNK, 0, 0, id, new Callback<Chunk>() {

@@ -142,4 +142,6 @@ public interface Resolver {
 
     Tuple<Long, Long> getTimeSensitivity(Node node);
 
+    void drop(Node target, Callback callback);
+
 }

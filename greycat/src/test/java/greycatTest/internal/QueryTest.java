@@ -316,4 +316,9 @@ public class QueryTest implements Resolver, Graph {
         return new Tuple<Long, Long>(0L, 0L);
     }
 
+    @Override
+    public void drop(Node target, Callback callback) {
+
+    }
+
 }

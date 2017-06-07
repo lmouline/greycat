@@ -593,6 +593,11 @@ public class BaseNode implements Node {
     }
 
     @Override
+    public final void drop(Callback callback) {
+        _resolver.drop(this, callback);
+    }
+
+    @Override
     public String toString() {
         if (_lock == 1) {
             return "locked";
@@ -922,7 +927,9 @@ public class BaseNode implements Node {
     }
 
     @Override
-    public final IntStringMap getIntStringMap(String name){ return (IntStringMap) get(name);}
+    public final IntStringMap getIntStringMap(String name) {
+        return (IntStringMap) get(name);
+    }
 
     @Override
     public final LongLongArrayMap getLongLongArrayMap(String name) {
