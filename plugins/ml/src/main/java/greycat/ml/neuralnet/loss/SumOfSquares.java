@@ -35,11 +35,12 @@ class SumOfSquares implements Loss {
     public void backward(ExMatrix actualOutput, ExMatrix targetOutput) {
         final int len = targetOutput.length();
         for (int i = 0; i < len; i++) {
-            double errDelta = actualOutput.unsafeGet(i) - targetOutput.unsafeGet(i);  //double errDelta = actualOutput.w[i] - targetOutput.w[i];
+            double errDelta = 2*(actualOutput.unsafeGet(i) - targetOutput.unsafeGet(i));  //double errDelta = 2*(actualOutput.w[i] - targetOutput.w[i]);
             actualOutput.getDw().unsafeSet(i, actualOutput.getDw().unsafeGet(i) + errDelta); //actualOutput.dw[i] += errDelta;
         }
     }
 
+    //todo take care, this function is directly compatible with RMSE. Other people use the /2 version of this.
     @Override
     public DMatrix forward(ExMatrix actualOutput, ExMatrix targetOutput) {
         MatrixOps.testDim(actualOutput, targetOutput);
@@ -48,7 +49,7 @@ class SumOfSquares implements Loss {
         double errDelta;
         for (int i = 0; i < len; i++) {
             errDelta = actualOutput.unsafeGet(i) - targetOutput.unsafeGet(i);
-            res.unsafeSet(i, 0.5 * errDelta * errDelta);
+            res.unsafeSet(i, errDelta * errDelta);
         }
         return res;
     }
