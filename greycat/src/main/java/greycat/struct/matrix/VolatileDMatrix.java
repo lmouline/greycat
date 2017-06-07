@@ -263,7 +263,7 @@ public class VolatileDMatrix implements DMatrix {
     }
 
     public static DMatrix cloneFrom(DMatrix origin) {
-        //TODO checj according to .data() clone
+        //TODO check according to .data() clone
         double[] prev = origin.data();
         double[] copy = new double[prev.length];
         System.arraycopy(prev, 0, copy, 0, copy.length);

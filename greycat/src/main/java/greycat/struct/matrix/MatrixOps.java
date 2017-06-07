@@ -32,12 +32,13 @@ public class MatrixOps {
         _defaultEngine = engine;
     }
 
-    public static void copyMatrix(DMatrix source, DMatrix destination) {
+    public static DMatrix copyMatrix(DMatrix source, DMatrix destination) {
         for (int row = 0; row < source.rows(); row++) {
             for (int col = 0; col < source.columns(); col++) {
                 destination.set(row, col, source.get(row, col));
             }
         }
+        return destination;
     }
 
     public static DMatrix fillWithRandom(DMatrix matrix, RandomGenerator random, double min, double max) {
