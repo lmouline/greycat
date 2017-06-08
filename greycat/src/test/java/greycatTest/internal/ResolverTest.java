@@ -24,6 +24,8 @@ import greycat.scheduler.NoopScheduler;
 import org.junit.Assert;
 import org.junit.Test;
 
+import static greycat.Tasks.newTask;
+
 public class ResolverTest {
 
     @Test
@@ -228,6 +230,66 @@ public class ResolverTest {
                 Assert.assertEquals(availableBefore, availableAfter);
             }
         });
+    }
+
+    @Test
+    public void doubleUnmarkTest() {
+
+
+        Task t = newTask()
+                .travelInTime("{{time}}")
+                .setAsVar("parent")
+                .pipe(Tasks.newTask()
+                        .traverse("content")
+                        .forEach(Tasks.newTask()
+                                .setAsVar("elem")
+                                .readVar("parent")
+                                .removeVarFromRelation("content", "elem")))
+                .readVar("parent")
+                .traverse("sources")
+                .traverse("content")
+                .cloneNodes()
+                .pipe(Tasks.newTask()
+                        .setAsVar("elem")
+                        .readVar("parent")
+                        .addVarToRelation("content", "elem")
+                )
+                .flat()
+                .readVar("parent")
+                .setAttribute("featuresCollected", Type.BOOL, "true")
+                .save();
+
+        Graph g = GraphBuilder.newBuilder().withScheduler(new NoopScheduler()).build();
+        g.connect(new Callback<Boolean>() {
+            @Override
+            public void on(Boolean connectionResult) {
+                Node parent = g.newNode(0, 0);
+                Node source = g.newNode(0, 0);
+                Node element = g.newNode(0, 0);
+                Node element2 = g.newNode(0, 0);
+                source.addToRelation("content", element);
+                source.addToRelation("content", element2);
+                parent.addToRelation("sources", source);
+                //parent.addToRelation("content", element);
+
+                g.save(saved -> {
+                    TaskContext firstRound = t.prepare(g, parent, tr -> {
+
+                        System.out.println("ROUND");
+                        TaskContext secondRound = t.prepare(g, parent, tr2 -> {
+
+                        });
+                        secondRound.setTime(1);
+                        t.executeUsing(secondRound);
+
+                    });
+                    firstRound.setTime(1);
+                    t.executeUsing(firstRound);
+                });
+            }
+        });
+
+
     }
 
 
