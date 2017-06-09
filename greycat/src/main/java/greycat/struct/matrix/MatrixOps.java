@@ -41,6 +41,12 @@ public class MatrixOps {
         return destination;
     }
 
+    public static void appendBtoA(DMatrix A, DMatrix B, int step){
+        for(int i=0;i<B.columns();i+=step){
+            A.appendColumn(B.column(i));
+        }
+    }
+
     public static DMatrix fillWithRandom(DMatrix matrix, RandomGenerator random, double min, double max) {
         int len = matrix.length();
         double d = max - min;
