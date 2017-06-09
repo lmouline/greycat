@@ -26,7 +26,6 @@ import greycat.utility.HashHelper;
 import greycat.utility.KeyHelper;
 import greycat.utility.LMap;
 
-import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicIntegerArray;
 import java.util.concurrent.atomic.AtomicLongArray;
 import java.util.concurrent.atomic.AtomicReferenceArray;
@@ -263,17 +262,12 @@ public class HeapChunkSpace implements ChunkSpace {
                 after = before;
             }
         } while (!_chunkMarks.compareAndSet(castedIndex, before, after));
-        if(castedIndex==18||unmarkedIds.contains(castedIndex)) {
-            //(new Exception("idx:"+castedIndex + " b:" + before + " a:" + after)).printStackTrace();
-        }
         if (before == 0 && after == 1) {
             //was at zero before, risky operation, check selectWith LRU
             this._lru.dequeue(index);
         }
         return after;
     }
-
-    ArrayList<Integer> unmarkedIds = new ArrayList<>();
 
     @Override
     public final void unmark(final long index) {
@@ -287,12 +281,8 @@ public class HeapChunkSpace implements ChunkSpace {
             } else {
                 System.err.println("WARNING: DOUBLE UNMARK " + _chunkTypes.get(castedIndex));
                 after = before;
-                unmarkedIds.add(castedIndex);
             }
         } while (!_chunkMarks.compareAndSet(castedIndex, before, after));
-        if(castedIndex==18||unmarkedIds.contains(castedIndex)) {
-         //   (new Exception("idx:"+castedIndex + " b:" + before + " a:" + after)).printStackTrace();
-        }
         if (before == 1 && after == 0) {
             //was at zero before, risky operation, check selectWith LRU
             this._lru.enqueue(index);
@@ -336,7 +326,6 @@ public class HeapChunkSpace implements ChunkSpace {
             m = this._hashNext.get(m);
         }
         if (entry != -1) {
-            /*
             long previous;
             long after;
             do {
@@ -347,9 +336,6 @@ public class HeapChunkSpace implements ChunkSpace {
                     after = previous;
                 }
             } while (!_chunkMarks.compareAndSet(entry, previous, after));
-            */
-            long previous = _chunkMarks.get(entry);
-            long after = mark(entry);
             if (after == (previous + 1)) {
                 return _chunkValues.get(entry);
             }

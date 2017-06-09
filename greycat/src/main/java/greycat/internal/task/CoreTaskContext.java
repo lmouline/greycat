@@ -473,10 +473,6 @@ class CoreTaskContext implements TaskContext {
             }
             final int previousCursor = cursor;
             try {
-
-                //System.out.println("=============== " + nextAction.name() + " ==================");
-                //graph().space().printMarked();
-
                 nextAction.eval(this);
             } catch (Exception e) {
                 if (cursor == previousCursor) {
