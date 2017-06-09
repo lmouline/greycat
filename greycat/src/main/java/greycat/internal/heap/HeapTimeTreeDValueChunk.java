@@ -21,6 +21,7 @@ import greycat.internal.CoreConstants;
 import greycat.struct.*;
 import greycat.utility.Base64;
 import greycat.utility.HashHelper;
+import greycat.utility.Tuple;
 
 class HeapTimeTreeDValueChunk implements TimeTreeDValueChunk {
 
@@ -183,9 +184,8 @@ class HeapTimeTreeDValueChunk implements TimeTreeDValueChunk {
                     break;
                 case Constants.CHUNK_VAL_SEP:
                     if (waiting_value) {
-                        int index = internal_insert(key_time, Base64.decodeToDoubleWithBounds(buffer, previous, cursor));
-                        boolean insertResult = (index > 0);
-                        isDirty = isDirty || insertResult;
+                        Tuple<Boolean, Integer> index = internal_insert(key_time, Base64.decodeToDoubleWithBounds(buffer, previous, cursor));
+                        isDirty = isDirty || index.left();
                         waiting_value = false;
                     } else {
                         key_time = Base64.decodeToLongWithBounds(buffer, previous, cursor);
@@ -277,12 +277,12 @@ class HeapTimeTreeDValueChunk implements TimeTreeDValueChunk {
 
     @Override
     public synchronized final int insert(final long p_key) {
-        final int index = internal_insert(p_key, 0.0d);
-        if (index > 0) {
+        final Tuple<Boolean, Integer> index = internal_insert(p_key, 0.0d);
+        if (index.left()) {
             internal_set_dirty();
-            return index;
+            return index.right();
         } else {
-            return -index;
+            return index.right();
         }
     }
 
@@ -581,14 +581,14 @@ class HeapTimeTreeDValueChunk implements TimeTreeDValueChunk {
 
     @Override
     public final void insertValue(long p_key, double p_value) {
-        final int index = internal_insert(p_key, p_value);
-        if (index > 0) {
+        final Tuple<Boolean, Integer> inserted = internal_insert(p_key, p_value);
+        if (inserted.left()) {
             internal_set_dirty();
         }
     }
 
     @SuppressWarnings("Duplicates")
-    private int internal_insert(long p_key, double value) {
+    private Tuple<Boolean, Integer> internal_insert(long p_key, double value) {
         if (_k == null || _k.length == _size) {
             int length = _size;
             if (length == 0) {
@@ -615,10 +615,10 @@ class HeapTimeTreeDValueChunk implements TimeTreeDValueChunk {
                 father = leaf;
                 if (_k[father] == p_key) {
                     if (_values[father] == value) {
-                        return -father;
+                        return new Tuple<Boolean, Integer>(false, father);
                     } else {
                         _values[father] = value;
-                        return father;
+                        return new Tuple<Boolean, Integer>(true, father);
                     }
                 }
                 if (key(father) < p_key) {
@@ -678,7 +678,7 @@ class HeapTimeTreeDValueChunk implements TimeTreeDValueChunk {
             setColor(_root, true);
         }
         _size++;
-        return _size - 1;
+        return new Tuple<Boolean, Integer>(true, _size - 1);
     }
 
     private void internal_set_dirty() {

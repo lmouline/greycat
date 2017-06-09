@@ -16,7 +16,8 @@
     limitations under the License.
 
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <artifactId>greycat</artifactId>
     <name>greycat</name>
@@ -139,6 +140,11 @@
                                     exit
                                 }
                                 ant.delete(file: "${basedir}/target/classes-npm/greycat.ts")
+                                def npmPackProcess = "npm pack classes-npm/".execute(null, new File("${basedir}/target/"))
+                                npmPackProcess.waitForProcessOutput(System.out, System.err)
+                                if (npmPackProcess.exitValue() != 0) {
+                                    exit
+                                }
                             </source>
                         </configuration>
                     </execution>

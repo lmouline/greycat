@@ -22,6 +22,9 @@ import org.junit.Test;
 
 public class NodeValueTest {
 
+    /**
+     * @ignore ts
+     */
     @Test
     public void test() {
         Graph g = GraphBuilder.newBuilder().withScheduler(new NoopScheduler()).build();
