@@ -820,7 +820,7 @@ final class MWResolver implements Resolver {
                                         timeTree.range(currentDivergenceTime, previousDivergenceTime, CoreConstants.END_OF_TIME, new SuperTreeWalker() {
                                             @Override
                                             public void elem(final long superTime, final long superCapacity) {
-                                                if(!tempSuperTimeCollector.contains(superTime)){
+                                                if (!tempSuperTimeCollector.contains(superTime)) {
                                                     tempSuperTimeCollector.put(superTime, finalI);
                                                     sumCapacity[0] = sumCapacity[0] + ((int) superCapacity);
                                                 }
@@ -848,7 +848,7 @@ final class MWResolver implements Resolver {
                                         timeTree.range(currentDivergenceTime, previousDivergenceTime, CoreConstants.END_OF_TIME, new SuperTreeWalker() {
                                             @Override
                                             public void elem(final long superTime, final long superCapacity) {
-                                                if(!tempSuperTimeCollector.contains(superTime)){
+                                                if (!tempSuperTimeCollector.contains(superTime)) {
                                                     tempSuperTimeCollector.put(superTime, finalI);
                                                     tempSuperTimeCollectorCapacity.put(superTime, superCapacity);
                                                 }
@@ -902,7 +902,7 @@ final class MWResolver implements Resolver {
                                                 timeTree.range(currentDivergenceTime, previousDivergenceTime, CoreConstants.END_OF_TIME, new TreeWalker() {
                                                     @Override
                                                     public void elem(long t) {
-                                                        if(!timeCollector.contains(t)){
+                                                        if (!timeCollector.contains(t)) {
                                                             timeCollector.put(t, finalI);
                                                         }
                                                     }
