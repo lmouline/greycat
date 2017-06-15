@@ -265,6 +265,35 @@ class NodeTypeGenerator {
                     remove.setBody(removeFromBodyBuilder.toString());
                 }
 
+
+                if (rel.isIndexedRelation()) {
+                    // find methods
+                    MethodSource<JavaClassSource> find = javaClass.addMethod();
+                    find.setVisibility(Visibility.PUBLIC).setFinal(true);
+                    find.setName("find" + upperCaseFirstChar(prop.name()));
+                    find.setReturnTypeVoid();
+                    find.addParameter("greycat.Callback<" + rel.type() + "[]>", "callback");
+                    for (String indexedAtt : rel.indexedAttributes()) {
+                        find.addParameter("String", indexedAtt);
+                    }
+                    StringBuilder findBodyBuilder = new StringBuilder();
+                    findBodyBuilder.append("this.getRelationIndexed(" + prop.name().toUpperCase() + ").find(new Callback<greycat.Node[]>() {");
+                    findBodyBuilder.append("@Override\n");
+                    findBodyBuilder.append("public void on(greycat.Node[] result) {");
+                    findBodyBuilder.append(prop.type() + "[] typedResult = new " + prop.type() + "[result.length];");
+                    findBodyBuilder.append("java.lang.System.arraycopy(result, 0, typedResult, 0, result.length);");
+                    findBodyBuilder.append("callback.on(typedResult);");
+                    findBodyBuilder.append("}");
+                    findBodyBuilder.append("},");
+                    findBodyBuilder.append("this.world(), this.time(),");
+                    for (String indexedAtt : rel.indexedAttributes()) {
+                        findBodyBuilder.append(rel.type() + "." + indexedAtt.toUpperCase() + "," + indexedAtt + ",");
+                    }
+                    findBodyBuilder.deleteCharAt(findBodyBuilder.length() - 1);
+                    findBodyBuilder.append(");");
+                    find.setBody(findBodyBuilder.toString());
+
+                }
             }
         }
 
@@ -347,6 +376,7 @@ class NodeTypeGenerator {
                     .setBody(unindexMethodBody.toString())
                     .addParameter("Callback<Boolean>", "callback");
             javaClass.addImport(Callback.class);
+
         }
 
 
