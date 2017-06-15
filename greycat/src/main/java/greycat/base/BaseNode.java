@@ -41,10 +41,10 @@ public class BaseNode implements Node {
      */
     private static sun.misc.Unsafe unsafe;
 
-    private final long _world;
-    private final long _time;
-    private final long _id;
-    private final Graph _graph;
+    protected final long _world;
+    protected final long _time;
+    protected final long _id;
+    protected final Graph _graph;
     protected final Resolver _resolver;
 
     //cache to enhance the resolving process

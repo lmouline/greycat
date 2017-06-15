@@ -38,10 +38,10 @@ final class CoreNodeIndex extends BaseNode implements NodeIndex {
         state.getOrCreateAt(0, Type.RELATION_INDEXED);
         state.getOrCreateAt(1, Type.LONG_TO_LONG_MAP);
         final String[] casted = attributeNames;
-        final IntArray hashes = (IntArray) state.getOrCreateAt(2,Type.INT_ARRAY);
+        final IntArray hashes = (IntArray) state.getOrCreateAt(2, Type.INT_ARRAY);
         hashes.init(casted.length);
         for (int i = 0; i < casted.length; i++) {
-            hashes.set(i,HashHelper.hash(casted[i]));
+            hashes.set(i, HashHelper.hash(casted[i]));
         }
         callback.on(this);
     }
@@ -77,7 +77,19 @@ final class CoreNodeIndex extends BaseNode implements NodeIndex {
             final long[] flat = ((RelationIndexed) getAt(0)).all();
             graph().lookupAll(world(), time(), flat, callback);
         } else {
-            ((RelationIndexed) getAt(0)).find(callback, world(), time(), query);
+            final NodeState state = this.unphasedState();
+            final RelationIndexed ri = (RelationIndexed) state.getAt(0);
+            final IntArray hashes = (IntArray) state.getAt(2);
+            if (hashes.size() != query.length) {
+                throw new RuntimeException("Bad API usage, query param is different than index declaration");
+            }
+            Query queryObj = _graph.newQuery();
+            queryObj.setWorld(_world);
+            queryObj.setTime(_time);
+            for (int i = 0; i < hashes.size(); i++) {
+                queryObj.addRaw(hashes.get(i), query[i]);
+            }
+            ri.findByQuery(queryObj, callback);
         }
     }
 

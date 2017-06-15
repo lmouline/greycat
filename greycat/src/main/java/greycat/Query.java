@@ -43,7 +43,7 @@ public interface Query {
      */
     Query add(String attributeName, String value);
 
-    Query addRaw(long attributeNameHash, String value);
+    Query addRaw(int attributeNameHash, String value);
 
     /**
      * Returns the hash code of this query

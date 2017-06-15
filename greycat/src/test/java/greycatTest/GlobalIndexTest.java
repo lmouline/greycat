@@ -34,7 +34,7 @@ public class GlobalIndexTest {
                         .declareIndex("nodes", "name")
                         .createNode().setAttribute("name", Type.STRING, "sensor_1").updateIndex("nodes")
                         .createNode().setAttribute("name", Type.STRING, "sensor_2").updateIndex("nodes")
-                        .readIndex("nodes", "name", "sensor_1");
+                        .readIndex("nodes", "sensor_1");
                 t.execute(g, new Callback<TaskResult>() {
                     @Override
                     public void on(TaskResult result) {

@@ -46,17 +46,17 @@ public class TaskServerTest {
                 root.addToRelation("children", n1);
 
                 //create some index
-                graph.index(0, Constants.BEGINNING_OF_TIME, "roots", new Callback<NodeIndex>() {
+                graph.declareIndex(0, "roots", new Callback<NodeIndex>() {
                     @Override
                     public void on(NodeIndex rootsIndex) {
-                        rootsIndex.addToIndex(root, "name");
+                        rootsIndex.update(root);
 
                         graph.index(0, Constants.BEGINNING_OF_TIME, "nodes", new Callback<NodeIndex>() {
                             @Override
                             public void on(NodeIndex nodesIndex) {
-                                nodesIndex.addToIndex(n0, "name");
-                                nodesIndex.addToIndex(n1, "name");
-                                nodesIndex.addToIndex(root, "name");
+                                nodesIndex.update(n0);
+                                nodesIndex.update(n1);
+                                nodesIndex.update(root);
                                 WSServer srv = new WSServer(graph, 4000);
                                 srv.start();
                                 System.out.println("Server started 4000");
@@ -130,7 +130,7 @@ public class TaskServerTest {
                             }
                         });
                     }
-                });
+                }, "name");
             }
         });
     }

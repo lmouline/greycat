@@ -160,6 +160,7 @@ public class IndexTest {
         });
     }
 
+    /*
     @Test
     public void testModificationKeyAttribute() {
         Graph graph = new GraphBuilder().build();
@@ -190,7 +191,7 @@ public class IndexTest {
 
                         //Check
                         .travelInTime("10")
-                        .readIndex(idxName, kAtt, sValue)
+                        .readIndex(sValue)
                         .thenDo(new ActionFunction() {
                             @Override
                             public void eval(TaskContext ctx) {
@@ -210,7 +211,7 @@ public class IndexTest {
                                 ctx.continueTask();
                             }
                         })
-                        .readIndex(idxName, kAtt, fValue)
+                        .readIndex(idxName, fValue)
                         .thenDo(new ActionFunction() {
                             @Override
                             public void eval(TaskContext ctx) {
@@ -223,7 +224,7 @@ public class IndexTest {
             }
         });
     }
-
+*/
 
     /*
     private void test(final Graph graph) {

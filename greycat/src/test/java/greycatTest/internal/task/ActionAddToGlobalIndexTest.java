@@ -78,7 +78,7 @@ public class ActionAddToGlobalIndexTest {
                         .setAttribute("name", Type.STRING, "root")
                         .updateIndex("indexName")
                         .then(defineAsGlobalVar("nodeIndexed"))
-                        .then(readIndex("indexName", "name", "root"))
+                        .readIndex("indexName", "root")
                         .thenDo(new ActionFunction() {
                             @Override
                             public void eval(TaskContext ctx) {

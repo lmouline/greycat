@@ -197,7 +197,7 @@ class HeapRelationIndexed extends HeapLongLongArrayMap implements RelationIndexe
 
     @Override
     public final long[] all() {
-        long[] flat = new long[(int) size()];
+        long[] flat = new long[size()];
         final int[] i = {0};
         this.each(new LongLongArrayMapCallBack() {
             @Override
