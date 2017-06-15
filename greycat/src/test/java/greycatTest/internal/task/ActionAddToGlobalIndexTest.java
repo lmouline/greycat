@@ -38,7 +38,7 @@ public class ActionAddToGlobalIndexTest {
                         .setAttribute("name", Type.STRING, "root")
                         .updateIndex("indexName")
                         .defineAsGlobalVar("nodeIndexed")
-                        .readGlobalIndex("indexName")
+                        .readIndex("indexName")
                         .thenDo(new ActionFunction() {
                             @Override
                             public void eval(TaskContext ctx) {
@@ -50,7 +50,7 @@ public class ActionAddToGlobalIndexTest {
                             }
                         })
                         // .then(removeFromGlobalIndex("indexName", "name"))
-                        .then(readGlobalIndex("indexName"))
+                        .then(readIndex("indexName"))
                         /*
                         .thenDo(new ActionFunction() {
                             @Override
@@ -78,7 +78,7 @@ public class ActionAddToGlobalIndexTest {
                         .setAttribute("name", Type.STRING, "root")
                         .updateIndex("indexName")
                         .then(defineAsGlobalVar("nodeIndexed"))
-                        .then(readGlobalIndex("indexName", "name", "root"))
+                        .then(readIndex("indexName", "name", "root"))
                         .thenDo(new ActionFunction() {
                             @Override
                             public void eval(TaskContext ctx) {

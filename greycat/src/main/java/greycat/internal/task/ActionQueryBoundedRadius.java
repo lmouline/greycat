@@ -93,7 +93,7 @@ public class ActionQueryBoundedRadius implements Action {
 
     @Override
     public void serialize(final Buffer builder) {
-        builder.writeString(CoreActionNames.READ_GLOBAL_INDEX);
+        builder.writeString(CoreActionNames.READ_INDEX);
         builder.writeChar(Constants.TASK_PARAM_OPEN);
         builder.writeString("" + _n);
         builder.writeChar(Constants.TASK_PARAM_SEP);

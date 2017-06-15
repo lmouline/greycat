@@ -159,11 +159,10 @@ public interface Graph {
      * Creates the index and configure it, if it does not exist.
      *
      * @param world    The world id in which the index has to be looked for
-     * @param time     The time at which the index has to be looked for
      * @param name     The name of the index
      * @param callback The callback to be called when the index lookup is complete.
      */
-    void declareIndex(long world, long time, String name, Callback<NodeIndex> callback, String... indexedAttributes);
+    void declareIndex(long world, String name, Callback<NodeIndex> callback, String... indexedAttributes);
 
     /**
      * Retrieve a named global index, at a precise world and time.<br>

@@ -962,7 +962,7 @@ public class CoreTask implements Task {
                         return new ActionExecuteExpression((String) params[0]);
                     }
                 });
-        registry.getOrCreateDeclaration(CoreActionNames.READ_GLOBAL_INDEX)
+        registry.getOrCreateDeclaration(CoreActionNames.READ_INDEX)
                 .setParams(Type.STRING, Type.STRING_ARRAY)
                 .setDescription("Retrieves indexed nodes matching the query.")
                 .setFactory(new ActionFactory() {
@@ -970,9 +970,9 @@ public class CoreTask implements Task {
                     public Action create(Object[] params) {
                         final String[] varargs = (String[]) params[1];
                         if (varargs != null) {
-                            return new ActionReadGlobalIndex((String) params[0], varargs);
+                            return new ActionReadIndex((String) params[0], varargs);
                         } else {
-                            return new ActionReadGlobalIndex((String) params[0]);
+                            return new ActionReadIndex((String) params[0]);
                         }
                     }
                 });
@@ -1401,8 +1401,8 @@ public class CoreTask implements Task {
     }
 
     @Override
-    public final Task readGlobalIndex(final String name, final String... query) {
-        return then(CoreActions.readGlobalIndex(name, query));
+    public final Task readIndex(final String name, final String... query) {
+        return then(CoreActions.readIndex(name, query));
     }
 
     @Override

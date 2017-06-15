@@ -180,7 +180,7 @@ public class QueryTest implements Resolver, Graph {
     }
 
     @Override
-    public void declareIndex(long world, long time, String name, Callback<NodeIndex> callback, String... indexedAttributes) {
+    public void declareIndex(long world, String name, Callback<NodeIndex> callback, String... indexedAttributes) {
 
     }
 

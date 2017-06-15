@@ -27,7 +27,6 @@ import greycat.TaskContext;
 import greycat.TaskResult;
 
 import static greycat.Tasks.newTask;
-import static greycat.internal.task.CoreActions.*;
 
 public class ActionLocalIndexOrUnindexTest {
 
@@ -53,7 +52,7 @@ public class ActionLocalIndexOrUnindexTest {
                         .setAttribute("name", Type.STRING, "root")
                         .updateIndex("rootIdx")
                         .addVarToRelation("idxRelation", "child", "name")
-                        .readGlobalIndex("rootIdx")
+                        .readIndex("rootIdx")
                         .traverse("idxRelation")
                         .thenDo(new ActionFunction() {
                             @Override
@@ -66,9 +65,9 @@ public class ActionLocalIndexOrUnindexTest {
                                 Assert.assertEquals("child3", ((BaseNode) result.get(2)).get("name"));
                             }
                         })
-                        .readGlobalIndex("rootIdx")
+                        .readIndex("rootIdx")
                         .removeVarFromRelation("idxRelation", "child", "name")
-                        .readGlobalIndex("rootIdx")
+                        .readIndex("rootIdx")
                         .traverse("idxRelation")
                         .thenDo(new ActionFunction() {
                             @Override

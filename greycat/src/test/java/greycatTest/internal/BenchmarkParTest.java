@@ -22,7 +22,6 @@ import greycat.Callback;
 import greycat.GraphBuilder;
 import greycat.TaskResult;
 
-import static greycat.internal.task.CoreActions.*;
 import static greycat.Tasks.cond;
 import static greycat.Tasks.newTask;
 
@@ -54,7 +53,7 @@ public class BenchmarkParTest {
                                         newTask().travelInTime("{{i}}").setAttribute("val", Type.INT, "{{i}}").clearResult())
                                 .ifThen(cond("i % 100 == 0"), newTask().save())
                                 .clearResult()
-                ).save().readGlobalIndex("nodes").execute(g, new Callback<TaskResult>() {
+                ).save().readIndex("nodes").execute(g, new Callback<TaskResult>() {
                     @Override
                     public void on(TaskResult result) {
                         System.out.println("indexSize=" + result.size());

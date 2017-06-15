@@ -68,7 +68,7 @@ public class TaskServerTest {
                                         .build();
                                 emptyGraph.connect(result1 -> {
 
-                                    Task t = newTask().readGlobalIndex("nodes");
+                                    Task t = newTask().readIndex("nodes");
                                     t.execute(emptyGraph, new Callback<TaskResult>() {
                                         @Override
                                         public void on(TaskResult result) {
@@ -78,7 +78,7 @@ public class TaskServerTest {
                                                     .log("remotely logged: {{result}}")
                                                     .log("log: {{var_name}}")
                                                     .print("remotely printed: {{result}}")
-                                                    .readGlobalIndex("nodes")
+                                                    .readIndex("nodes")
                                                     .createNode()
                                                     .save();
                                             TaskContext prepare = tremote.prepare(emptyGraph, result.asArray(), new Callback<TaskResult>() {
@@ -119,8 +119,8 @@ public class TaskServerTest {
                                                                public void on(TaskResult result) {
                                                                }
                                                            },
-                                                    newTask().readGlobalIndex("nodes")
-                                                    //newTask().readGlobalIndex("roots")
+                                                    newTask().readIndex("nodes")
+                                                    //newTask().readIndex("roots")
                                                     //newTask().createNode().setAttribute("name", Type.STRING, "remotelyAdded").addToGlobalIndex("nodes", "name").save()
                                                     , null);*/
 

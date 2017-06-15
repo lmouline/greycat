@@ -347,7 +347,7 @@ public interface Task {
 
     Task attribute(String name, String... params);
 
-    Task readGlobalIndex(String indexName, String... query);
+    Task readIndex(String indexName, String... query);
 
     Task globalIndex(String indexName);
 

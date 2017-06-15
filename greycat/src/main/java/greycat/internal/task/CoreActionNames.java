@@ -50,7 +50,7 @@ public class CoreActionNames {
     public static String LOG = "log";
     public static String PRINT = "print";
     public static String PRINTLN = "println";
-    public static String READ_GLOBAL_INDEX = "readGlobalIndex";
+    public static String READ_INDEX = "readIndex";
     public static String GLOBAL_INDEX = "globalIndex";
     public static String READ_VAR = "readVar";
     public static String REMOVE = "remove";

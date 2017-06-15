@@ -46,13 +46,13 @@ public abstract class AbstractActionTest {
                 root.addToRelation("children", n1);
 
                 //create some index
-                selfPointer.graph.declareIndex(0, Constants.BEGINNING_OF_TIME, "roots", new Callback<NodeIndex>() {
+                selfPointer.graph.declareIndex(0, "roots", new Callback<NodeIndex>() {
                     @Override
                     public void on(NodeIndex rootsIndex) {
                         rootsIndex.update(root);
                     }
                 }, "name");
-                selfPointer.graph.declareIndex(0, Constants.BEGINNING_OF_TIME, "nodes", new Callback<NodeIndex>() {
+                selfPointer.graph.declareIndex(0, "nodes", new Callback<NodeIndex>() {
                     @Override
                     public void on(NodeIndex nodesIndex) {
                         nodesIndex.update(n0);

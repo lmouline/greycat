@@ -53,7 +53,7 @@ public class RobustnessTests {
                 root.addToRelation("child", n2);
                 root.addToRelation("child", n3);
 
-                _graph.declareIndex(0, 0, "rootIndex", rootIndex -> {
+                _graph.declareIndex(0, "rootIndex", rootIndex -> {
                     rootIndex.update(root);
                 }, "name");
             }
@@ -125,7 +125,7 @@ public class RobustnessTests {
         //indexName null
         boolean exceptionCaught = false;
         try {
-            newTask().then(readGlobalIndex(null, "name", "root")).execute(_graph, null);
+            newTask().then(readIndex(null, "name", "root")).execute(_graph, null);
         } catch (RuntimeException e) {
             exceptionCaught = true;
         } catch (Exception e) {
@@ -136,7 +136,7 @@ public class RobustnessTests {
         //query null
         exceptionCaught = false;
         try {
-            newTask().then(readGlobalIndex("rootIndex", null)).execute(_graph, null);
+            newTask().then(readIndex("rootIndex", null)).execute(_graph, null);
         } catch (RuntimeException e) {
             exceptionCaught = true;
         } catch (Exception e) {
@@ -150,7 +150,7 @@ public class RobustnessTests {
         //indexName null
         boolean exceptionCaught = false;
         try {
-            newTask().then(readGlobalIndex(null)).execute(_graph, null);
+            newTask().then(readIndex(null)).execute(_graph, null);
         } catch (RuntimeException e) {
             exceptionCaught = true;
         } catch (Exception e) {

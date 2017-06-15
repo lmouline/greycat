@@ -135,18 +135,18 @@ public class IndexTest {
                         .travelInTime(System.currentTimeMillis() + "")
                         .travelInWorld("0")
                         .declareIndex("indexName", "name")
-                        .readGlobalIndex("indexName")
+                        .readIndex("indexName")
                         .createNode()
                         .setAttribute("name", Type.STRING, "156ea1e_11-SNAPSHOT")
                         .updateIndex("indexName")
-                        .readGlobalIndex("indexName")
+                        .readIndex("indexName")
                         .thenDo(new ActionFunction() {
                             @Override
                             public void eval(TaskContext ctx) {
                                 Assert.assertEquals(1, ctx.result().size());
                             }
                         })
-                        .readGlobalIndex("indexName", "name", "156ea1e_11-SNAPSHOT")
+                        .readIndex("indexName", "name", "156ea1e_11-SNAPSHOT")
                         .thenDo(new ActionFunction() {
                             @Override
                             public void eval(TaskContext ctx) {
@@ -190,7 +190,7 @@ public class IndexTest {
 
                         //Check
                         .travelInTime("10")
-                        .readGlobalIndex(idxName, kAtt, sValue)
+                        .readIndex(idxName, kAtt, sValue)
                         .thenDo(new ActionFunction() {
                             @Override
                             public void eval(TaskContext ctx) {
@@ -199,7 +199,7 @@ public class IndexTest {
                             }
                         })
                         .travelInTime("0") //jump the context at time 0
-                        .readGlobalIndex(idxName)
+                        .readIndex(idxName)
                         .thenDo(new ActionFunction() {
                             @Override
                             public void eval(TaskContext ctx) {
@@ -210,7 +210,7 @@ public class IndexTest {
                                 ctx.continueTask();
                             }
                         })
-                        .readGlobalIndex(idxName, kAtt, fValue)
+                        .readIndex(idxName, kAtt, fValue)
                         .thenDo(new ActionFunction() {
                             @Override
                             public void eval(TaskContext ctx) {

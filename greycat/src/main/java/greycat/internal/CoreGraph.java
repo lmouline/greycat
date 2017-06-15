@@ -475,8 +475,8 @@ public class CoreGraph implements Graph {
     }
 
     @Override
-    public final void declareIndex(long world, long time, String name, Callback<NodeIndex> callback, String... indexedAttributes) {
-        internal_index(world, time, name, false, new Callback<NodeIndex>() {
+    public final void declareIndex(long world, String name, Callback<NodeIndex> callback, String... indexedAttributes) {
+        internal_index(world, Constants.BEGINNING_OF_TIME, name, false, new Callback<NodeIndex>() {
             @Override
             public void on(final NodeIndex result) {
                 result.setTimeSensitivity(-1, 0);
@@ -486,8 +486,8 @@ public class CoreGraph implements Graph {
     }
 
     @Override
-    public final void declareTimedIndex(long world, long time, String name, Callback<NodeIndex> callback, String... indexedAttributes) {
-        internal_index(world, time, name, false, new Callback<NodeIndex>() {
+    public final void declareTimedIndex(long world, long originTime, String name, Callback<NodeIndex> callback, String... indexedAttributes) {
+        internal_index(world, originTime, name, false, new Callback<NodeIndex>() {
             @Override
             public void on(final NodeIndex result) {
                 result.declareAttributes(callback, indexedAttributes);

@@ -255,8 +255,8 @@ public class CoreActions {
      * @param query     query to filter nodes, such as 'name', 'FOO' to look for nodes with name == FOO
      * @return the action to chain
      */
-    public static Action readGlobalIndex(String indexName, String... query) {
-        return new ActionReadGlobalIndex(indexName, query);
+    public static Action readIndex(String indexName, String... query) {
+        return new ActionReadIndex(indexName, query);
     }
 
     public static Action globalIndex(String indexName) {

@@ -47,7 +47,7 @@ class ActionDeclareIndex implements Action {
                 }
             },templatedAttributes);
         } else {
-            ctx.graph().declareIndex(ctx.world(), ctx.time(), templatedIndexName, new Callback<NodeIndex>() {
+            ctx.graph().declareIndex(ctx.world(), templatedIndexName, new Callback<NodeIndex>() {
                 @Override
                 public void on(NodeIndex result) {
                     result.free();
