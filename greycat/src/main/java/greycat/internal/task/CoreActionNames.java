@@ -22,10 +22,9 @@ public class CoreActionNames {
     public static String ADD_VAR_TO_RELATION = "addVarToRelation";
     public static String REMOVE_VAR_TO_RELATION = "removeVarToRelation";
 
-    public static String ADD_TO_GLOBAL_INDEX = "addToGlobalIndex";
-    public static String ADD_TO_GLOBAL_TIMED_INDEX = "addToGlobalTimedIndex";
-    public static String REMOVE_FROM_GLOBAL_INDEX = "removeFromGlobalIndex";
-    public static String REMOVE_FROM_GLOBAL_TIMED_INDEX = "removeFromGlobalTimedIndex";
+    public static String UPDATE_INDEX = "updateIndex";
+    public static String DECLARE_INDEX = "declareIndex";
+    public static String DECLARE_TIMED_INDEX = "declareTimedIndex";
 
     public static String CREATE_NODE = "createNode";
     public static String CREATE_TYPED_NODE = "createTypedNode";

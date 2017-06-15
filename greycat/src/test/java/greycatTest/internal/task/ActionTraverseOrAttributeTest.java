@@ -100,8 +100,8 @@ public class ActionTraverseOrAttributeTest extends AbstractActionTest {
         Node root = graph.newNode(0, 0);
         root.set("name", Type.STRING, "root2");
 
-        graph.index(0, 0, "roots", rootIndex -> {
-            rootIndex.addToIndex(root, "name");
+        graph.declareIndex(0, 0, "roots", rootIndex -> {
+            rootIndex.update(root);
 
             RelationIndexed irel = (RelationIndexed) root.getOrCreate("childrenIndexed", Type.RELATION_INDEXED);
             irel.add(node1, "name");
@@ -117,7 +117,7 @@ public class ActionTraverseOrAttributeTest extends AbstractActionTest {
                 }
             });
 
-        });
+        }, "name");
 
         /*
         readIndex("rootIndex", "name=root2")

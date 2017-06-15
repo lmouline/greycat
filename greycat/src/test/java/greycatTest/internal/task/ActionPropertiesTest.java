@@ -41,9 +41,9 @@ public class ActionPropertiesTest {
                 root.set("id", Type.INT, 1);
                 root.set("attribute", Type.BOOL, false);
 
-                graph.index(0, Constants.BEGINNING_OF_TIME, "root", rootIndex -> {
-                    rootIndex.addToIndex(root, "id");
-                });
+                graph.declareIndex(0, Constants.BEGINNING_OF_TIME, "root", rootIndex -> {
+                    rootIndex.update(root);
+                }, "id");
 
                 Node child1 = graph.newNode(0, Constants.BEGINNING_OF_TIME);
                 child1.set("name", Type.STRING, "child1");

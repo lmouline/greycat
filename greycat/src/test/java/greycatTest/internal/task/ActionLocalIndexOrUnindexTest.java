@@ -39,21 +39,22 @@ public class ActionLocalIndexOrUnindexTest {
             @Override
             public void on(Boolean succeed) {
                 newTask()
-                        .then(createNode())
-                        .then(setAttribute("name", Type.STRING, "child1"))
-                        .then(addToVar("child"))
-                        .then(createNode())
-                        .then(setAttribute("name", Type.STRING, "child2"))
-                        .then(addToVar("child"))
-                        .then(createNode())
-                        .then(setAttribute("name", Type.STRING, "child3"))
-                        .then(addToVar("child"))
-                        .then(createNode())
-                        .then(setAttribute("name", Type.STRING, "root"))
-                        .then(addToGlobalIndex("rootIdx", "name"))
-                        .then(addVarToRelation("idxRelation", "child", "name"))
-                        .then(readGlobalIndex("rootIdx"))
-                        .then(traverse("idxRelation"))
+                        .declareIndex("rootIdx", "name")
+                        .createNode()
+                        .setAttribute("name", Type.STRING, "child1")
+                        .addToVar("child")
+                        .createNode()
+                        .setAttribute("name", Type.STRING, "child2")
+                        .addToVar("child")
+                        .createNode()
+                        .setAttribute("name", Type.STRING, "child3")
+                        .addToVar("child")
+                        .createNode()
+                        .setAttribute("name", Type.STRING, "root")
+                        .updateIndex("rootIdx")
+                        .addVarToRelation("idxRelation", "child", "name")
+                        .readGlobalIndex("rootIdx")
+                        .traverse("idxRelation")
                         .thenDo(new ActionFunction() {
                             @Override
                             public void eval(TaskContext ctx) {
@@ -65,10 +66,10 @@ public class ActionLocalIndexOrUnindexTest {
                                 Assert.assertEquals("child3", ((BaseNode) result.get(2)).get("name"));
                             }
                         })
-                        .then(readGlobalIndex("rootIdx"))
-                        .then(removeVarFromRelation("idxRelation", "child", "name"))
-                        .then(readGlobalIndex("rootIdx"))
-                        .then(traverse("idxRelation"))
+                        .readGlobalIndex("rootIdx")
+                        .removeVarFromRelation("idxRelation", "child", "name")
+                        .readGlobalIndex("rootIdx")
+                        .traverse("idxRelation")
                         .thenDo(new ActionFunction() {
                             @Override
                             public void eval(TaskContext ctx) {

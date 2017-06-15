@@ -322,7 +322,7 @@ public class CoreGraph implements Graph {
             selfPointer._storage.connect(selfPointer, new Callback<Boolean>() {
                 @Override
                 public void on(Boolean connection) {
-                    if(connection) {
+                    if (connection) {
                         selfPointer._storage.lock(new Callback<Buffer>() {
                             @Override
                             public void on(Buffer prefixBuf) {
@@ -475,12 +475,28 @@ public class CoreGraph implements Graph {
     }
 
     @Override
-    public final synchronized void index(long world, long time, String name, Callback<NodeIndex> callback) {
-        internal_index(world, time, name, false, callback);
+    public final void declareIndex(long world, long time, String name, Callback<NodeIndex> callback, String... indexedAttributes) {
+        internal_index(world, time, name, false, new Callback<NodeIndex>() {
+            @Override
+            public void on(final NodeIndex result) {
+                result.setTimeSensitivity(-1, 0);
+                result.declareAttributes(callback, indexedAttributes);
+            }
+        });
     }
 
     @Override
-    public final synchronized void indexIfExists(long world, long time, String name, Callback<NodeIndex> callback) {
+    public final void declareTimedIndex(long world, long time, String name, Callback<NodeIndex> callback, String... indexedAttributes) {
+        internal_index(world, time, name, false, new Callback<NodeIndex>() {
+            @Override
+            public void on(final NodeIndex result) {
+                result.declareAttributes(callback, indexedAttributes);
+            }
+        });
+    }
+
+    @Override
+    public final synchronized void index(long world, long time, String name, Callback<NodeIndex> callback) {
         internal_index(world, time, name, true, callback);
     }
 
@@ -497,9 +513,9 @@ public class CoreGraph implements Graph {
                     if (globalIndexNodeUnsafe == null) {
                         globalIndexNodeUnsafe = new BaseNode(world, CoreConstants.BEGINNING_OF_TIME, CoreConstants.END_OF_TIME, selfPointer);
                         selfPointer._resolver.initNode(globalIndexNodeUnsafe, CoreConstants.NULL_LONG);
-                        globalIndexContent = (LongLongMap) globalIndexNodeUnsafe.getOrCreate(CoreConstants.INDEX_ATTRIBUTE, Type.LONG_TO_LONG_MAP);
+                        globalIndexContent = (LongLongMap) globalIndexNodeUnsafe.getOrCreateAt(0, Type.LONG_TO_LONG_MAP);
                     } else {
-                        globalIndexContent = (LongLongMap) globalIndexNodeUnsafe.get(CoreConstants.INDEX_ATTRIBUTE);
+                        globalIndexContent = (LongLongMap) globalIndexNodeUnsafe.getAt(0);
                     }
                     long indexId = globalIndexContent.get(indexNameCoded);
                     if (indexId == CoreConstants.NULL_LONG) {
@@ -533,7 +549,7 @@ public class CoreGraph implements Graph {
                 if (globalIndexNodeUnsafe == null) {
                     callback.on(new String[0]);
                 } else {
-                    LongLongMap globalIndexContent = (LongLongMap) globalIndexNodeUnsafe.get(CoreConstants.INDEX_ATTRIBUTE);
+                    LongLongMap globalIndexContent = (LongLongMap) globalIndexNodeUnsafe.getAt(0);
                     if (globalIndexContent == null) {
                         globalIndexNodeUnsafe.free();
                         callback.on(new String[0]);

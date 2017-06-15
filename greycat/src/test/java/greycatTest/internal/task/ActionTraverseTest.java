@@ -134,8 +134,8 @@ public class ActionTraverseTest extends AbstractActionTest {
         final Node root = graph.newNode(0, 0);
         root.set("name", Type.STRING, "root2");
 
-        graph.index(0, 0, "roots", rootIndex -> {
-            rootIndex.addToIndex(root, "name");
+        graph.declareIndex(0, 0, "roots", rootIndex -> {
+            rootIndex.update(root);
 
             RelationIndexed irel = (RelationIndexed) root.getOrCreate("childrenIndexed", Type.RELATION_INDEXED);
             irel.add(node1, "name");
@@ -150,7 +150,7 @@ public class ActionTraverseTest extends AbstractActionTest {
                 }
             });
 
-        });
+        }, "name");
 
         newTask()
                 .then(travelInTime("0"))

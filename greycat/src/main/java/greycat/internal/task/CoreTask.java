@@ -1029,49 +1029,35 @@ public class CoreTask implements Task {
                         return new ActionSetAttribute((String) params[0], (String) params[1], (String) params[2], true);
                     }
                 });
-
-        registry.getOrCreateDeclaration(CoreActionNames.ADD_TO_GLOBAL_INDEX)
+        registry.getOrCreateDeclaration(CoreActionNames.DECLARE_INDEX)
                 .setParams(Type.STRING, Type.STRING_ARRAY)
-                .setDescription("Add to global index without time management")
+                .setDescription("Declare a new global index without time management")
                 .setFactory(new ActionFactory() {
                     @Override
                     public Action create(Object[] params) {
                         final String[] castedVarrargs = (String[]) params[1];
-                        return new ActionAddRemoveToGlobalIndex(false, false, (String) params[0], castedVarrargs);
+                        return new ActionDeclareIndex(false, (String) params[0], castedVarrargs);
                     }
                 });
-        registry.getOrCreateDeclaration(CoreActionNames.ADD_TO_GLOBAL_TIMED_INDEX)
+        registry.getOrCreateDeclaration(CoreActionNames.DECLARE_TIMED_INDEX)
                 .setParams(Type.STRING, Type.STRING_ARRAY)
-                .setDescription("Add to global index with time management")
+                .setDescription("Declare a new global index with time management")
                 .setFactory(new ActionFactory() {
                     @Override
                     public Action create(Object[] params) {
                         final String[] castedVarrargs = (String[]) params[1];
-                        return new ActionAddRemoveToGlobalIndex(false, true, (String) params[0], castedVarrargs);
+                        return new ActionDeclareIndex(true, (String) params[0], castedVarrargs);
                     }
                 });
-        /*
-        registry.getOrCreateDeclaration(CoreActionNames.REMOVE_TO_GLOBAL_INDEX)
-                .setParams(Type.STRING, Type.STRING_ARRAY)
-                .setDescription("Add to global index without time management")
+        registry.getOrCreateDeclaration(CoreActionNames.UPDATE_INDEX)
+                .setParams(Type.STRING)
+                .setDescription("Update global index with nodes present in current context")
                 .setFactory(new ActionFactory() {
                     @Override
                     public Action create(Object[] params) {
-                        return new ActionAddRemoveToGlobalIndex(false, false, (String) params[0], (String[]) params[1]);
+                        return new ActionUpdateIndex((String) params[0]);
                     }
                 });
-        registry.getOrCreateDeclaration(CoreActionNames.ADD_TO_GLOBAL_TIMED_INDEX)
-                .setParams(Type.STRING, Type.STRING_ARRAY)
-                .setDescription("Add to global index with time management")
-                .setFactory(new ActionFactory() {
-                    @Override
-                    public Action create(Object[] params) {
-                        return new ActionAddRemoveToGlobalIndex(false, true, (String) params[0], (String[]) params[1]);
-                    }
-                });
-                */
-
-
         registry.getOrCreateDeclaration(CoreActionNames.LOOP)
                 .setParams(Type.STRING, Type.STRING, Type.TASK)
                 .setDescription("Executes a task in a range.")
@@ -1385,12 +1371,12 @@ public class CoreTask implements Task {
     }
 
     @Override
-    public Task timepoints(String from, String to) {
+    public final Task timepoints(String from, String to) {
         return then(CoreActions.timepoints(from, to));
     }
 
     @Override
-    public Task attributesWithType(byte filterType) {
+    public final Task attributesWithType(byte filterType) {
         return then(CoreActions.attributesWithTypes(filterType));
     }
 
@@ -1420,28 +1406,23 @@ public class CoreTask implements Task {
     }
 
     @Override
-    public Task globalIndex(String indexName) {
+    public final Task globalIndex(String indexName) {
         return then(CoreActions.globalIndex(indexName));
     }
 
     @Override
-    public final Task addToGlobalIndex(final String name, final String... attributes) {
-        return then(CoreActions.addToGlobalIndex(name, attributes));
+    public final Task updateIndex(String name) {
+        return then(CoreActions.updateIndex(name));
     }
 
     @Override
-    public final Task addToGlobalTimedIndex(final String name, final String... attributes) {
-        return then(CoreActions.addToGlobalTimedIndex(name, attributes));
+    public final Task declareIndex(String name, String... attributes) {
+        return then(CoreActions.declareIndex(name, attributes));
     }
 
     @Override
-    public final Task removeFromGlobalIndex(final String name, final String... attributes) {
-        return then(CoreActions.removeFromGlobalIndex(name, attributes));
-    }
-
-    @Override
-    public final Task removeFromGlobalTimedIndex(final String name, final String... attributes) {
-        return then(CoreActions.removeFromGlobalTimedIndex(name, attributes));
+    public final Task declareTimedIndex(String name, String... attributes) {
+        return then(CoreActions.declareTimedIndex(name, attributes));
     }
 
     @Override

@@ -37,10 +37,10 @@ class ActionReadGlobalIndex implements Action {
     }
 
     @Override
-    public void eval(final TaskContext ctx) {
+    public final void eval(final TaskContext ctx) {
         final String name = ctx.template(_name);
         final String[] query = ctx.templates(_params);
-        ctx.graph().indexIfExists(ctx.world(), ctx.time(), name, new Callback<NodeIndex>() {
+        ctx.graph().index(ctx.world(), ctx.time(), name, new Callback<NodeIndex>() {
             @Override
             public void on(NodeIndex resolvedIndex) {
                 if (resolvedIndex != null) {
@@ -59,7 +59,7 @@ class ActionReadGlobalIndex implements Action {
     }
 
     @Override
-    public void serialize(final Buffer builder) {
+    public final void serialize(final Buffer builder) {
         builder.writeString(CoreActionNames.READ_GLOBAL_INDEX);
         builder.writeChar(Constants.TASK_PARAM_OPEN);
         TaskHelper.serializeString(_name, builder, true);

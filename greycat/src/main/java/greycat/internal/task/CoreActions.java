@@ -266,39 +266,19 @@ public class CoreActions {
     /**
      * Adds node to the named global index.
      *
-     * @param name       of the index
-     * @param attributes Attributes of the node used for indexation
+     * @param name of the index
      * @return the action to chain
      */
-    public static Action addToGlobalIndex(String name, String... attributes) {
-        return new ActionAddRemoveToGlobalIndex(false, false, name, attributes);
+    public static Action updateIndex(String name) {
+        return new ActionUpdateIndex(name);
     }
 
-
-    public static Action addToGlobalTimedIndex(String name, String... attributes) {
-        return new ActionAddRemoveToGlobalIndex(false, true, name, attributes);
+    public static Action declareIndex(String name, String... attributes) {
+        return new ActionDeclareIndex(false, name, attributes);
     }
 
-    /**
-     * Removes a node from the named global index.
-     *
-     * @param name       of the index
-     * @param attributes attributes to used to find the node in the index
-     * @return the action to chain
-     */
-    public static Action removeFromGlobalIndex(String name, String... attributes) {
-        return new ActionAddRemoveToGlobalIndex(true, false, name, attributes);
-    }
-
-    /**
-     * Removes a node from the named global index.
-     *
-     * @param name       of the index
-     * @param attributes attributes to used to find the node in the index
-     * @return the action to chain
-     */
-    public static Action removeFromGlobalTimedIndex(String name, String... attributes) {
-        return new ActionAddRemoveToGlobalIndex(true, true, name, attributes);
+    public static Action declareTimedIndex(String name, String... attributes) {
+        return new ActionDeclareIndex(true, name, attributes);
     }
 
     /**

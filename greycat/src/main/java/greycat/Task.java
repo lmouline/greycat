@@ -198,7 +198,7 @@ public interface Task {
      * @return this task to chain
      */
     Task pipeTo(Task subTask, String... vars);
-    
+
     Task traverseTimeline(String start, String end, String limit);
 
     /**
@@ -351,13 +351,11 @@ public interface Task {
 
     Task globalIndex(String indexName);
 
-    Task addToGlobalIndex(String name, String... attributes);
+    Task updateIndex(String name);
 
-    Task addToGlobalTimedIndex(String name, String... attributes);
+    Task declareIndex(String indexName, String... indexedAttributesNames);
 
-    Task removeFromGlobalIndex(String name, String... attributes);
-
-    Task removeFromGlobalTimedIndex(String name, String... attributes);
+    Task declareTimedIndex(String indexName, String... indexedAttributesNames);
 
     Task indexNames();
 

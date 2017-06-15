@@ -53,9 +53,9 @@ public class RobustnessTests {
                 root.addToRelation("child", n2);
                 root.addToRelation("child", n3);
 
-                _graph.index(0, 0, "rootIndex", rootIndex -> {
-                    rootIndex.addToIndex(root, "name");
-                });
+                _graph.declareIndex(0, 0, "rootIndex", rootIndex -> {
+                    rootIndex.update(root);
+                }, "name");
             }
         });
 
@@ -63,7 +63,6 @@ public class RobustnessTests {
 
     @After
     public void deleteGrap() {
-
         _graph.index(0, 0, "rootIndex", rootIndex -> {
             rootIndex.find(result -> {
                 for (Node r : result) {

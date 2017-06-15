@@ -134,10 +134,11 @@ public class IndexTest {
                 Tasks.newTask()
                         .travelInTime(System.currentTimeMillis() + "")
                         .travelInWorld("0")
-                        .readGlobalIndex("indexName") //comment this line to make the test passed
+                        .declareIndex("indexName", "name")
+                        .readGlobalIndex("indexName")
                         .createNode()
                         .setAttribute("name", Type.STRING, "156ea1e_11-SNAPSHOT")
-                        .addToGlobalIndex("indexName", "name")
+                        .updateIndex("indexName")
                         .readGlobalIndex("indexName")
                         .thenDo(new ActionFunction() {
                             @Override
@@ -175,16 +176,17 @@ public class IndexTest {
                 Tasks.newTask()
                         .travelInTime("0")
                         .travelInWorld("0")
+                        .declareTimedIndex(idxName, kAtt)
                         .createNode()
                         .setAttribute(kAtt, Type.STRING, fValue)
                         .setAsVar(rootNode)
-                        .addToGlobalTimedIndex(idxName, kAtt) //add to index at time 0
+                        .updateIndex(idxName) //add to index at time 0
                         .readVar(rootNode)
                         .travelInTime("10") //jump the context at time 10
-                        .removeFromGlobalTimedIndex(idxName, kAtt) //remove the node from the index
+                        //.removeFromGlobalTimedIndex(idxName, kAtt) //remove the node from the index
                         .setAttribute(kAtt, Type.STRING, sValue) //modify its key value
 
-                        .addToGlobalTimedIndex(idxName, kAtt) //re-add to the index
+                        .updateIndex(idxName) //re-add to the index
 
                         //Check
                         .travelInTime("10")
@@ -213,7 +215,7 @@ public class IndexTest {
                             @Override
                             public void eval(TaskContext ctx) {
                                 //But not with the query...
-                                Assert.assertEquals(1, ctx.result().size());
+                                Assert.assertEquals(0, ctx.result().size());
                                 ctx.continueTask();
                             }
                         })
