@@ -1,12 +1,3 @@
-package greycat.modeling.example;
-
-import greycat.Callback;
-import greycat.Graph;
-import greycat.GraphBuilder;
-import model.Device;
-import model.ModelPlugin;
-import model.Module;
-
 /**
  * Copyright 2017 The GreyCat Authors.  All rights reserved.
  * <p>
@@ -22,6 +13,15 @@ import model.Module;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package greycat.modeling.example;
+
+import greycat.Callback;
+import greycat.Graph;
+import greycat.GraphBuilder;
+import model.Device;
+import model.ModelPlugin;
+import model.Module;
+
 public class HelloModelingWorld {
 
 
