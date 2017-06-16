@@ -358,6 +358,46 @@ class NodeTypeGenerator {
                                 "\t\t\t}\n" +
                                 "\t\t});"
                 );
+
+
+                // find
+                MethodSource find = javaClass.addMethod()
+                        .setName("findFrom" + upperCaseFirstChar(keyName))
+                        .setVisibility(Visibility.PUBLIC)
+                        .setReturnTypeVoid()
+                        .setFinal(true)
+                        .setStatic(true);
+                find.addParameter("greycat.Callback<" + classClassifier.name() + "[]>", "callback");
+                find.addParameter("Graph", "graph");
+                find.addParameter("long", "world");
+                find.addParameter("long", "time");
+                for (Attribute att : key.attributes()) {
+                    find.addParameter("String", att.name());
+                }
+                StringBuilder findBody = new StringBuilder();
+                findBody.append("graph.index(world, time, " + classClassifier.name() + "." + keyName.toUpperCase() + ", new Callback<greycat.NodeIndex>() {");
+                findBody.append("@Override\n");
+                findBody.append("public void on(greycat.NodeIndex result) {");
+                findBody.append("result.find(new greycat.Callback<greycat.Node[]>() {");
+                findBody.append("@Override\n");
+                findBody.append("public void on(greycat.Node[] result) {");
+                findBody.append(classClassifier.name() + "[] typedResult = new " + classClassifier.name() + "[result.length];");
+                findBody.append("java.lang.System.arraycopy(result, 0, typedResult, 0, result.length);");
+                findBody.append("callback.on(typedResult);");
+                findBody.append("}");
+
+                StringBuilder params = new StringBuilder();
+                for (Attribute att : key.attributes()) {
+                    params.append(classClassifier.name() + "." + att.name().toUpperCase() + ", " + att.name() + ",");
+                }
+                params.deleteCharAt(params.length() - 1);
+
+                findBody.append("}, " + params.toString() + ");");
+                findBody.append("}");
+                findBody.append("});");
+
+                find.setBody(findBody.toString());
+
             }
 
             javaClass.addMethod()
@@ -367,7 +407,6 @@ class NodeTypeGenerator {
                     .setReturnTypeVoid()
                     .setBody(indexMethodBody.toString())
                     .addParameter("Callback<Boolean>", "callback");
-            javaClass.addImport(Callback.class);
 
             javaClass.addMethod()
                     .setName("unindex" + classClassifier.name())
@@ -376,7 +415,7 @@ class NodeTypeGenerator {
                     .setReturnTypeVoid()
                     .setBody(unindexMethodBody.toString())
                     .addParameter("Callback<Boolean>", "callback");
-            javaClass.addImport(Callback.class);
+
 
         }
 

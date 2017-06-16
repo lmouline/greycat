@@ -56,6 +56,19 @@ public class HelloModelingWorld {
 
                 device.findModules(result1 -> System.out.println(result1), "name", "name2");
 
+                device.indexDevice(new Callback<Boolean>() {
+                    @Override
+                    public void on(Boolean result) {
+                        Device.findFromMyKey2(new Callback<Device[]>() {
+                            @Override
+                            public void on(Device[] result) {
+                                System.out.println(result[0]);
+                            }
+                        }, graph, 0, 0, "device");
+
+                    }
+                });
+
             }
         });
     }
