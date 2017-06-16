@@ -65,8 +65,7 @@ public class ModelChecker {
             }
 
             // attributes (nothing to check)
-
-
+            
             // relations
             for (greycat.language.GreyCatModelParser.RelationDclContext relDecCxt : classDclCxt.relationDcl()) {
                 String relName, relType;

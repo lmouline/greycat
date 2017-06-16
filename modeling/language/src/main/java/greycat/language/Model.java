@@ -51,34 +51,30 @@ public class Model {
     }
 
     private void build(ANTLRInputStream in) {
-        BufferedTokenStream tokens = new CommonTokenStream(new GreyCatModelLexer(in));
-        GreyCatModelParser parser = new GreyCatModelParser(tokens);
-        GreyCatModelParser.ModelDclContext modelDclCtx = parser.modelDcl();
-
+        BufferedTokenStream tokens = new CommonTokenStream(new greycat.language.GreyCatModelLexer(in));
+        greycat.language.GreyCatModelParser parser = new greycat.language.GreyCatModelParser(tokens);
+        greycat.language.GreyCatModelParser.ModelDclContext modelDclCtx = parser.modelDcl();
         // enums
-        for (GreyCatModelParser.EnumDclContext enumDclCtx : modelDclCtx.enumDcl()) {
+        for (greycat.language.GreyCatModelParser.EnumDclContext enumDclCtx : modelDclCtx.enumDcl()) {
             String fqn = enumDclCtx.name.getText();
             final Enum enumClass = getOrCreateAndAddEnum(fqn);
             for (TerminalNode literal : enumDclCtx.enumLiteralsDcl().IDENT()) {
                 enumClass.addLiteral(literal.getText());
             }
         }
-
         // classes
-        for (GreyCatModelParser.ClassDclContext classDclCxt : modelDclCtx.classDcl()) {
-            String classFqn = classDclCxt.name.getText();;
+        for (greycat.language.GreyCatModelParser.ClassDclContext classDclCxt : modelDclCtx.classDcl()) {
+            String classFqn = classDclCxt.name.getText();
             final Class newClass = getOrCreateAndAddClass(classFqn);
-
             // parents
             if (classDclCxt.parentDcl() != null) {
                 final Class newClassTT = getOrCreateAndAddClass(classDclCxt.parentDcl().name.getText());
                 newClass.setParent(newClassTT);
             }
-
             // attributes
-            for (GreyCatModelParser.AttributeDclContext attDcl : classDclCxt.attributeDcl()) {
+            for (greycat.language.GreyCatModelParser.AttributeDclContext attDcl : classDclCxt.attributeDcl()) {
                 String name = attDcl.name.getText();
-                GreyCatModelParser.AttributeTypeDclContext attTypeDclCxt = attDcl.attributeTypeDcl();
+                greycat.language.GreyCatModelParser.AttributeTypeDclContext attTypeDclCxt = attDcl.attributeTypeDcl();
                 String value = attTypeDclCxt.getText();
                 boolean isArray = false;
                 if (value.endsWith("[]")) {
@@ -89,9 +85,8 @@ public class Model {
                 final Attribute attribute = new Attribute(name, value, isArray);
                 newClass.addProperty(attribute);
             }
-
             // relations
-            for (GreyCatModelParser.RelationDclContext relDclCxt : classDclCxt.relationDcl()) {
+            for (greycat.language.GreyCatModelParser.RelationDclContext relDclCxt : classDclCxt.relationDcl()) {
                 String name, type;
                 boolean isToOne = relDclCxt.toOneDcl() != null;
                 if (isToOne) {
@@ -108,7 +103,7 @@ public class Model {
                 if (!isToOne) {
                     // relation keys
                     if (relDclCxt.toManyDcl().relationIndexDcl() != null) {
-                        GreyCatModelParser.IndexedAttributesDclContext idxAttDclCtx =
+                        greycat.language.GreyCatModelParser.IndexedAttributesDclContext idxAttDclCtx =
                                 relDclCxt.toManyDcl().relationIndexDcl().indexedAttributesDcl();
 
                         for (TerminalNode idxAttIdent : idxAttDclCtx.IDENT()) {
@@ -116,13 +111,11 @@ public class Model {
                         }
                     }
                 }
-
                 newClass.addProperty(relation);
             }
-
             // global keys
             for (int i = 0; i < classDclCxt.keyDcl().size(); i++) {
-                GreyCatModelParser.KeyDclContext keyDclCxt = classDclCxt.keyDcl().get(i);
+                greycat.language.GreyCatModelParser.KeyDclContext keyDclCxt = classDclCxt.keyDcl().get(i);
                 String idxName = newClass.name() + "Key" + i;
                 if (keyDclCxt.name != null) {
                     idxName = keyDclCxt.name.getText();
@@ -137,7 +130,6 @@ public class Model {
                     idx.setWithTime(true);
                 }
                 newClass.addKey(idx);
-
             }
         }
     }

@@ -22,7 +22,7 @@ import org.junit.Test;
 
 import static greycat.Tasks.newTask;
 
-public class GlobalIndexTest {
+public class IndexTest {
 
     @Test
     public void test() {
@@ -41,7 +41,6 @@ public class GlobalIndexTest {
                         Assert.assertEquals("{\"result\":[{\"world\":0,\"time\":-9007199254740990,\"id\":2,\"name\":\"sensor_1\"}]}", result.toString());
                     }
                 });
-
             }
         });
     }
