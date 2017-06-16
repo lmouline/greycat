@@ -15,22 +15,25 @@
  */
 package greycat.language;
 
+import java.util.Collection;
 
-public class Relation extends ASTNode {
+public class LocalIndex extends ASTNode {
     private final String name;
     private final String type;
+    private Collection<Attribute> attributes;
 
-    public Relation(String name, String type) {
+
+    public LocalIndex(String name, String type) {
         this.name = name;
         this.type = type;
     }
 
-    public String name() {
-        return name;
+    public Collection<Attribute> attributes() {
+        return this.attributes;
     }
 
-    public String type() {
-        return type;
+    public void addAttribute(Attribute attribute) {
+        this.attributes.add(attribute);
     }
 
 }

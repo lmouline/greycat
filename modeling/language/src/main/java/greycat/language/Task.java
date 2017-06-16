@@ -15,22 +15,16 @@
  */
 package greycat.language;
 
-
-public class Relation extends ASTNode {
+public class Task extends ASTNode {
     private final String name;
-    private final String type;
 
-    public Relation(String name, String type) {
+    public Task(String name) {
         this.name = name;
-        this.type = type;
     }
 
     public String name() {
         return name;
     }
-
-    public String type() {
-        return type;
-    }
-
 }
+
+

@@ -15,22 +15,5 @@
  */
 package greycat.language;
 
-
-public class Relation extends ASTNode {
-    private final String name;
-    private final String type;
-
-    public Relation(String name, String type) {
-        this.name = name;
-        this.type = type;
-    }
-
-    public String name() {
-        return name;
-    }
-
-    public String type() {
-        return type;
-    }
-
+public abstract class ASTNode {
 }

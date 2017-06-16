@@ -17,7 +17,6 @@ package greycat.generator;
 
 import greycat.Graph;
 import greycat.language.Class;
-import greycat.language.Classifier;
 import greycat.language.Model;
 import greycat.plugin.NodeFactory;
 import greycat.plugin.Plugin;

@@ -106,9 +106,9 @@
         <module>modeling/generator</module>
         <module>modeling/mavenplugin</module>
         <!-- Examples-->
-        <!--
+
         <module>examples/modeling</module>
-        -->
+
     </modules>
 
     <build>

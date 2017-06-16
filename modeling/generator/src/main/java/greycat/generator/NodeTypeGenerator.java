@@ -15,7 +15,6 @@
  */
 package greycat.generator;
 
-import greycat.Callback;
 import greycat.Graph;
 import greycat.Type;
 import greycat.language.*;
@@ -318,7 +317,7 @@ class NodeTypeGenerator {
             indexMethodBody.append(deferPart);
             unindexMethodBody.append(deferPart);
 
-            for (Key key : classClassifier.keys()) {
+            for (GlobalIndex key : classClassifier.keys()) {
                 String keyName = key.name();
 
                 // index constants

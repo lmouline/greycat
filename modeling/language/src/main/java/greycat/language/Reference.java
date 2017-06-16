@@ -15,12 +15,12 @@
  */
 package greycat.language;
 
-public abstract class Property implements Comparable<Property> {
+public class Reference extends ASTNode {
 
     private final String name;
     private final String type;
 
-    public Property(String name, String type) {
+    public Reference(String name, String type) {
         this.name = name;
         this.type = type;
     }
@@ -32,14 +32,5 @@ public abstract class Property implements Comparable<Property> {
     public String type() {
         return type;
     }
-
-    public int compareTo(Property p) {
-        if (p.name().equals(name)) {
-            return 0;
-        } else {
-            return name().compareTo(p.name);
-        }
-    }
-
 
 }

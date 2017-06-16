@@ -27,22 +27,18 @@ import java.util.Map;
 
 public class Model {
 
-    private final Map<String, Classifier> classifierMap;
+    private final Map<String, Class> classesMap;
+    private final Map<String, Enum> enumsMap;
+    private final Map<String, GlobalIndex> globalIndexesMap;
+    private final Map<String, Type> typesMap;
+    private final Map<String, Task> tasksMap;
 
     public Model() {
-        classifierMap = new HashMap<>();
-    }
-
-    public Classifier[] classifiers() {
-        return classifierMap.values().toArray(new Classifier[classifierMap.size()]);
-    }
-
-    public void addClassifier(Classifier classifier) {
-        classifierMap.put(classifier.name(), classifier);
-    }
-
-    public Classifier get(String fqn) {
-        return classifierMap.get(fqn);
+        classesMap = new HashMap<>();
+        enumsMap = new HashMap<>();
+        globalIndexesMap = new HashMap<>();
+        typesMap = new HashMap<>();
+        tasksMap = new HashMap<>();
     }
 
 
@@ -51,30 +47,33 @@ public class Model {
     }
 
     private void build(ANTLRInputStream in) {
-        BufferedTokenStream tokens = new CommonTokenStream(new greycat.language.GreyCatModelLexer(in));
-        greycat.language.GreyCatModelParser parser = new greycat.language.GreyCatModelParser(tokens);
-        greycat.language.GreyCatModelParser.ModelDclContext modelDclCtx = parser.modelDcl();
+        BufferedTokenStream tokens = new CommonTokenStream(new GreyCatModelLexer(in));
+        GreyCatModelParser parser = new GreyCatModelParser(tokens);
+        GreyCatModelParser.ModelDclContext modelDclCtx = parser.modelDcl();
+
         // enums
-        for (greycat.language.GreyCatModelParser.EnumDclContext enumDclCtx : modelDclCtx.enumDcl()) {
+        for (GreyCatModelParser.EnumDclContext enumDclCtx : modelDclCtx.enumDcl()) {
             String fqn = enumDclCtx.name.getText();
-            final Enum enumClass = getOrCreateAndAddEnum(fqn);
+            final Enum enumClass = getOrCreateEnum(fqn);
             for (TerminalNode literal : enumDclCtx.enumLiteralsDcl().IDENT()) {
                 enumClass.addLiteral(literal.getText());
             }
         }
+
         // classes
-        for (greycat.language.GreyCatModelParser.ClassDclContext classDclCxt : modelDclCtx.classDcl()) {
-            String classFqn = classDclCxt.name.getText();
-            final Class newClass = getOrCreateAndAddClass(classFqn);
+        for (GreyCatModelParser.ClassDclContext classDclCtx : modelDclCtx.classDcl()) {
+            String classFqn = classDclCtx.name.getText();
+            final Class newClass = getOrCreateClass(classFqn);
+
             // parents
-            if (classDclCxt.parentDcl() != null) {
-                final Class newClassTT = getOrCreateAndAddClass(classDclCxt.parentDcl().name.getText());
-                newClass.setParent(newClassTT);
+            if (classDclCtx.parentDcl() != null) {
+                final Class parentClass = getOrCreateClass(classDclCtx.parentDcl().name.getText());
+                newClass.setParent(parentClass);
             }
             // attributes
-            for (greycat.language.GreyCatModelParser.AttributeDclContext attDcl : classDclCxt.attributeDcl()) {
+            for (GreyCatModelParser.AttributeDclContext attDcl : classDclCtx.attributeDcl()) {
                 String name = attDcl.name.getText();
-                greycat.language.GreyCatModelParser.AttributeTypeDclContext attTypeDclCxt = attDcl.attributeTypeDcl();
+                GreyCatModelParser.AttributeTypeDclContext attTypeDclCxt = attDcl.attributeTypeDcl();
                 String value = attTypeDclCxt.getText();
                 boolean isArray = false;
                 if (value.endsWith("[]")) {
@@ -83,83 +82,108 @@ public class Model {
                 }
 
                 final Attribute attribute = new Attribute(name, value, isArray);
-                newClass.addProperty(attribute);
+                newClass.addAttribute(attribute);
             }
+
             // relations
-            for (greycat.language.GreyCatModelParser.RelationDclContext relDclCxt : classDclCxt.relationDcl()) {
-                String name, type;
-                boolean isToOne = relDclCxt.toOneDcl() != null;
-                if (isToOne) {
-                    // toOne
-                    name = relDclCxt.toOneDcl().name.getText();
-                    type = relDclCxt.toOneDcl().type.getText();
-                } else {
-                    // toMany
-                    name = relDclCxt.toManyDcl().name.getText();
-                    type = relDclCxt.toManyDcl().type.getText();
-                }
-                final Relation relation = new Relation(name, type, isToOne);
+            for (GreyCatModelParser.RelationDclContext relDclCtx : classDclCtx.relationDcl()) {
+                String name = relDclCtx.name.getText();
+                String type = relDclCtx.type.getText();
 
-                if (!isToOne) {
-                    // relation keys
-                    if (relDclCxt.toManyDcl().relationIndexDcl() != null) {
-                        greycat.language.GreyCatModelParser.IndexedAttributesDclContext idxAttDclCtx =
-                                relDclCxt.toManyDcl().relationIndexDcl().indexedAttributesDcl();
-
-                        for (TerminalNode idxAttIdent : idxAttDclCtx.IDENT()) {
-                            relation.addIndexedAttribute(idxAttIdent.getText());
-                        }
-                    }
-                }
-                newClass.addProperty(relation);
+                Relation relation = new Relation(name, type);
+                newClass.addRelation(relation);
             }
-            // global keys
-            for (int i = 0; i < classDclCxt.keyDcl().size(); i++) {
-                greycat.language.GreyCatModelParser.KeyDclContext keyDclCxt = classDclCxt.keyDcl().get(i);
-                String idxName = newClass.name() + "Key" + i;
-                if (keyDclCxt.name != null) {
-                    idxName = keyDclCxt.name.getText();
+
+            // references
+            for (GreyCatModelParser.ReferenceDclContext refDclCtx : classDclCtx.referenceDcl()) {
+                String name = refDclCtx.name.getText();
+                String type = refDclCtx.type.getText();
+
+                Reference reference = new Reference(name, type);
+                newClass.addReference(reference);
+            }
+
+            // local indexes
+            for (GreyCatModelParser.LocalIndexDclContext localIndexDclCtx : classDclCtx.localIndexDcl()) {
+                String name = localIndexDclCtx.name.getText();
+                String type = localIndexDclCtx.type.getText();
+                Class indexedClass = getOrCreateClass(type);
+
+                LocalIndex localIndex = new LocalIndex(name, type);
+                for (TerminalNode idxDclIdent : localIndexDclCtx.indexAttributesDcl().IDENT()) {
+                    Attribute att = indexedClass.getAttribute(idxDclIdent.getText());
+                    localIndex.addAttribute(att);
                 }
-                Key idx = new Key(idxName);
-                for (TerminalNode idxDclIdent : keyDclCxt.indexedAttributesDcl().IDENT()) {
-                    Property indexedProperty = getProperty(newClass, idxDclIdent.getText());
-                    Attribute att = (Attribute) indexedProperty;
-                    idx.addAttribute(att);
-                }
-                if (keyDclCxt.withTimeDcl() != null) {
-                    idx.setWithTime(true);
-                }
-                newClass.addKey(idx);
             }
         }
-    }
 
-    private Property getProperty(Class clazz, String propertyName) {
-        Property p = clazz.getProperty(propertyName);
-        if (p != null) {
-            return p;
-        } else {
-            return getProperty(clazz.parent(), propertyName);
+        // global indexes
+        for (GreyCatModelParser.GlobalIndexDclContext globalIdxDclContext : modelDclCtx.globalIndexDcl()) {
+            String name = globalIdxDclContext.name.getText();
+            String type = globalIdxDclContext.type.getText();
+            Class indexedClass = getOrCreateClass(type);
+
+            final GlobalIndex globalIndex = getOrCreateGlobalIndex(name, type);
+            for (TerminalNode idxDclIdent : globalIdxDclContext.indexAttributesDcl().IDENT()) {
+                Attribute att = indexedClass.getAttribute(idxDclIdent.getText());
+                globalIndex.addAttribute(att);
+            }
         }
+
+
+        // types
+        // TODO
+//        for (GreyCatModelParser.TypeDclContext typeDclContext : modelDclCtx.typeDcl()) {
+//            String name = typeDclContext.name.getText();
+//
+//            final Type type = getOrCreateType(name);
+//            for (TerminalNode literal : enumDclCtx.enumLiteralsDcl().IDENT()) {
+//                enumClass.addLiteral(literal.getText());
+//            }
+//        }
+
+        // tasks
+        // TODO
     }
 
-    private Class getOrCreateAndAddClass(String fqn) {
-        Class previous = (Class) this.get(fqn);
+
+    private GlobalIndex getOrCreateGlobalIndex(String fqn, String type) {
+        GlobalIndex previous = this.globalIndexesMap.get(fqn);
+        if(previous != null) {
+            return previous;
+        }
+        previous = new GlobalIndex(fqn, type);
+        this.globalIndexesMap.put(fqn, previous);
+        return previous;
+    }
+
+    private Class getOrCreateClass(String fqn) {
+        Class previous = this.classesMap.get(fqn);
         if (previous != null) {
             return previous;
         }
         previous = new Class(fqn);
-        this.addClassifier(previous);
+        this.classesMap.put(fqn, previous);
         return previous;
     }
 
-    private Enum getOrCreateAndAddEnum(String fqn) {
-        Enum previous = (Enum) this.get(fqn);
+    private Enum getOrCreateEnum(String fqn) {
+        Enum previous = this.enumsMap.get(fqn);
         if (previous != null) {
             return previous;
         }
         previous = new Enum(fqn);
-        this.addClassifier(previous);
+        this.enumsMap.put(fqn, previous);
+        return previous;
+    }
+
+    private Type getOrCreateType(String fqn) {
+        Type previous = this.typesMap.get(fqn);
+        if (previous != null) {
+            return previous;
+        }
+        previous = new Type(fqn);
+        this.typesMap.put(fqn, previous);
         return previous;
     }
 

@@ -25,20 +25,27 @@ NUMBER : [\-]?[0-9]+'.'?[0-9]*;
 WS : ([ \t\r\n]+ | SL_COMMENT) -> skip ; // skip spaces, tabs, newlines
 SL_COMMENT :  '//' ~('\r' | '\n')* ;
 
-modelDcl: (enumDcl | classDcl)*;
+modelDcl: (enumDcl | classDcl | globalIndexDcl | typeDcl | taskDcl)*;
 
 enumDcl: 'enum' name=IDENT '{' enumLiteralsDcl '}';
 enumLiteralsDcl: IDENT (',' IDENT)*;
 
-classDcl: 'class' name=IDENT parentDcl? '{' (attributeDcl | relationDcl | keyDcl)* '}';
+classDcl: 'class' name=IDENT parentDcl? '{' (attributeDcl | relationDcl | referenceDcl | localIndexDcl)* '}';
 parentDcl: 'extends' name=IDENT;
 attributeDcl: 'att' name=IDENT ':' attributeTypeDcl;
 attributeTypeDcl: ('String' | 'Double' | 'Long' | 'Integer' | 'Boolean') ('[]')?;
-relationDcl: (toManyDcl | toOneDcl);
-toManyDcl : 'rel' name=IDENT ':' type=IDENT relationIndexDcl?;
-relationIndexDcl: 'indexed' 'by' indexedAttributesDcl;
-indexedAttributesDcl: IDENT (',' IDENT)*;
-toOneDcl : 'ref' name=IDENT ':' type=IDENT;
+relationDcl: 'rel' name=IDENT ':' type=IDENT;
+referenceDcl : 'ref' name=IDENT ':' type=IDENT;
 
-keyDcl: 'key' withTimeDcl? indexedAttributesDcl ('as' name=IDENT)?;
+localIndexDcl: 'index' name=IDENT ':' type=IDENT 'using' indexAttributesDcl;
+indexAttributesDcl: IDENT (',' IDENT)*;
+
+globalIndexDcl: 'index' name=IDENT withTimeDcl? 'of' type=IDENT 'using' indexAttributesDcl;
 withTimeDcl: 'with time';
+
+typeDcl: 'type' name=IDENT '{' (typeAttributeDcl)* '}';
+typeAttributeDcl: name=IDENT ':' attributeTypeDcl;
+
+taskDcl: 'task' name=IDENT '=' body=STRING;
+
+

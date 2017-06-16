@@ -15,8 +15,14 @@
  */
 package greycat.language;
 
+public class Type extends ASTNode {
+    private final String name;
 
-public interface Classifier {
+    public Type(String name) {
+        this.name = name;
+    }
 
-    String name();
+    public String name() {
+        return name;
+    }
 }

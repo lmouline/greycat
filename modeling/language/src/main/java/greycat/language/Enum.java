@@ -15,16 +15,16 @@
  */
 package greycat.language;
 
+import java.util.HashSet;
 import java.util.Set;
-import java.util.TreeSet;
 
-public class Enum implements Classifier {
+public class Enum extends ASTNode {
     private final String name;
     private final Set<String> literals;
 
     public Enum(String name) {
         this.name = name;
-        literals = new TreeSet<>();
+        literals = new HashSet<>();
     }
 
     public String[] literals() {
@@ -35,7 +35,6 @@ public class Enum implements Classifier {
         literals.add(value);
     }
 
-    @Override
     public String name() {
         return name;
     }
