@@ -70,6 +70,14 @@ class ClassTypeGenerator {
         // attributes
         for (Attribute att : classType.attributes()) {
 
+            javaClass.addField()
+                    .setVisibility(Visibility.PUBLIC)
+                    .setFinal(true)
+                    .setName(att.name().toUpperCase())
+                    .setType(String.class)
+                    .setStringInitializer(att.name())
+                    .setStatic(true);
+
             // fields
             FieldSource<JavaClassSource> typeField = javaClass.addField()
                     .setVisibility(Visibility.PUBLIC)
@@ -77,13 +85,14 @@ class ClassTypeGenerator {
                     .setName(att.name().toUpperCase() + "_TYPE")
                     .setType(byte.class)
                     .setStatic(true);
-            // TODO custom type!
+            // TODO custom type
             typeField.setLiteralInitializer(TypeManager.builtInTypeName(att.type()));
 
             // getter
             MethodSource<JavaClassSource> getter = javaClass.addMethod();
             getter.setVisibility(Visibility.PUBLIC).setFinal(true);
-            getter.setReturnType(TypeManager.builtInClassName(att.name()));
+            // TODO custom type
+            getter.setReturnType(TypeManager.builtInClassName(att.type()));
             getter.setName("get" + upperCaseFirstChar(att.name()));
 
             if (TypeManager.isPrimitive(att.type())) {
@@ -102,10 +111,132 @@ class ClassTypeGenerator {
                     .setBody("super.set(" + att.name().toUpperCase() + ", " + att.name().toUpperCase()
                             + "_TYPE,value);\nreturn this;"
                     )
+                    // TODO custom type
                     .addParameter(TypeManager.builtInClassName(att.type()), "value");
 
 
         }
+
+        // relations
+        for (Relation rel : classType.relations()) {
+            // field
+            javaClass.addField()
+                    .setVisibility(Visibility.PUBLIC)
+                    .setFinal(true)
+                    .setName(rel.name().toUpperCase())
+                    .setType(String.class)
+                    .setStringInitializer(rel.name())
+                    .setStatic(true);
+
+            // getter
+            String resultType = rel.type();
+            MethodSource<JavaClassSource> getter = javaClass.addMethod();
+            getter.setVisibility(Visibility.PUBLIC);
+            getter.setFinal(true);
+            getter.setReturnTypeVoid();
+            getter.setName("get" + upperCaseFirstChar(rel.name()));
+            getter.addParameter("greycat.Callback<" + resultType + "[]>", "callback");
+            getter.setBody(
+                    "this.relation(" + rel.name().toUpperCase() + ",new greycat.Callback<greycat.Node[]>() {\n" +
+                            "@Override\n" +
+                            "public void on(greycat.Node[] nodes) {\n" +
+                            resultType + "[] result = new " + resultType + "[nodes.length];\n" +
+                            "for(int i=0;i<result.length;i++) {\n" +
+                            "result[i] = (" + resultType + ") nodes[i];\n" +
+                            "}\n" +
+                            "callback.on(result);" +
+                            "}\n" +
+                            "});"
+            );
+
+            // addTo
+            StringBuilder addToBodyBuilder = new StringBuilder();
+            MethodSource<JavaClassSource> add = javaClass.addMethod();
+            add.setVisibility(Visibility.PUBLIC).setFinal(true);
+            add.setName("addTo" + upperCaseFirstChar(rel.name()));
+            add.setReturnType(classType.name());
+            add.addParameter(rel.type(), "value");
+            addToBodyBuilder.append("super.addToRelation(").append(rel.name().toUpperCase()).append(", value);");
+            addToBodyBuilder.append("return this;");
+            add.setBody(addToBodyBuilder.toString());
+
+            // remove
+            StringBuilder removeFromBodyBuilder = new StringBuilder();
+            MethodSource<JavaClassSource> remove = javaClass.addMethod();
+            remove.setVisibility(Visibility.PUBLIC).setFinal(true);
+            remove.setName("removeFrom" + upperCaseFirstChar(rel.name()));
+            remove.setReturnType(classType.name());
+            remove.addParameter(rel.type(), "value");
+            removeFromBodyBuilder.append("super.removeFromRelation(").append(rel.name().toUpperCase()).append(", value);");
+            removeFromBodyBuilder.append("return this;");
+            remove.setBody(removeFromBodyBuilder.toString());
+
+        }
+
+        // references
+        for (Reference ref : classType.references()) {
+            // field
+            javaClass.addField()
+                    .setVisibility(Visibility.PUBLIC)
+                    .setFinal(true)
+                    .setName(ref.name().toUpperCase())
+                    .setType(String.class)
+                    .setStringInitializer(ref.name())
+                    .setStatic(true);
+
+            // getter
+            String resultType = ref.type();
+            MethodSource<JavaClassSource> getter = javaClass.addMethod();
+            getter.setVisibility(Visibility.PUBLIC);
+            getter.setFinal(true);
+            getter.setReturnTypeVoid();
+            getter.setName("get" + upperCaseFirstChar(ref.name()));
+            getter.addParameter("greycat.Callback<" + resultType + ">", "callback");
+            getter.setBody(
+                    "this.relation(" + ref.name().toUpperCase() + ",new greycat.Callback<greycat.Node[]>() {\n" +
+                            "@Override\n" +
+                            "public void on(greycat.Node[] nodes) {\n" +
+                            resultType + " result = (" + resultType + ") nodes[0];\n" +
+                            "callback.on(result);" +
+                            "}\n" +
+                            "});"
+            );
+
+            // setter
+            StringBuilder addToBodyBuilder = new StringBuilder();
+            MethodSource<JavaClassSource> add = javaClass.addMethod();
+            add.setVisibility(Visibility.PUBLIC).setFinal(true);
+            add.setName("set" + upperCaseFirstChar(ref.name()));
+            add.setReturnType(classType.name());
+            add.addParameter(ref.type(), "value");
+            addToBodyBuilder.append("if(value != null) {");
+            addToBodyBuilder.append("super.removeFromRelation(").append(ref.name().toUpperCase()).append(", value );");
+            addToBodyBuilder.append("super.addToRelation(").append(ref.name().toUpperCase()).append(", value );");
+            addToBodyBuilder.append("}");
+            addToBodyBuilder.append("return this;");
+            add.setBody(addToBodyBuilder.toString());
+
+            // remove
+            StringBuilder removeFromBodyBuilder = new StringBuilder();
+            MethodSource<JavaClassSource> remove = javaClass.addMethod();
+            remove.setVisibility(Visibility.PUBLIC).setFinal(true);
+            String refName = upperCaseFirstChar(ref.name());
+            String refType = upperCaseFirstChar(ref.type());
+            remove.setName("remove" + refType);
+            remove.setReturnTypeVoid();
+            remove.addParameter("greycat.Callback<Boolean>", "callback");
+            removeFromBodyBuilder.append(classType.name() + " self = this;");
+            removeFromBodyBuilder.append("get" + refName + "(new greycat.Callback<" + refType + ">() {");
+            removeFromBodyBuilder.append("@Override\n");
+            removeFromBodyBuilder.append("public void on(" + refType + " result) {");
+            removeFromBodyBuilder.append("self.removeFromRelation(").append(ref.name().toUpperCase()).append(", result);");
+            removeFromBodyBuilder.append("callback.on(true);");
+            removeFromBodyBuilder.append("}");
+            removeFromBodyBuilder.append("});");
+            remove.setBody(removeFromBodyBuilder.toString());
+        }
+
+
         return javaClass;
     }
 
