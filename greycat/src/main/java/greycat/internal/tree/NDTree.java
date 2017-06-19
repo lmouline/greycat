@@ -472,7 +472,7 @@ public class NDTree implements NDIndexer {
 
                     node.each(new NodeStateCallback() {
                         @Override
-                        public void on(int attributeKey, byte elemType, Object elem) {
+                        public void on(int attributeKey, int elemType, Object elem) {
                             if (attributeKey >= E_OFFSET_REL) {
                                 double[][] childSpace = getChildMinMax(space, attributeKey);
                                 childPriority.insert(childSpace[MIN], attributeKey, TreeHelper.getclosestDistance(target, childSpace[MIN], childSpace[MAX], distance));
@@ -491,7 +491,7 @@ public class NDTree implements NDIndexer {
             } else {
                 node.each(new NodeStateCallback() {
                     @Override
-                    public void on(int attributeKey, byte elemType, Object elem) {
+                    public void on(int attributeKey, int elemType, Object elem) {
                         if (attributeKey >= E_OFFSET_REL) {
                             ENode child = (ENode) node.getAt(attributeKey);
                             double[][] childSpace = getChildMinMax(space, attributeKey);

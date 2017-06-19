@@ -262,6 +262,11 @@ public class QueryTest implements Resolver, Graph {
     }
 
     @Override
+    public TypeRegistry typeRegistry() {
+        return null;
+    }
+
+    @Override
     public Graph setMemoryFactory(MemoryFactory factory) {
         return null;
     }

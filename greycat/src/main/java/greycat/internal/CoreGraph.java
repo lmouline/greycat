@@ -52,6 +52,7 @@ public class CoreGraph implements Graph {
 
     private final ActionRegistry _actionRegistry;
     private final NodeRegistry _nodeRegistry;
+    private final TypeRegistry _typeRegistry;
     private MemoryFactory _memoryFactory;
     private TaskHook[] _taskHooks;
 
@@ -59,6 +60,7 @@ public class CoreGraph implements Graph {
         //initiate the two registry
         _actionRegistry = new CoreActionRegistry();
         _nodeRegistry = new CoreNodeRegistry();
+        _typeRegistry = new CoreTypeRegistry();
         _memoryFactory = new HeapMemoryFactory();
         this._isConnected = new AtomicBoolean(false);
         this._lock = new AtomicBoolean(false);
@@ -215,6 +217,11 @@ public class CoreGraph implements Graph {
     @Override
     public final NodeRegistry nodeRegistry() {
         return _nodeRegistry;
+    }
+
+    @Override
+    public final TypeRegistry typeRegistry() {
+        return _typeRegistry;
     }
 
     @Override

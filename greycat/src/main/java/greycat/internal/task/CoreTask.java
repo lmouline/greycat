@@ -560,13 +560,13 @@ public class CoreTask implements Task {
             throw new RuntimeException("Action '" + actionName + "' not found in registry.");
         } else {
             final ActionFactory factory = declaration.factory();
-            final byte[] declaredParams = declaration.params();
+            final int[] declaredParams = declaration.params();
             if (declaredParams != null && params != null) {
                 int resultSize = declaredParams.length;
                 Object[] parsedParams = new Object[resultSize];
                 int varargs_index = 0;
                 for (int i = 0; i < params.length; i++) {
-                    byte correspondingType;
+                    int correspondingType;
                     if (i < resultSize) {
                         correspondingType = declaredParams[i];
                     } else {
@@ -1346,7 +1346,7 @@ public class CoreTask implements Task {
     }
 
     @Override
-    public final Task setAttribute(final String name, final byte type, final String value) {
+    public final Task setAttribute(final String name, final int type, final String value) {
         return then(CoreActions.setAttribute(name, type, value));
     }
 
@@ -1356,7 +1356,7 @@ public class CoreTask implements Task {
     }
 
     @Override
-    public final Task forceAttribute(final String name, final byte type, final String value) {
+    public final Task forceAttribute(final String name, final int type, final String value) {
         return then(CoreActions.forceAttribute(name, type, value));
     }
 
@@ -1376,7 +1376,7 @@ public class CoreTask implements Task {
     }
 
     @Override
-    public final Task attributesWithType(byte filterType) {
+    public final Task attributesWithType(int filterType) {
         return then(CoreActions.attributesWithTypes(filterType));
     }
 

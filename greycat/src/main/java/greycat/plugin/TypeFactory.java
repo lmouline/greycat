@@ -15,9 +15,21 @@
  */
 package greycat.plugin;
 
-@FunctionalInterface
-public interface NodeStateCallback {
+import greycat.struct.EGraph;
 
-    void on(int attributeKey, int elemType, Object elem);
+/**
+ * Type plugin allows to propose alternative implementations for basic Types.<br>
+ * Custom types are wrapper of EGraph and should leverage them as backend.
+ */
+@FunctionalInterface
+public interface TypeFactory {
+
+    /**
+     * Create a new Node
+     *
+     * @param backend backend
+     * @return newly created Type object
+     */
+    Object wrap(EGraph backend);
 
 }

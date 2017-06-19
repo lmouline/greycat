@@ -271,6 +271,8 @@ public interface Graph {
 
     NodeRegistry nodeRegistry();
 
+    TypeRegistry typeRegistry();
+
     Graph setMemoryFactory(MemoryFactory factory);
 
     Graph addGlobalTaskHook(TaskHook taskHook);

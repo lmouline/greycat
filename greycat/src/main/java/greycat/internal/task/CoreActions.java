@@ -147,7 +147,7 @@ public class CoreActions {
      * @param value will be interpreted as a template
      * @return the action to chain
      */
-    public static Action setAttribute(final String name, final byte type, final String value) {
+    public static Action setAttribute(final String name, final int type, final String value) {
         return new ActionSetAttribute(name, Type.typeName(type), value, false);
     }
 
@@ -168,7 +168,7 @@ public class CoreActions {
      * @param value will be interpreted as template
      * @return the action to chain
      */
-    public static Action forceAttribute(String name, byte type, String value) {
+    public static Action forceAttribute(String name, int type, String value) {
         return new ActionSetAttribute(name, Type.typeName(type), value, true);
     }
 
@@ -198,7 +198,7 @@ public class CoreActions {
      * @param filterType type of attributes to filter
      * @return the action to chain
      */
-    public static Action attributesWithTypes(byte filterType) {
+    public static Action attributesWithTypes(int filterType) {
         return new ActionAttributes(Type.typeName(filterType));
     }
 

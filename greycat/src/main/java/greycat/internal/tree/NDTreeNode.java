@@ -46,7 +46,7 @@ public class NDTreeNode extends BaseNode implements Profile {
     }
 
     @Override
-    public final Node set(String name, byte type, Object value) {
+    public final Node set(String name, int type, Object value) {
         if (name.equals(BOUND_MIN)) {
             setMinBound((double[]) value);
         } else if (name.equals(BOUND_MAX)) {

@@ -15,9 +15,12 @@
  */
 package greycat.plugin;
 
-@FunctionalInterface
-public interface NodeStateCallback {
+public interface TypeDeclaration {
 
-    void on(int attributeKey, int elemType, Object elem);
+    String name();
+
+    TypeFactory factory();
+
+    void setFactory(TypeFactory newFactory);
 
 }

@@ -15,9 +15,12 @@
  */
 package greycat.plugin;
 
-@FunctionalInterface
-public interface NodeStateCallback {
+public interface TypeRegistry {
 
-    void on(int attributeKey, int elemType, Object elem);
+    TypeDeclaration getOrCreateDeclaration(String name);
+
+    TypeDeclaration declaration(String name);
+
+    TypeDeclaration declarationByHash(int hash);
 
 }

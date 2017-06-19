@@ -178,7 +178,7 @@ public class BaseNode implements Node {
     }
 
     @Override
-    public final Object getTypedRawAt(final int propIndex, final byte type) {
+    public final Object getTypedRawAt(final int propIndex, final int type) {
         final NodeState resolved = this._resolver.resolveState(this);
         if (resolved != null) {
             return resolved.getTypedRawAt(propIndex, type);
@@ -192,7 +192,7 @@ public class BaseNode implements Node {
         if (resolvedTime == _time && resolvedWorld == _world) { //implement time sensitivity
             return elem;
         } else {
-            byte type = state.typeAt(index);
+            int type = state.typeAt(index);
             //temporary proxy
             switch (type) {
                 case Type.LMATRIX:
@@ -234,12 +234,12 @@ public class BaseNode implements Node {
     }
 
     @Override
-    public final Object getOrCreate(String name, byte type) {
+    public final Object getOrCreate(String name, int type) {
         return this.getOrCreateAt(this._resolver.stringToHash(name, true), type);
     }
 
     @Override
-    public Object getOrCreateAt(int index, byte type) {
+    public Object getOrCreateAt(int index, int type) {
         final NodeState previousState = this._resolver.resolveState(this);
         final Object elem = previousState.getAt(index);
         if (elem != null) {
@@ -270,12 +270,12 @@ public class BaseNode implements Node {
     }
 
     @Override
-    public Node forceSet(String name, byte type, Object value) {
+    public Node forceSet(String name, int type, Object value) {
         return forceSetAt(this._resolver.stringToHash(name, true), type, value);
     }
 
     @Override
-    public Node forceSetAt(int index, byte type, Object value) {
+    public Node forceSetAt(int index, int type, Object value) {
         final NodeState preciseState = this._resolver.alignState(this);
         if (preciseState != null) {
             preciseState.setAt(index, type, value);
@@ -286,7 +286,7 @@ public class BaseNode implements Node {
     }
 
     @Override
-    public Node setAt(int index, byte type, Object value) {
+    public Node setAt(int index, int type, Object value) {
         final NodeState unPhasedState = this._resolver.resolveState(this);
         boolean isDiff = (type != unPhasedState.typeAt(index));
         if (!isDiff) {
@@ -304,13 +304,13 @@ public class BaseNode implements Node {
     }
 
     @Override
-    public Node set(String name, byte type, Object value) {
+    public Node set(String name, int type, Object value) {
         //hash the property a single time
         final int hashed = this._resolver.stringToHash(name, true);
         return setAt(hashed, type, value);
     }
 
-    private boolean isEquals(Object obj1, Object obj2, byte type) {
+    private boolean isEquals(Object obj1, Object obj2, int type) {
         if (obj1 == null && obj2 == null) {
             return true;
         }
@@ -396,7 +396,7 @@ public class BaseNode implements Node {
     }
 
     @Override
-    public byte type(String name) {
+    public int type(String name) {
         final NodeState resolved = this._resolver.resolveState(this);
         if (resolved != null) {
             return resolved.typeAt(this._resolver.stringToHash(name, false));
@@ -405,7 +405,7 @@ public class BaseNode implements Node {
     }
 
     @Override
-    public byte typeAt(final int index) {
+    public int typeAt(final int index) {
         final NodeState resolved = this._resolver.resolveState(this);
         if (resolved != null) {
             return resolved.typeAt(index);
@@ -615,7 +615,7 @@ public class BaseNode implements Node {
         if (state != null) {
             state.each(new NodeStateCallback() {
                 @Override
-                public void on(int attributeKey, byte elemType, Object elem) {
+                public void on(int attributeKey, int elemType, Object elem) {
                     if (elem != null) {
                         String resolveName = _resolver.hashToString(attributeKey);
                         if (resolveName == null) {

@@ -23,42 +23,42 @@ public class Type {
     /**
      * Primitive Types
      */
-    public static final byte BOOL = 1;
-    public static final byte STRING = 2;
-    public static final byte LONG = 3;
-    public static final byte INT = 4;
-    public static final byte DOUBLE = 5;
+    public static final int BOOL = 1;
+    public static final int STRING = 2;
+    public static final int LONG = 3;
+    public static final int INT = 4;
+    public static final int DOUBLE = 5;
 
-    public static final byte DOUBLE_ARRAY = 6;
-    public static final byte LONG_ARRAY = 7;
-    public static final byte INT_ARRAY = 8;
-    public static final byte STRING_ARRAY = 9;
-    
-    public static final byte LONG_TO_LONG_MAP = 10;
-    public static final byte LONG_TO_LONG_ARRAY_MAP = 11;
-    public static final byte STRING_TO_INT_MAP = 12;
+    public static final int DOUBLE_ARRAY = 6;
+    public static final int LONG_ARRAY = 7;
+    public static final int INT_ARRAY = 8;
+    public static final int STRING_ARRAY = 9;
 
-    public static final byte RELATION = 13;
-    public static final byte RELATION_INDEXED = 14;
+    public static final int LONG_TO_LONG_MAP = 10;
+    public static final int LONG_TO_LONG_ARRAY_MAP = 11;
+    public static final int STRING_TO_INT_MAP = 12;
 
-    public static final byte DMATRIX = 15;
-    public static final byte LMATRIX = 16;
+    public static final int RELATION = 13;
+    public static final int RELATION_INDEXED = 14;
 
-    public static final byte EGRAPH = 17;
-    public static final byte ENODE = 18;
-    public static final byte ERELATION = 19;
+    public static final int DMATRIX = 15;
+    public static final int LMATRIX = 16;
 
-    public static final byte TASK = 20;
-    public static final byte TASK_ARRAY = 21;
+    public static final int EGRAPH = 17;
+    public static final int ENODE = 18;
+    public static final int ERELATION = 19;
 
-    public static final byte KDTREE = 22;
-    public static final byte NDTREE = 23;
+    public static final int TASK = 20;
+    public static final int TASK_ARRAY = 21;
 
-    public static final byte NODE = 24;
-    public static final byte NODE_ARRAY = 25;
+    public static final int KDTREE = 22;
+    public static final int NDTREE = 23;
 
-    public static final byte INT_TO_INT_MAP = 26;
-    public static final byte INT_TO_STRING_MAP = 27;
+    public static final int NODE = 24;
+    public static final int NODE_ARRAY = 25;
+
+    public static final int INT_TO_INT_MAP = 26;
+    public static final int INT_TO_STRING_MAP = 27;
 
     /**
      * Convert a type that represent a byte to a readable String representation
@@ -66,7 +66,7 @@ public class Type {
      * @param p_type byte encoding a particular type
      * @return readable string representation of the type
      */
-    public static String typeName(byte p_type) {
+    public static String typeName(int p_type) {
         switch (p_type) {
             /* Primitives */
             case Type.BOOL:

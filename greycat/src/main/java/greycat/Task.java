@@ -325,11 +325,11 @@ public interface Task {
 
     Task addToVar(String name);
 
-    Task setAttribute(String name, byte type, String value);
+    Task setAttribute(String name, int type, String value);
 
     Task timeSensitivity(String delta, String offset);
 
-    Task forceAttribute(String name, byte type, String value);
+    Task forceAttribute(String name, int type, String value);
 
     Task remove(String name);
 
@@ -337,7 +337,7 @@ public interface Task {
 
     Task timepoints(String from, String to);
 
-    Task attributesWithType(byte filterType);
+    Task attributesWithType(int filterType);
 
     Task addVarToRelation(String relName, String varName, String... attributes);
 

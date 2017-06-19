@@ -13,11 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package greycat.plugin;
+package greycat.internal;
 
-@FunctionalInterface
-public interface NodeStateCallback {
+import greycat.plugin.TypeDeclaration;
+import greycat.plugin.TypeFactory;
 
-    void on(int attributeKey, int elemType, Object elem);
+class CoreTypeDeclaration implements TypeDeclaration {
 
+    private final String _name;
+    private TypeFactory _factory;
+
+    CoreTypeDeclaration(String name) {
+        _name = name;
+    }
+
+    @Override
+    public final String name() {
+        return _name;
+    }
+
+    @Override
+    public final TypeFactory factory() {
+        return _factory;
+    }
+
+    @Override
+    public final void setFactory(TypeFactory newFactory) {
+        _factory = newFactory;
+    }
 }
