@@ -26,9 +26,7 @@ public class GPSPosition extends BaseCustomTypeSingle {
     private static final int LAT_HASH = HashHelper.hash(LAT);
     private static final String LNG = "lng";
     private static final int LNG_HASH = HashHelper.hash(LNG);
-
-    private static final int DEF_NODE = 0;
-
+    
     public GPSPosition(final EGraph e) {
         super(e);
         if(this._backend.node(DEF_NODE).typeAt(LAT_HASH) != Type.DOUBLE){
