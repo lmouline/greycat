@@ -26,10 +26,10 @@ public class GPSPosition extends BaseCustomTypeSingle {
     private static final int LAT_HASH = HashHelper.hash(LAT);
     private static final String LNG = "lng";
     private static final int LNG_HASH = HashHelper.hash(LNG);
-    
+
     public GPSPosition(final EGraph e) {
         super(e);
-        if(this._backend.node(DEF_NODE).typeAt(LAT_HASH) != Type.DOUBLE){
+        if (this._backend.node(DEF_NODE).typeAt(LAT_HASH) != Type.DOUBLE) {
             this._backend.node(DEF_NODE).setAt(LAT_HASH, Type.DOUBLE, 1.5d).setAt(LNG_HASH, Type.DOUBLE, 1.5d);
         }
     }
@@ -42,7 +42,7 @@ public class GPSPosition extends BaseCustomTypeSingle {
         return (double) getAt(LNG_HASH);
     }
 
-    public final void setPosition(double lat, double lng) {
+    public final void setPosition(final double lat, final double lng) {
         this._backend.node(DEF_NODE).setAt(LAT_HASH, Type.DOUBLE, lat).setAt(LNG_HASH, Type.DOUBLE, lng);
     }
 
@@ -50,7 +50,5 @@ public class GPSPosition extends BaseCustomTypeSingle {
     public String toString() {
         return "position(" + lat() + "," + lng() + ")";
     }
-
-
 
 }
