@@ -30,7 +30,7 @@ modelDcl: (constDcl | classDcl | globalIndexDcl | customTypeDcl)*;
 constDcl: 'const' name=IDENT ':' typeDcl ('=' value=STRING)?;
 
 classDcl: 'class' name=IDENT parentDcl? '{' (constDcl | attributeDcl | relationDcl | referenceDcl | localIndexDcl)* '}';
-parentDcl: 'extends' name=IDENT;
+parentDcl: 'extends' IDENT (',' IDENT)?;
 attributeDcl: 'att' name=IDENT ':' typeDcl;
 
 typeDcl: (builtInTypeDcl | customBuiltTypeDcl);

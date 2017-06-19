@@ -27,9 +27,9 @@ import java.util.Map;
 
 public class Model {
 
-    private final Map<String, Class> classesMap;
-    private final Map<String, Constant> globalConstantMap;
-    private final Map<String, GlobalIndex> globalIndexesMap;
+    protected final Map<String, Class> classesMap;
+    protected final Map<String, Constant> globalConstantMap;
+    protected final Map<String, GlobalIndex> globalIndexesMap;
     private final Map<String, CustomType> customTypesMap;
 
     public Model() {
@@ -39,6 +39,9 @@ public class Model {
         customTypesMap = new HashMap<>();
     }
 
+    public Class[] classes() {
+        return classesMap.values().toArray(new Class[classesMap.size()]);
+    }
 
     public void parse(File content) throws Exception {
         build(new ANTLRFileStream(content.getAbsolutePath()));
@@ -63,10 +66,12 @@ public class Model {
 
             // parents
             if (classDclCtx.parentDcl() != null) {
-                final String parentClassFqn = classDclCtx.parentDcl().name.getText();
-                final Class parentClass = getOrAddClass(parentClassFqn);
-                newClass.setParent(parentClass);
+                for(TerminalNode ident : classDclCtx.parentDcl().IDENT()) {
+                    final Class parentClass = getOrAddClass(ident.getText());
+                    newClass.addParent(parentClass);
+                }
             }
+
             // attributes
             for (GreyCatModelParser.AttributeDclContext attDcl : classDclCtx.attributeDcl()) {
                 String name = attDcl.name.getText();

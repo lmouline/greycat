@@ -18,9 +18,7 @@ package greycat.modeling.example;
 import greycat.Callback;
 import greycat.Graph;
 import greycat.GraphBuilder;
-import model.Device;
 import model.ModelPlugin;
-import model.Module;
 
 public class HelloModelingWorld {
 

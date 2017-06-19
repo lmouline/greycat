@@ -1,23 +1,21 @@
 
-enum BuildingTypes {
-    CORPORATE, PRIVATE, PUBLIC
-}
-
-class Building {
+class Building extends SuperTypeA {
     att name : String
     att height : Double
     rel rooms : Room
 
-    att buildingType : BuildingTypes
-    att location : Location
-
 }
+
 
 class Room {
     att name : String
 }
 
-Type Location {
-    lat : Double
-    long : Double
+
+class SuperTypeA {
+
+}
+
+class SuperTypeB {
+
 }

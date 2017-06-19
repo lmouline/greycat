@@ -16,9 +16,7 @@
 package greycat.generator;
 
 import greycat.language.Model;
-import greycat.language.ModelChecker;
 import java2typescript.SourceTranslator;
-import jline.internal.Log;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.project.MavenProject;
 import org.jboss.forge.roaster.model.source.JavaSource;
@@ -34,11 +32,9 @@ public class Generator {
     public static final String FILE_EXTENSION = ".gcm";
 
     private final Model model;
-    private final ModelChecker modelChecker;
 
     public Generator() {
         this.model = new Model();
-        this.modelChecker = new ModelChecker();
     }
 
     public void scan(File target) throws Exception {
@@ -49,14 +45,12 @@ public class Generator {
             } else {
                 for (String name : files) {
                     if (name.trim().endsWith(FILE_EXTENSION)) {
-//                        this.modelChecker.check(new File(target, name));
                         this.model.parse(new File(target, name));
                     }
                 }
             }
 
         } else if (target.getName().endsWith(FILE_EXTENSION)) {
-//            this.modelChecker.check(target);
             this.model.parse(target);
         } else {
             throw new RuntimeException("no file with correct extension found");
@@ -71,7 +65,6 @@ public class Generator {
             } else {
                 for (String name : files) {
                     if (name.trim().endsWith(FILE_EXTENSION)) {
-//                        this.modelChecker.check(new File(target, name));
                         this.model.parse(new File(target, name));
                     } else {
                         File current = new File(target, name);
@@ -83,7 +76,6 @@ public class Generator {
             }
 
         } else if (target.getName().endsWith(FILE_EXTENSION)) {
-//            this.modelChecker.check(target);
             this.model.parse(target);
         }
     }
@@ -91,15 +83,16 @@ public class Generator {
     private void generateJava(String packageName, String pluginName, File target) {
         int index = 0;
         // TODO
-        JavaSource[] sources = new JavaSource[10];
 //        JavaSource[] sources = new JavaSource[(model.classifiers().length) * 2 + 2];
+        int size = model.classes().length * 2; // interface + impl
+
+        JavaSource[] sources = new JavaSource[size * 2 + 2];
         sources[index] = PluginClassGenerator.generate(packageName, pluginName, model);
         index++;
 
-        JavaSource[] nodeTypes = NodeTypeGenerator.generate(packageName, pluginName, model);
-        System.arraycopy(nodeTypes, 0, sources, index, nodeTypes.length);
-        index += nodeTypes.length;
-
+        JavaSource[] classTypes = ClassTypeGenerator.generate(packageName, pluginName, model);
+        System.arraycopy(classTypes, 0, sources, index, classTypes.length);
+        index += classTypes.length;
 
         for (int i = 0; i < index; i++) {
             if (sources[i] != null) {
