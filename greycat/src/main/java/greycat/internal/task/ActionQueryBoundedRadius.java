@@ -16,8 +16,8 @@
 package greycat.internal.task;
 
 import greycat.*;
-import greycat.internal.tree.KDTree;
-import greycat.internal.tree.NDTree;
+import greycat.internal.custom.KDTree;
+import greycat.internal.custom.NDTree;
 import greycat.plugin.Job;
 import greycat.struct.Buffer;
 import greycat.struct.Tree;

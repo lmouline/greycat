@@ -36,7 +36,7 @@ public class CustomTypeTest {
         Graph g = GraphBuilder.newBuilder().withStorage(storage).withScheduler(new NoopScheduler()).build();
         g.typeRegistry().getOrCreateDeclaration("GPSPosition").setFactory(new TypeFactory() {
             @Override
-            public Object wrap(EGraph backend) {
+            public Object wrap(final EGraph backend) {
                 return new GPSPosition(backend);
             }
         });
@@ -53,8 +53,9 @@ public class CustomTypeTest {
                 position_n100.setPosition(50.5, 90.5);
                 Assert.assertEquals("position(50.5,90.5)", position_n100.toString());
                 Assert.assertEquals("position(42.5,84.5)", position.toString());
-                Assert.assertEquals(position.get("lat")+"","42.5");
-                Assert.assertEquals(position.get("lng")+"","84.5");
+                Assert.assertEquals(position.get("lat") + "", "42.5");
+                Assert.assertEquals(position.lat() + "", "42.5");
+                Assert.assertEquals(position.get("lng") + "", "84.5");
             }
         });
     }

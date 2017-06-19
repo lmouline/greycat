@@ -23,27 +23,27 @@ import greycat.utility.HashHelper;
 public class GPSPosition extends BaseCustomTypeSingle {
 
     private static final String LAT = "lat";
-    private static final int LAT_HASH = HashHelper.hash(LAT);
+    private static final int LAT_H = HashHelper.hash(LAT);
     private static final String LNG = "lng";
-    private static final int LNG_HASH = HashHelper.hash(LNG);
+    private static final int LNG_H = HashHelper.hash(LNG);
 
     public GPSPosition(final EGraph e) {
         super(e);
-        if (this._backend.node(DEF_NODE).typeAt(LAT_HASH) != Type.DOUBLE) {
-            this._backend.node(DEF_NODE).setAt(LAT_HASH, Type.DOUBLE, 1.5d).setAt(LNG_HASH, Type.DOUBLE, 1.5d);
+        if (this._backend.node(DEF_NODE).typeAt(LAT_H) != Type.DOUBLE) {
+            this._backend.node(DEF_NODE).setAt(LAT_H, Type.DOUBLE, 1.5d).setAt(LNG_H, Type.DOUBLE, 1.5d);
         }
     }
 
     public final double lat() {
-        return (double) getAt(LAT_HASH);
+        return (double) getAt(LAT_H);
     }
 
     public final double lng() {
-        return (double) getAt(LNG_HASH);
+        return (double) getAt(LNG_H);
     }
 
     public final void setPosition(final double lat, final double lng) {
-        this._backend.node(DEF_NODE).setAt(LAT_HASH, Type.DOUBLE, lat).setAt(LNG_HASH, Type.DOUBLE, lng);
+        this._backend.node(DEF_NODE).setAt(LAT_H, Type.DOUBLE, lat).setAt(LNG_H, Type.DOUBLE, lng);
     }
 
     @Override

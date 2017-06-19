@@ -17,14 +17,10 @@ package greycat.internal;
 
 import greycat.*;
 import greycat.chunk.*;
+import greycat.internal.custom.*;
 import greycat.internal.heap.HeapMemoryFactory;
-import greycat.internal.tree.KDTreeNode;
-import greycat.internal.tree.NDTreeNode;
 import greycat.plugin.*;
-import greycat.struct.Buffer;
-import greycat.struct.BufferIterator;
-import greycat.struct.LongLongMap;
-import greycat.struct.LongLongMapCallBack;
+import greycat.struct.*;
 import greycat.utility.HashHelper;
 import greycat.base.BaseNode;
 import greycat.internal.task.CoreActionRegistry;
@@ -82,6 +78,21 @@ public class CoreGraph implements Graph {
         _scheduler = p_scheduler;
         //Third round, initialize all taskActions and nodeTypes
         CoreTask.fillDefault(this._actionRegistry);
+
+        //Register default Custom Types
+        this._typeRegistry.getOrCreateDeclaration(KDTree.NAME).setFactory(new TypeFactory() {
+            @Override
+            public Object wrap(final EGraph backend) {
+                return new KDTree(backend);
+            }
+        });
+        this._typeRegistry.getOrCreateDeclaration(NDTree.NAME).setFactory(new TypeFactory() {
+            @Override
+            public Object wrap(final EGraph backend) {
+                return new NDTree(backend, new IndexManager());
+            }
+        });
+
         this._nodeRegistry.getOrCreateDeclaration(CoreNodeIndex.NAME).setFactory(new NodeFactory() {
             @Override
             public Node create(long world, long time, long id, Graph graph) {

@@ -50,17 +50,11 @@ public class Type {
 
     public static final int TASK = 20;
     public static final int TASK_ARRAY = 21;
+    public static final int NODE = 22;
+    public static final int INT_TO_INT_MAP = 23;
+    public static final int INT_TO_STRING_MAP = 24;
 
-    public static final int KDTREE = 22;
-    public static final int NDTREE = 23;
-
-    public static final int NODE = 24;
-    public static final int NODE_ARRAY = 25;
-
-    public static final int INT_TO_INT_MAP = 26;
-    public static final int INT_TO_STRING_MAP = 27;
-
-    public static boolean isCustom(int p_type){
+    public static boolean isCustom(int p_type) {
         return p_type < BOOL || p_type > INT_TO_STRING_MAP;
     }
 
@@ -117,16 +111,17 @@ public class Type {
                 return "TASK";
             case Type.TASK_ARRAY:
                 return "TASK_ARRAY";
-            case Type.KDTREE:
+            /*case Type.KDTREE:
                 return "KDTREE";
             case Type.NDTREE:
                 return "NDTREE";
+                */
             case Type.INT_TO_INT_MAP:
                 return "INT_TO_INT_MAP";
             case Type.INT_TO_STRING_MAP:
                 return "INT_TO_STRING_MAP";
             default:
-                return "unknown";
+                return "Custom";
         }
     }
 
@@ -174,10 +169,11 @@ public class Type {
                 return Type.TASK;
             case "TASK_ARRAY":
                 return Type.TASK_ARRAY;
-            case "KDTREE":
+           /* case "KDTREE":
                 return Type.KDTREE;
             case "NDTREE":
                 return Type.NDTREE;
+                */
             case "INT_TO_INT_MAP":
                 return Type.INT_TO_INT_MAP;
             case "INT_TO_STRING_MAP":

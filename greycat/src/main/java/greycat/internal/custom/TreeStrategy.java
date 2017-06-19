@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package greycat.internal.tree;
+package greycat.internal.custom;
 
 class TreeStrategy {
     static final int INDEX = 0;

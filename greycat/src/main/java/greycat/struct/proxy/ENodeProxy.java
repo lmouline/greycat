@@ -165,10 +165,11 @@ public final class ENodeProxy implements ENode {
                     return new RelationProxy(index, this, (Relation) elem);
                 case Type.RELATION_INDEXED:
                     return new RelationIndexedProxy(index, this, (RelationIndexed) elem);
-                case Type.KDTREE:
+                /*case Type.KDTREE:
                     return new TreeProxy(index, this, (Tree) elem);
                 case Type.NDTREE:
                     return new ProfileProxy(index, this, (Profile) elem);
+                    */
                 case Type.LONG_TO_LONG_MAP:
                     return new LongLongMapProxy(index, this, (LongLongMap) elem);
                 case Type.LONG_TO_LONG_ARRAY_MAP:
