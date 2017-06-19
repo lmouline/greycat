@@ -16,6 +16,7 @@
 package greycat.generator;
 
 import greycat.Graph;
+import greycat.Type;
 import greycat.language.*;
 import greycat.language.Class;
 import org.jboss.forge.roaster.Roaster;
@@ -25,48 +26,26 @@ import org.jboss.forge.roaster.model.source.*;
 class ClassTypeGenerator {
 
     static JavaSource[] generate(String packageName, String pluginName, Model model) {
-        JavaSource[] sources = new JavaSource[model.classes().length * 2]; // interfaces + classes
+        JavaSource[] sources = new JavaSource[model.classes().length];
 
-        int index = 0;
-        for (Class classType : model.classes()) {
-            JavaInterfaceSource interfaceSource = generateInterface(packageName, classType);
-            sources[index] = interfaceSource;
-            index++;
-
-            JavaClassSource classSource = generateClass(packageName, classType);
-            sources[index] = classSource;
-            index++;
+        for (int i = 0; i < model.classes().length; i++) {
+            sources[i] = generateClass(packageName, model.classes()[i]);
         }
-
 
         return sources;
     }
 
 
-    private static JavaInterfaceSource generateInterface(String packageName, Class classType) {
-        final JavaInterfaceSource javaInterface = Roaster.create(JavaInterfaceSource.class);
-        javaInterface.setPackage(packageName);
-        javaInterface.setName(classType.name());
-
-        for (Class parent : classType.parents()) {
-            javaInterface.addInterface(packageName + "." + parent.name());
-        }
-
-        return javaInterface;
-    }
-
     private static JavaClassSource generateClass(String packageName, Class classType) {
-        // interfaces
         final JavaClassSource javaClass = Roaster.create(JavaClassSource.class);
         javaClass.setPackage(packageName);
-        javaClass.setName(classType.name() + "Impl");
+        javaClass.setName(classType.name());
 
-        javaClass.addInterface(packageName + "." + classType.name());
-        for (Class parent : classType.parents()) {
-            javaClass.addInterface(packageName + "." + parent.name());
+        if (classType.parent() != null) {
+            javaClass.setSuperType(packageName + "." + classType.parent().name());
+        } else {
+            javaClass.setSuperType("greycat.base.BaseNode");
         }
-
-        javaClass.setSuperType("greycat.base.BaseNode");
 
         // constructor
         MethodSource<JavaClassSource> constructor = javaClass.addMethod().setConstructor(true);
@@ -77,60 +56,61 @@ class ClassTypeGenerator {
         constructor.setBody("super(p_world, p_time, p_id, p_graph);");
         constructor.setVisibility(Visibility.PUBLIC);
 
+        // field for node name
+        javaClass.addField()
+                .setVisibility(Visibility.PUBLIC)
+                .setFinal(true)
+                .setName("NODE_NAME")
+                .setType(String.class)
+                .setStringInitializer(javaClass.getCanonicalName())
+                .setStatic(true);
 
+        javaClass.addImport(Type.class);
+
+        // attributes
+        for (Attribute att : classType.attributes()) {
+
+            // fields
+            FieldSource<JavaClassSource> typeField = javaClass.addField()
+                    .setVisibility(Visibility.PUBLIC)
+                    .setFinal(true)
+                    .setName(att.name().toUpperCase() + "_TYPE")
+                    .setType(byte.class)
+                    .setStatic(true);
+            // TODO custom type!
+            typeField.setLiteralInitializer(TypeManager.builtInTypeName(att.type()));
+
+            // getter
+            MethodSource<JavaClassSource> getter = javaClass.addMethod();
+            getter.setVisibility(Visibility.PUBLIC).setFinal(true);
+            getter.setReturnType(TypeManager.builtInClassName(att.name()));
+            getter.setName("get" + upperCaseFirstChar(att.name()));
+
+            if (TypeManager.isPrimitive(att.type())) {
+                getter.setBody("return (" + TypeManager.builtInClassName(att.type()) + ") super.get(" + att.name().toUpperCase() + ");");
+
+            } else {
+                getter.setBody("return (" + TypeManager.builtInClassName(att.type()) + ") super.getOrCreate(" + att.name().toUpperCase() + ", " + att.name().toUpperCase() + "_TYPE);");
+
+            }
+
+            // setter
+            javaClass.addMethod()
+                    .setVisibility(Visibility.PUBLIC).setFinal(true)
+                    .setName("set" + upperCaseFirstChar(att.name()))
+                    .setReturnType(classType.name())
+                    .setBody("super.set(" + att.name().toUpperCase() + ", " + att.name().toUpperCase()
+                            + "_TYPE,value);\nreturn this;"
+                    )
+                    .addParameter(TypeManager.builtInClassName(att.type()), "value");
+
+
+        }
         return javaClass;
     }
 
     private static String upperCaseFirstChar(String init) {
         return init.substring(0, 1).toUpperCase() + init.substring(1);
-    }
-
-
-    private static String typeToString(final Attribute attribute) {
-        StringBuilder typeBuilder = new StringBuilder();
-        switch (attribute.type()) {
-            case "String":
-                typeBuilder.append("CustomType.STRING");
-                break;
-            case "Double":
-                typeBuilder.append("CustomType.DOUBLE");
-                break;
-            case "Long":
-                typeBuilder.append("CustomType.LONG");
-                break;
-            case "Integer":
-                typeBuilder.append("CustomType.INT");
-                break;
-            case "Boolean":
-                typeBuilder.append("CustomType.BOOL");
-                break;
-            default:
-                throw new RuntimeException("type " + attribute.type() + " is unknown");
-        }
-
-//        if (attribute.isArray()) {
-//            typeBuilder.append("_ARRAY");
-//        }
-
-        return typeBuilder.toString();
-    }
-
-
-    private static String typeToClassName(final Attribute attribute) {
-        switch (attribute.type()) {
-            case "String":
-                return String.class.getCanonicalName();
-            case "Double":
-                return double.class.getCanonicalName();
-            case "Long":
-                return long.class.getCanonicalName();
-            case "Integer":
-                return int.class.getCanonicalName();
-            case "Boolean":
-                return boolean.class.getCanonicalName();
-            default:
-                throw new RuntimeException("type " + attribute.type() + " is unknown");
-        }
     }
 
 

@@ -66,10 +66,8 @@ public class Model {
 
             // parents
             if (classDclCtx.parentDcl() != null) {
-                for(TerminalNode ident : classDclCtx.parentDcl().IDENT()) {
-                    final Class parentClass = getOrAddClass(ident.getText());
-                    newClass.addParent(parentClass);
-                }
+                final Class parentClass = getOrAddClass(classDclCtx.parentDcl().IDENT().getText());
+                newClass.setParent(parentClass);
             }
 
             // attributes

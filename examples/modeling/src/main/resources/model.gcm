@@ -1,5 +1,5 @@
 
-class Building extends SuperTypeA {
+class Building extends ASuperType {
     att name : String
     att height : Double
     rel rooms : Room
@@ -12,10 +12,6 @@ class Room {
 }
 
 
-class SuperTypeA {
-
-}
-
-class SuperTypeB {
+class ASuperType {
 
 }

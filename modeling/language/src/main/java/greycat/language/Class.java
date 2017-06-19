@@ -26,7 +26,7 @@ public class Class extends ASTNode {
     private final Map<String, LocalIndex> localIndexes;
     private final Map<String, Constant> constants;
 
-    private final Set<Class> parents;
+    private Class parent;
 
     public Class(String name) {
         this.name = name;
@@ -35,7 +35,6 @@ public class Class extends ASTNode {
         this.references = new HashMap<>();
         this.localIndexes = new HashMap<>();
         this.constants = new HashMap<>();
-        this.parents = new HashSet<>();
     }
 
 
@@ -107,12 +106,12 @@ public class Class extends ASTNode {
     }
 
 
-    public Set<Class> parents() {
-        return parents;
+    public Class parent() {
+        return parent;
     }
 
-    public void addParent(Class parent) {
-        this.parents.add(parent);
+    public void setParent(Class parent) {
+        this.parent = parent;
     }
 
     public String name() {
