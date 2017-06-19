@@ -47,6 +47,18 @@ class ClassTypeGenerator {
             javaClass.setSuperType("greycat.base.BaseNode");
         }
 
+        // constants
+        for(Constant constant : classType.constants()) {
+            javaClass.addField()
+                    .setVisibility(Visibility.PUBLIC)
+                    .setFinal(true)
+                    .setName(constant.name())
+                    // TODO custom type
+                    .setType(TypeManager.builtInClassName(constant.type()))
+                    .setStringInitializer(constant.value().replaceAll("\"", ""))
+                    .setStatic(true);
+        }
+
         // create method
         MethodSource<JavaClassSource> create = javaClass.addMethod()
                 .setName("create")

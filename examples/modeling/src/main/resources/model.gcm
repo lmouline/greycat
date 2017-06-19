@@ -1,5 +1,7 @@
 
 class Building extends ASuperType {
+    const BUILDING_CONSTANT : String = "bla"
+
     att name : String
     att height : Double
     rel rooms : Room
