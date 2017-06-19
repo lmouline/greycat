@@ -19,6 +19,7 @@ import greycat.language.Model;
 import java2typescript.SourceTranslator;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.project.MavenProject;
+import org.jboss.forge.roaster.model.source.JavaClassSource;
 import org.jboss.forge.roaster.model.source.JavaSource;
 
 import java.io.File;
@@ -88,7 +89,7 @@ public class Generator {
         int index = 0;
         // TODO
 //        JavaSource[] sources = new JavaSource[(model.classifiers().length) * 2 + 2];
-        int size = model.classes().length + model.customTypes().length;
+        int size = model.classes().length + model.customTypes().length + model.globalIndexes().length;
 
         JavaSource[] sources = new JavaSource[size * 2 + 2];
         sources[index] = PluginClassGenerator.generate(packageName, pluginName, model);
@@ -101,6 +102,10 @@ public class Generator {
         JavaSource[] customTypes = CustomTypeGenerator.generate(packageName, pluginName, model);
         System.arraycopy(customTypes, 0, sources, index, customTypes.length);
         index += customTypes.length;
+
+        JavaSource[] globalIndexes = GlobalIndexGenerator.generate(packageName, pluginName, model);
+        System.arraycopy(globalIndexes, 0, sources, index, globalIndexes.length);
+        index += globalIndexes.length;
 
         for (int i = 0; i < index; i++) {
             if (sources[i] != null) {

@@ -23,3 +23,5 @@ type GPSPosition {
     att lat : Double
     att lng : Double
 }
+
+index Buildings of Building using name

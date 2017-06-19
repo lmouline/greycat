@@ -39,6 +39,10 @@ public class Model {
         customTypesMap = new HashMap<>();
     }
 
+    public GlobalIndex[] globalIndexes() {
+        return globalIndexesMap.values().toArray(new GlobalIndex[globalIndexesMap.size()]);
+    }
+
     public CustomType[] customTypes() {
         return customTypesMap.values().toArray(new CustomType[customTypesMap.size()]);
     }
