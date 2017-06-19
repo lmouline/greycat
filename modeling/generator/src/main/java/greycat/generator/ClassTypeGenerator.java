@@ -47,6 +47,18 @@ class ClassTypeGenerator {
             javaClass.setSuperType("greycat.base.BaseNode");
         }
 
+        // create method
+        MethodSource<JavaClassSource> create = javaClass.addMethod()
+                .setName("create")
+                .setVisibility(Visibility.PUBLIC)
+                .setStatic(true);
+        create.addParameter("long", "p_world");
+        create.addParameter("long", "p_time");
+        create.addParameter(Graph.class, "p_graph");
+        create.setReturnType(classType.name());
+        create.setBody("return (" + javaClass.getName() + ") p_graph.newTypedNode(p_world, p_time, " + javaClass.getName() + ".NODE_NAME);");
+
+
         // constructor
         MethodSource<JavaClassSource> constructor = javaClass.addMethod().setConstructor(true);
         constructor.addParameter("long", "p_world");
@@ -222,7 +234,7 @@ class ClassTypeGenerator {
             remove.setVisibility(Visibility.PUBLIC).setFinal(true);
             String refName = upperCaseFirstChar(ref.name());
             String refType = upperCaseFirstChar(ref.type());
-            remove.setName("remove" + refType);
+            remove.setName("remove" + refName);
             remove.setReturnTypeVoid();
             remove.addParameter("greycat.Callback<Boolean>", "callback");
             removeFromBodyBuilder.append(classType.name() + " self = this;");

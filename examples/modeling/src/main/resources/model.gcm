@@ -3,6 +3,7 @@ class Building extends ASuperType {
     att name : String
     att height : Double
     rel rooms : Room
+    ref specialRoom : Room
 
 }
 
