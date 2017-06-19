@@ -49,14 +49,14 @@ public class Generator {
             } else {
                 for (String name : files) {
                     if (name.trim().endsWith(FILE_EXTENSION)) {
-                        this.modelChecker.check(new File(target, name));
+//                        this.modelChecker.check(new File(target, name));
                         this.model.parse(new File(target, name));
                     }
                 }
             }
 
         } else if (target.getName().endsWith(FILE_EXTENSION)) {
-            this.modelChecker.check(target);
+//            this.modelChecker.check(target);
             this.model.parse(target);
         } else {
             throw new RuntimeException("no file with correct extension found");
@@ -71,7 +71,7 @@ public class Generator {
             } else {
                 for (String name : files) {
                     if (name.trim().endsWith(FILE_EXTENSION)) {
-                        this.modelChecker.check(new File(target, name));
+//                        this.modelChecker.check(new File(target, name));
                         this.model.parse(new File(target, name));
                     } else {
                         File current = new File(target, name);
@@ -83,14 +83,16 @@ public class Generator {
             }
 
         } else if (target.getName().endsWith(FILE_EXTENSION)) {
-            this.modelChecker.check(target);
+//            this.modelChecker.check(target);
             this.model.parse(target);
         }
     }
 
     private void generateJava(String packageName, String pluginName, File target) {
         int index = 0;
-        JavaSource[] sources = new JavaSource[(model.classifiers().length) * 2 + 2];
+        // TODO
+        JavaSource[] sources = new JavaSource[10];
+//        JavaSource[] sources = new JavaSource[(model.classifiers().length) * 2 + 2];
         sources[index] = PluginClassGenerator.generate(packageName, pluginName, model);
         index++;
 
@@ -221,7 +223,7 @@ public class Generator {
                     "g.connect(function (isSucceed) {\n" +
                     "console.log(\"--- GreyCat ready ---\");\n" +
                     "    var n = g.newNode(0,0);\n" +
-                    "    n.set(\"name\",greycat.Type.STRING, \"myName\");\n" +
+                    "    n.set(\"name\",greycat.CustomType.STRING, \"myName\");\n" +
                     "    console.log(n.toString());\n" +
                     "});").getBytes());
 
@@ -233,8 +235,8 @@ public class Generator {
                     "  \"main\": \"main.js\",\n" +
                     "  \"author\": \"\",\n" +
                     "  \"description\":\"empty\",\n" +
-                            "  \"repository\":\"empty\",\n" +
-                            "  \"license\":\"UNLICENSED\","+
+                    "  \"repository\":\"empty\",\n" +
+                    "  \"license\":\"UNLICENSED\"," +
                     "  \"dependencies\": {\n" +
                     "    \"greycat\": \"" + gcVersion + "\",\n" +
                     "    \"" + packageName + "\": \"../greycat-modeling-ts\"\n" +
@@ -266,7 +268,7 @@ public class Generator {
                     "g.connect(function (isSucceed) {\n" +
                     "    console.log(\"--- GreyCat ready ---\");\n" +
                     "    var n = g.newNode(0,0);\n" +
-                    "    n.set(\"name\",greycat.Type.STRING, \"myName\");\n" +
+                    "    n.set(\"name\",greycat.CustomType.STRING, \"myName\");\n" +
                     "    console.log(n.toString());\n" +
                     "})\n").getBytes());
 

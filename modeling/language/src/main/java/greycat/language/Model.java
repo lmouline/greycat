@@ -28,17 +28,15 @@ import java.util.Map;
 public class Model {
 
     private final Map<String, Class> classesMap;
-    private final Map<String, Enum> enumsMap;
+    private final Map<String, Constant> globalConstantMap;
     private final Map<String, GlobalIndex> globalIndexesMap;
-    private final Map<String, Type> typesMap;
-    private final Map<String, Task> tasksMap;
+    private final Map<String, CustomType> customTypesMap;
 
     public Model() {
         classesMap = new HashMap<>();
-        enumsMap = new HashMap<>();
+        globalConstantMap = new HashMap<>();
         globalIndexesMap = new HashMap<>();
-        typesMap = new HashMap<>();
-        tasksMap = new HashMap<>();
+        customTypesMap = new HashMap<>();
     }
 
 
@@ -51,37 +49,31 @@ public class Model {
         GreyCatModelParser parser = new GreyCatModelParser(tokens);
         GreyCatModelParser.ModelDclContext modelDclCtx = parser.modelDcl();
 
-        // enums
-        for (GreyCatModelParser.EnumDclContext enumDclCtx : modelDclCtx.enumDcl()) {
-            String fqn = enumDclCtx.name.getText();
-            final Enum enumClass = getOrCreateEnum(fqn);
-            for (TerminalNode literal : enumDclCtx.enumLiteralsDcl().IDENT()) {
-                enumClass.addLiteral(literal.getText());
-            }
+        // constants
+        for (GreyCatModelParser.ConstDclContext constDclCtx : modelDclCtx.constDcl()) {
+            Constant constant = getOrAddGlobalConstant(constDclCtx);
+            constant.setIsGlobal(true);
         }
+
 
         // classes
         for (GreyCatModelParser.ClassDclContext classDclCtx : modelDclCtx.classDcl()) {
             String classFqn = classDclCtx.name.getText();
-            final Class newClass = getOrCreateClass(classFqn);
+            Class newClass = getOrAddClass(classFqn);
 
             // parents
             if (classDclCtx.parentDcl() != null) {
-                final Class parentClass = getOrCreateClass(classDclCtx.parentDcl().name.getText());
+                final String parentClassFqn = classDclCtx.parentDcl().name.getText();
+                final Class parentClass = getOrAddClass(parentClassFqn);
                 newClass.setParent(parentClass);
             }
             // attributes
             for (GreyCatModelParser.AttributeDclContext attDcl : classDclCtx.attributeDcl()) {
                 String name = attDcl.name.getText();
-                GreyCatModelParser.AttributeTypeDclContext attTypeDclCxt = attDcl.attributeTypeDcl();
-                String value = attTypeDclCxt.getText();
-                boolean isArray = false;
-                if (value.endsWith("[]")) {
-                    value = value.substring(0, value.length() - 2);
-                    isArray = true;
-                }
+                GreyCatModelParser.TypeDclContext typeDclCtx = attDcl.typeDcl();
 
-                final Attribute attribute = new Attribute(name, value, isArray);
+                String type = getType(typeDclCtx);
+                final Attribute attribute = new Attribute(name, type);
                 newClass.addAttribute(attribute);
             }
 
@@ -107,13 +99,22 @@ public class Model {
             for (GreyCatModelParser.LocalIndexDclContext localIndexDclCtx : classDclCtx.localIndexDcl()) {
                 String name = localIndexDclCtx.name.getText();
                 String type = localIndexDclCtx.type.getText();
-                Class indexedClass = getOrCreateClass(type);
+
+                Class indexedClass = getOrAddClass(type);
 
                 LocalIndex localIndex = new LocalIndex(name, type);
                 for (TerminalNode idxDclIdent : localIndexDclCtx.indexAttributesDcl().IDENT()) {
                     Attribute att = indexedClass.getAttribute(idxDclIdent.getText());
                     localIndex.addAttribute(att);
                 }
+                indexedClass.addLocalIndex(localIndex);
+            }
+
+            // constants
+            for (GreyCatModelParser.ConstDclContext constDclCtx : classDclCtx.constDcl()) {
+                Constant constant = getConstant(constDclCtx);
+                constant.setIsGlobal(false);
+                newClass.addConstant(constant);
             }
         }
 
@@ -121,9 +122,10 @@ public class Model {
         for (GreyCatModelParser.GlobalIndexDclContext globalIdxDclContext : modelDclCtx.globalIndexDcl()) {
             String name = globalIdxDclContext.name.getText();
             String type = globalIdxDclContext.type.getText();
-            Class indexedClass = getOrCreateClass(type);
 
-            final GlobalIndex globalIndex = getOrCreateGlobalIndex(name, type);
+            Class indexedClass = getOrAddClass(type);
+
+            final GlobalIndex globalIndex = getOrAddGlobalIndex(name, type);
             for (TerminalNode idxDclIdent : globalIdxDclContext.indexAttributesDcl().IDENT()) {
                 Attribute att = indexedClass.getAttribute(idxDclIdent.getText());
                 globalIndex.addAttribute(att);
@@ -131,60 +133,94 @@ public class Model {
         }
 
 
-        // types
-        // TODO
-//        for (GreyCatModelParser.TypeDclContext typeDclContext : modelDclCtx.typeDcl()) {
-//            String name = typeDclContext.name.getText();
-//
-//            final Type type = getOrCreateType(name);
-//            for (TerminalNode literal : enumDclCtx.enumLiteralsDcl().IDENT()) {
-//                enumClass.addLiteral(literal.getText());
-//            }
-//        }
+        // custom types
+        for (GreyCatModelParser.CustomTypeDclContext typeDclCtx : modelDclCtx.customTypeDcl()) {
+            String typeName = typeDclCtx.name.getText();
+            final CustomType newType = getOrAddCustomType(typeName);
 
-        // tasks
-        // TODO
+            // attributes
+            for (GreyCatModelParser.TypeDclContext typeAttDcl : typeDclCtx.typeDcl()) {
+                if (typeAttDcl.builtInTypeDcl() != null) {
+                    final String value = typeAttDcl.builtInTypeDcl().getText();
+                    final Attribute attribute = new Attribute(typeName, value);
+                    newType.addAttribute(attribute);
+
+                } else if (typeAttDcl.customBuiltTypeDcl() != null) {
+                    final String value = typeAttDcl.customBuiltTypeDcl().getText();
+                    final Attribute attribute = new Attribute(typeName, value);
+                    newType.addAttribute(attribute);
+                }
+            }
+
+            // constants
+            for (GreyCatModelParser.ConstDclContext constDclCtx : typeDclCtx.constDcl()) {
+                Constant constant = getConstant(constDclCtx);
+                constant.setIsGlobal(false);
+                newType.addConstant(constant);
+            }
+        }
+
     }
 
 
-    private GlobalIndex getOrCreateGlobalIndex(String fqn, String type) {
-        GlobalIndex previous = this.globalIndexesMap.get(fqn);
-        if(previous != null) {
-            return previous;
+    private String getType(GreyCatModelParser.TypeDclContext typeDclContext) {
+        String type = null;
+        if (typeDclContext.builtInTypeDcl() != null) {
+            type = typeDclContext.builtInTypeDcl().getText();
+        } else if (typeDclContext.customBuiltTypeDcl() != null) {
+            typeDclContext.customBuiltTypeDcl().getText();
         }
-        previous = new GlobalIndex(fqn, type);
-        this.globalIndexesMap.put(fqn, previous);
-        return previous;
+
+        return type;
     }
 
-    private Class getOrCreateClass(String fqn) {
-        Class previous = this.classesMap.get(fqn);
-        if (previous != null) {
-            return previous;
-        }
-        previous = new Class(fqn);
-        this.classesMap.put(fqn, previous);
-        return previous;
+    private Constant getConstant(GreyCatModelParser.ConstDclContext constDclCtx) {
+        String name = constDclCtx.name.getText();
+        String type = getType(constDclCtx.typeDcl());
+        String value = constDclCtx.value != null ? constDclCtx.value.getText() : null;
+
+        return new Constant(name, type, value);
     }
 
-    private Enum getOrCreateEnum(String fqn) {
-        Enum previous = this.enumsMap.get(fqn);
-        if (previous != null) {
-            return previous;
+
+    private Class getOrAddClass(String fqn) {
+        Class c = classesMap.get(fqn);
+        if (c == null) {
+            c = new Class(fqn);
+            classesMap.put(fqn, c);
         }
-        previous = new Enum(fqn);
-        this.enumsMap.put(fqn, previous);
-        return previous;
+        return c;
     }
 
-    private Type getOrCreateType(String fqn) {
-        Type previous = this.typesMap.get(fqn);
-        if (previous != null) {
-            return previous;
+    private Constant getOrAddGlobalConstant(GreyCatModelParser.ConstDclContext constDclCtx) {
+        String name = constDclCtx.name.getText();
+
+        Constant c = globalConstantMap.get(name);
+        if (c == null) {
+            String type = getType(constDclCtx.typeDcl());
+            String value = constDclCtx.value != null ? constDclCtx.value.getText() : null;
+            c = new Constant(name, type, value);
+            globalConstantMap.put(name, c);
         }
-        previous = new Type(fqn);
-        this.typesMap.put(fqn, previous);
-        return previous;
+        return c;
+    }
+
+    private GlobalIndex getOrAddGlobalIndex(String name, String type) {
+        GlobalIndex gi = globalIndexesMap.get(name);
+        if (gi == null) {
+            gi = new GlobalIndex(name, type);
+            globalIndexesMap.put(name, gi);
+        }
+        return gi;
+    }
+
+    private CustomType getOrAddCustomType(String name) {
+        CustomType ct = customTypesMap.get(name);
+        if (ct == null) {
+            ct = new CustomType(name);
+            customTypesMap.put(name, ct);
+        }
+        return ct;
     }
 
 }

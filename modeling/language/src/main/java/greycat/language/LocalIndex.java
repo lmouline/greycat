@@ -15,6 +15,7 @@
  */
 package greycat.language;
 
+import java.util.ArrayList;
 import java.util.Collection;
 
 public class LocalIndex extends ASTNode {
@@ -24,8 +25,17 @@ public class LocalIndex extends ASTNode {
 
 
     public LocalIndex(String name, String type) {
+        this.attributes = new ArrayList<>();
         this.name = name;
         this.type = type;
+    }
+
+    public String name() {
+        return this.name;
+    }
+
+    public String type() {
+        return this.type;
     }
 
     public Collection<Attribute> attributes() {

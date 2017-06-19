@@ -18,16 +18,10 @@ package greycat.language;
 public class Attribute extends ASTNode {
     private final String name;
     private final String type;
-    private final boolean isArray;
 
-    public Attribute(String name, String type, boolean isArray) {
+    public Attribute(String name, String type) {
         this.name = name;
         this.type = type;
-        this.isArray = isArray;
-    }
-
-    public boolean isArray() {
-        return this.isArray;
     }
 
     public String name() {

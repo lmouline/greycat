@@ -1,0 +1,23 @@
+
+enum BuildingTypes {
+    CORPORATE, PRIVATE, PUBLIC
+}
+
+class Building {
+    att name : String
+    att height : Double
+    rel rooms : Room
+
+    att buildingType : BuildingTypes
+    att location : Location
+
+}
+
+class Room {
+    att name : String
+}
+
+Type Location {
+    lat : Double
+    long : Double
+}

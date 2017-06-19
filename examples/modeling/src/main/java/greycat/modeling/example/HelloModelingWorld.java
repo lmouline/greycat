@@ -33,41 +33,6 @@ public class HelloModelingWorld {
         graph.connect(new Callback<Boolean>() {
             @Override
             public void on(Boolean result) {
-                //Method 1
-                Device device = (Device) graph.newTypedNode(0, 0, Device.NODE_NAME);
-                device.setName("device");
-                device.setIdentifier(3);
-                //Method 2
-                Device device2 = graph.newTypedNode(0, 0, Device.NODE_NAME, Device.class);
-                device2.setName("device2");
-                //Method 3
-                Device device3 = Device.create(0, 0, graph);
-                device3.setName("device3");
-
-                // module
-                Module module = (Module) graph.newTypedNode(0, 0, Module.NODE_NAME);
-                module.setName("name");
-                module.setName2("name2");
-                device.addToModules(module);
-
-                System.out.println(device);
-                System.out.println(device2);
-                System.out.println(device3);
-
-                device.findModules(result1 -> System.out.println(result1), "name", "name2");
-
-                device.indexDevice(new Callback<Boolean>() {
-                    @Override
-                    public void on(Boolean result) {
-                        Device.findFromMyKey2(new Callback<Device[]>() {
-                            @Override
-                            public void on(Device[] result) {
-                                System.out.println(result[0]);
-                            }
-                        }, graph, 0, 0, "device");
-
-                    }
-                });
 
             }
         });

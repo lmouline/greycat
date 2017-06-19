@@ -44,19 +44,19 @@ class PluginClassGenerator {
                 .addAnnotation(Override.class);
 
         StringBuilder startBodyBuilder = new StringBuilder();
-        for (Classifier classifier : model.classifiers()) {
-            if (classifier instanceof Class) {
-                startBodyBuilder.append("\t\tgraph.nodeRegistry()\n")
-                        .append("\t\t\t.getOrCreateDeclaration(").append(classifier.name()).append(".NODE_NAME").append(")").append("\n")
-                        .append("\t\t\t.setFactory(new NodeFactory() {\n" +
-                                "\t\t\t\t\t@Override\n" +
-                                "\t\t\t\t\tpublic greycat.Node create(long world, long time, long id, Graph graph) {\n" +
-                                "\t\t\t\t\t\treturn new ").append(classifier.name()).append("(world,time,id,graph);\n" +
-                        "\t\t\t\t\t}\n" +
-                        "\t\t\t\t});\n");
-
-            }
-        }
+//        for (Classifier classifier : model.classifiers()) {
+//            if (classifier instanceof Class) {
+//                startBodyBuilder.append("\t\tgraph.nodeRegistry()\n")
+//                        .append("\t\t\t.getOrCreateDeclaration(").append(classifier.name()).append(".NODE_NAME").append(")").append("\n")
+//                        .append("\t\t\t.setFactory(new NodeFactory() {\n" +
+//                                "\t\t\t\t\t@Override\n" +
+//                                "\t\t\t\t\tpublic greycat.Node create(long world, long time, long id, Graph graph) {\n" +
+//                                "\t\t\t\t\t\treturn new ").append(classifier.name()).append("(world,time,id,graph);\n" +
+//                        "\t\t\t\t\t}\n" +
+//                        "\t\t\t\t});\n");
+//
+//            }
+//        }
 
         MethodSource<JavaClassSource> startMethod = pluginClass.addMethod();
         startMethod.setReturnTypeVoid()

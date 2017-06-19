@@ -24,6 +24,7 @@ public class Class extends ASTNode {
     private final Map<String, Relation> relations;
     private final Map<String, Reference> references;
     private final Map<String, LocalIndex> localIndexes;
+    private final Map<String, Constant> constants;
     private Class parent;
 
     public Class(String name) {
@@ -32,6 +33,24 @@ public class Class extends ASTNode {
         this.relations = new HashMap<>();
         this.references = new HashMap<>();
         this.localIndexes = new HashMap<>();
+        this.constants = new HashMap<>();
+    }
+
+
+    public Collection<Constant> constants() {
+        return this.constants.values();
+    }
+
+    public void addConstant(Constant constant) {
+        this.constants.put(constant.name(), constant);
+    }
+
+    public Collection<LocalIndex> localIndexes() {
+        return this.localIndexes.values();
+    }
+
+    public void addLocalIndex(LocalIndex localIndex) {
+        localIndexes.put(localIndex.name(), localIndex);
     }
 
     public Collection<Attribute> attributes() {
@@ -84,7 +103,6 @@ public class Class extends ASTNode {
     public void addReference(Reference ref) {
         references.put(ref.name(), ref);
     }
-
 
 
     public Class parent() {
