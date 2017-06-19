@@ -25,7 +25,7 @@ import org.jboss.forge.roaster.model.source.*;
 
 class ClassTypeGenerator {
 
-    static JavaSource[] generate(String packageName, String pluginName, Model model) {
+    static JavaSource[] generate(String packageName, Model model) {
         JavaSource[] sources = new JavaSource[model.classes().length];
 
         for (int i = 0; i < model.classes().length; i++) {
@@ -49,13 +49,17 @@ class ClassTypeGenerator {
 
         // constants
         for(Constant constant : classType.constants()) {
+            String value = constant.value();
+            if (!constant.type().equals("String")) {
+                value = value.replaceAll("\"","");
+            }
             javaClass.addField()
                     .setVisibility(Visibility.PUBLIC)
                     .setFinal(true)
                     .setName(constant.name())
                     // TODO custom type
                     .setType(TypeManager.builtInClassName(constant.type()))
-                    .setLiteralInitializer(constant.value())
+                    .setLiteralInitializer(value)
                     .setStatic(true);
         }
 

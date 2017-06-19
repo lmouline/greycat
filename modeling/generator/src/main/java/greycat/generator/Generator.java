@@ -19,7 +19,6 @@ import greycat.language.Model;
 import java2typescript.SourceTranslator;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.project.MavenProject;
-import org.jboss.forge.roaster.model.source.JavaClassSource;
 import org.jboss.forge.roaster.model.source.JavaSource;
 
 import java.io.File;
@@ -88,24 +87,27 @@ public class Generator {
     private void generateJava(String packageName, String pluginName, File target) {
         int index = 0;
         // TODO
-//        JavaSource[] sources = new JavaSource[(model.classifiers().length) * 2 + 2];
-        int size = model.classes().length + model.customTypes().length + model.globalIndexes().length;
+        int size = model.classes().length + model.customTypes().length + model.globalIndexes().length + 1;
 
         JavaSource[] sources = new JavaSource[size * 2 + 2];
         sources[index] = PluginClassGenerator.generate(packageName, pluginName, model);
         index++;
 
-        JavaSource[] classTypes = ClassTypeGenerator.generate(packageName, pluginName, model);
+        JavaSource[] classTypes = ClassTypeGenerator.generate(packageName, model);
         System.arraycopy(classTypes, 0, sources, index, classTypes.length);
         index += classTypes.length;
 
-        JavaSource[] customTypes = CustomTypeGenerator.generate(packageName, pluginName, model);
+        JavaSource[] customTypes = CustomTypeGenerator.generate(packageName, model);
         System.arraycopy(customTypes, 0, sources, index, customTypes.length);
         index += customTypes.length;
 
-        JavaSource[] globalIndexes = GlobalIndexGenerator.generate(packageName, pluginName, model);
+        JavaSource[] globalIndexes = GlobalIndexGenerator.generate(packageName, model);
         System.arraycopy(globalIndexes, 0, sources, index, globalIndexes.length);
         index += globalIndexes.length;
+
+        JavaSource[] globalConstants = GlobalConstantGenerator.generate(packageName, model);
+        System.arraycopy(globalConstants, 0, sources, index, globalConstants.length);
+        index += globalConstants.length;
 
         for (int i = 0; i < index; i++) {
             if (sources[i] != null) {

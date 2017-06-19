@@ -15,6 +15,7 @@
  */
 package greycat.language;
 
+import jdk.nashorn.internal.runtime.GlobalConstants;
 import org.antlr.v4.runtime.ANTLRFileStream;
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.BufferedTokenStream;
@@ -28,15 +29,25 @@ import java.util.Map;
 public class Model {
 
     protected final Map<String, Class> classesMap;
-    protected final Map<String, Constant> globalConstantMap;
+    protected final Map<String, Constant> globalConstantsMap;
     protected final Map<String, GlobalIndex> globalIndexesMap;
     private final Map<String, CustomType> customTypesMap;
 
+    private String name;
+
     public Model() {
         classesMap = new HashMap<>();
-        globalConstantMap = new HashMap<>();
+        globalConstantsMap = new HashMap<>();
         globalIndexesMap = new HashMap<>();
         customTypesMap = new HashMap<>();
+    }
+
+    public String name() {
+        return this.name;
+    }
+
+    public Constant[] globalConstants() {
+        return globalConstantsMap.values().toArray(new Constant[globalConstantsMap.size()]);
     }
 
     public GlobalIndex[] globalIndexes() {
@@ -52,6 +63,7 @@ public class Model {
     }
 
     public void parse(File content) throws Exception {
+        name = content.getName();
         build(new ANTLRFileStream(content.getAbsolutePath()));
     }
 
@@ -206,12 +218,12 @@ public class Model {
     private Constant getOrAddGlobalConstant(GreyCatModelParser.ConstDclContext constDclCtx) {
         String name = constDclCtx.name.getText();
 
-        Constant c = globalConstantMap.get(name);
+        Constant c = globalConstantsMap.get(name);
         if (c == null) {
             String type = getType(constDclCtx.typeDcl());
             String value = constDclCtx.value != null ? constDclCtx.value.getText() : null;
             c = new Constant(name, type, value);
-            globalConstantMap.put(name, c);
+            globalConstantsMap.put(name, c);
         }
         return c;
     }

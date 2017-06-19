@@ -25,3 +25,6 @@ type GPSPosition {
 }
 
 index Buildings of Building using name
+
+const GLOBAL_CONSTANT : Double = "4.5d"
+const ANOTHER_GLOBAL_CONSTANT : String = "my_constant"

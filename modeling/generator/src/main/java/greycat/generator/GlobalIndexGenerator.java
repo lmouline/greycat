@@ -23,7 +23,7 @@ import org.jboss.forge.roaster.model.source.JavaSource;
 
 public class GlobalIndexGenerator {
 
-    static JavaSource[] generate(String packageName, String pluginName, Model model) {
+    static JavaSource[] generate(String packageName, Model model) {
         JavaSource[] sources = new JavaSource[model.globalIndexes().length];
 
         for (int i = 0; i < model.customTypes().length; i++) {
