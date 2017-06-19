@@ -55,7 +55,7 @@ class ClassTypeGenerator {
                     .setName(constant.name())
                     // TODO custom type
                     .setType(TypeManager.builtInClassName(constant.type()))
-                    .setStringInitializer(constant.value().replaceAll("\"", ""))
+                    .setLiteralInitializer(constant.value())
                     .setStatic(true);
         }
 
@@ -117,7 +117,7 @@ class ClassTypeGenerator {
             getter.setVisibility(Visibility.PUBLIC).setFinal(true);
             // TODO custom type
             getter.setReturnType(TypeManager.builtInClassName(att.type()));
-            getter.setName("get" + upperCaseFirstChar(att.name()));
+            getter.setName("get" + Generator.upperCaseFirstChar(att.name()));
 
             if (TypeManager.isPrimitive(att.type())) {
                 getter.setBody("return (" + TypeManager.builtInClassName(att.type()) + ") super.get(" + att.name().toUpperCase() + ");");
@@ -130,7 +130,7 @@ class ClassTypeGenerator {
             // setter
             javaClass.addMethod()
                     .setVisibility(Visibility.PUBLIC).setFinal(true)
-                    .setName("set" + upperCaseFirstChar(att.name()))
+                    .setName("set" + Generator.upperCaseFirstChar(att.name()))
                     .setReturnType(classType.name())
                     .setBody("super.set(" + att.name().toUpperCase() + ", " + att.name().toUpperCase()
                             + "_TYPE,value);\nreturn this;"
@@ -158,7 +158,7 @@ class ClassTypeGenerator {
             getter.setVisibility(Visibility.PUBLIC);
             getter.setFinal(true);
             getter.setReturnTypeVoid();
-            getter.setName("get" + upperCaseFirstChar(rel.name()));
+            getter.setName("get" + Generator.upperCaseFirstChar(rel.name()));
             getter.addParameter("greycat.Callback<" + resultType + "[]>", "callback");
             getter.setBody(
                     "this.relation(" + rel.name().toUpperCase() + ",new greycat.Callback<greycat.Node[]>() {\n" +
@@ -177,7 +177,7 @@ class ClassTypeGenerator {
             StringBuilder addToBodyBuilder = new StringBuilder();
             MethodSource<JavaClassSource> add = javaClass.addMethod();
             add.setVisibility(Visibility.PUBLIC).setFinal(true);
-            add.setName("addTo" + upperCaseFirstChar(rel.name()));
+            add.setName("addTo" + Generator.upperCaseFirstChar(rel.name()));
             add.setReturnType(classType.name());
             add.addParameter(rel.type(), "value");
             addToBodyBuilder.append("super.addToRelation(").append(rel.name().toUpperCase()).append(", value);");
@@ -188,7 +188,7 @@ class ClassTypeGenerator {
             StringBuilder removeFromBodyBuilder = new StringBuilder();
             MethodSource<JavaClassSource> remove = javaClass.addMethod();
             remove.setVisibility(Visibility.PUBLIC).setFinal(true);
-            remove.setName("removeFrom" + upperCaseFirstChar(rel.name()));
+            remove.setName("removeFrom" + Generator.upperCaseFirstChar(rel.name()));
             remove.setReturnType(classType.name());
             remove.addParameter(rel.type(), "value");
             removeFromBodyBuilder.append("super.removeFromRelation(").append(rel.name().toUpperCase()).append(", value);");
@@ -214,7 +214,7 @@ class ClassTypeGenerator {
             getter.setVisibility(Visibility.PUBLIC);
             getter.setFinal(true);
             getter.setReturnTypeVoid();
-            getter.setName("get" + upperCaseFirstChar(ref.name()));
+            getter.setName("get" + Generator.upperCaseFirstChar(ref.name()));
             getter.addParameter("greycat.Callback<" + resultType + ">", "callback");
             getter.setBody(
                     "this.relation(" + ref.name().toUpperCase() + ",new greycat.Callback<greycat.Node[]>() {\n" +
@@ -230,7 +230,7 @@ class ClassTypeGenerator {
             StringBuilder addToBodyBuilder = new StringBuilder();
             MethodSource<JavaClassSource> add = javaClass.addMethod();
             add.setVisibility(Visibility.PUBLIC).setFinal(true);
-            add.setName("set" + upperCaseFirstChar(ref.name()));
+            add.setName("set" + Generator.upperCaseFirstChar(ref.name()));
             add.setReturnType(classType.name());
             add.addParameter(ref.type(), "value");
             addToBodyBuilder.append("if(value != null) {");
@@ -244,8 +244,8 @@ class ClassTypeGenerator {
             StringBuilder removeFromBodyBuilder = new StringBuilder();
             MethodSource<JavaClassSource> remove = javaClass.addMethod();
             remove.setVisibility(Visibility.PUBLIC).setFinal(true);
-            String refName = upperCaseFirstChar(ref.name());
-            String refType = upperCaseFirstChar(ref.type());
+            String refName = Generator.upperCaseFirstChar(ref.name());
+            String refType = Generator.upperCaseFirstChar(ref.type());
             remove.setName("remove" + refName);
             remove.setReturnTypeVoid();
             remove.addParameter("greycat.Callback<Boolean>", "callback");
@@ -262,10 +262,6 @@ class ClassTypeGenerator {
 
 
         return javaClass;
-    }
-
-    private static String upperCaseFirstChar(String init) {
-        return init.substring(0, 1).toUpperCase() + init.substring(1);
     }
 
 

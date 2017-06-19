@@ -37,6 +37,10 @@ public class Generator {
         this.model = new Model();
     }
 
+    static String upperCaseFirstChar(String init) {
+        return init.substring(0, 1).toUpperCase() + init.substring(1);
+    }
+
     public void scan(File target) throws Exception {
         if (target.isDirectory()) {
             String[] files = target.list();
@@ -84,7 +88,7 @@ public class Generator {
         int index = 0;
         // TODO
 //        JavaSource[] sources = new JavaSource[(model.classifiers().length) * 2 + 2];
-        int size = model.classes().length * 2; // interface + impl
+        int size = model.classes().length + model.customTypes().length;
 
         JavaSource[] sources = new JavaSource[size * 2 + 2];
         sources[index] = PluginClassGenerator.generate(packageName, pluginName, model);
@@ -93,6 +97,10 @@ public class Generator {
         JavaSource[] classTypes = ClassTypeGenerator.generate(packageName, pluginName, model);
         System.arraycopy(classTypes, 0, sources, index, classTypes.length);
         index += classTypes.length;
+
+        JavaSource[] customTypes = CustomTypeGenerator.generate(packageName, pluginName, model);
+        System.arraycopy(customTypes, 0, sources, index, customTypes.length);
+        index += customTypes.length;
 
         for (int i = 0; i < index; i++) {
             if (sources[i] != null) {
@@ -136,7 +144,7 @@ public class Generator {
         }
 
         transpiler.process();
-        transpiler.addHeader("import * as greycat from 'greycat'");
+        transpiler.addHeader("import * as greycat from 'greycat';");
         transpiler.addHeader("import {java} from 'j2ts-jre';");
 
         transpiler.generate();

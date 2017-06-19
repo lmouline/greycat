@@ -39,6 +39,10 @@ public class Model {
         customTypesMap = new HashMap<>();
     }
 
+    public CustomType[] customTypes() {
+        return customTypesMap.values().toArray(new CustomType[customTypesMap.size()]);
+    }
+
     public Class[] classes() {
         return classesMap.values().toArray(new Class[classesMap.size()]);
     }
@@ -137,29 +141,29 @@ public class Model {
 
 
         // custom types
-        for (GreyCatModelParser.CustomTypeDclContext typeDclCtx : modelDclCtx.customTypeDcl()) {
-            String typeName = typeDclCtx.name.getText();
-            final CustomType newType = getOrAddCustomType(typeName);
+        for (GreyCatModelParser.CustomTypeDclContext customTypeDclCtx : modelDclCtx.customTypeDcl()) {
+            String customTypeName = customTypeDclCtx.name.getText();
+            final CustomType newCustomType = getOrAddCustomType(customTypeName);
 
             // attributes
-            for (GreyCatModelParser.TypeDclContext typeAttDcl : typeDclCtx.typeDcl()) {
-                if (typeAttDcl.builtInTypeDcl() != null) {
-                    final String value = typeAttDcl.builtInTypeDcl().getText();
-                    final Attribute attribute = new Attribute(typeName, value);
-                    newType.addAttribute(attribute);
+            for (GreyCatModelParser.AttributeDclContext attDcl : customTypeDclCtx.attributeDcl()) {
+                if (attDcl.typeDcl().builtInTypeDcl() != null) {
+                    final String value = attDcl.typeDcl().builtInTypeDcl().getText();
+                    final Attribute attribute = new Attribute(attDcl.name.getText(), value);
+                    newCustomType.addAttribute(attribute);
 
-                } else if (typeAttDcl.customBuiltTypeDcl() != null) {
-                    final String value = typeAttDcl.customBuiltTypeDcl().getText();
-                    final Attribute attribute = new Attribute(typeName, value);
-                    newType.addAttribute(attribute);
+                } else if (attDcl.typeDcl().customBuiltTypeDcl() != null) {
+                    final String value = attDcl.typeDcl().customBuiltTypeDcl().getText();
+                    final Attribute attribute = new Attribute(attDcl.name.getText(), value);
+                    newCustomType.addAttribute(attribute);
                 }
             }
 
             // constants
-            for (GreyCatModelParser.ConstDclContext constDclCtx : typeDclCtx.constDcl()) {
+            for (GreyCatModelParser.ConstDclContext constDclCtx : customTypeDclCtx.constDcl()) {
                 Constant constant = getConstant(constDclCtx);
                 constant.setIsGlobal(false);
-                newType.addConstant(constant);
+                newCustomType.addConstant(constant);
             }
         }
 

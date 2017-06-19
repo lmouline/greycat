@@ -18,3 +18,8 @@ class Room {
 class ASuperType {
 
 }
+
+type GPSPosition {
+    att lat : Double
+    att lng : Double
+}

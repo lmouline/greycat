@@ -49,4 +49,4 @@ indexAttributesDcl: IDENT (',' IDENT)*;
 globalIndexDcl: 'index' name=IDENT withTimeDcl? 'of' type=IDENT 'using' indexAttributesDcl;
 withTimeDcl: 'with time';
 
-customTypeDcl: 'type' name=IDENT '{' (typeDcl | constDcl)* '}';
+customTypeDcl: 'type' name=IDENT '{' (attributeDcl | constDcl)* '}';
