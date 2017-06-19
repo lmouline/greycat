@@ -60,6 +60,10 @@ public class Type {
     public static final int INT_TO_INT_MAP = 26;
     public static final int INT_TO_STRING_MAP = 27;
 
+    public static boolean isCustom(int p_type){
+        return p_type < BOOL || p_type > INT_TO_STRING_MAP;
+    }
+
     /**
      * Convert a type that represent a byte to a readable String representation
      *

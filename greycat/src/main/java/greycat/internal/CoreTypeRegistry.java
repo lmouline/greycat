@@ -15,6 +15,7 @@
  */
 package greycat.internal;
 
+import greycat.Type;
 import greycat.plugin.TypeDeclaration;
 import greycat.plugin.TypeRegistry;
 import greycat.utility.HashHelper;
@@ -36,7 +37,11 @@ class CoreTypeRegistry implements TypeRegistry {
         if (previous == null) {
             previous = new CoreTypeDeclaration(name);
             backend.put(name, previous);
-            backend_hash.put(HashHelper.hash(name), previous);
+            int hash = HashHelper.hash(name);
+            if (!Type.isCustom(hash)) {
+                throw new RuntimeException("Lottery winner ! Please change your type name, you conflicted with GreyCat native types");
+            }
+            backend_hash.put(hash, previous);
         }
         return previous;
     }

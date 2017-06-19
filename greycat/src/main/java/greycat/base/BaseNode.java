@@ -172,7 +172,7 @@ public class BaseNode implements Node {
     public final Object getRawAt(int propIndex) {
         final NodeState resolved = this._resolver.resolveState(this);
         if (resolved != null) {
-            return resolved.getAt(propIndex);
+            return resolved.getRawAt(propIndex);
         }
         return null;
     }
@@ -203,8 +203,6 @@ public class BaseNode implements Node {
                     return new RelationProxy(index, this, (Relation) elem);
                 case Type.RELATION_INDEXED:
                     return new RelationIndexedProxy(index, this, (RelationIndexed) elem);
-                case Type.EGRAPH:
-                    return new EGraphProxy(index, this, (EGraph) elem);
                 case Type.KDTREE:
                     return new TreeProxy(index, this, (Tree) elem);
                 case Type.NDTREE:
@@ -227,8 +225,16 @@ public class BaseNode implements Node {
                     return new IntIntMapProxy(index, this, (IntIntMap) elem);
                 case Type.INT_TO_STRING_MAP:
                     return new IntStringMapProxy(index, this, (IntStringMap) elem);
+                case Type.EGRAPH:
+                    return new EGraphProxy(index, this, (EGraph) elem);
                 default:
-                    return elem;
+                    if (Type.isCustom(type)) {
+                        final BaseCustomType ct = (BaseCustomType) elem;
+                        ct._backend = new EGraphProxy(index, this, ct._backend);
+                        return ct;
+                    } else {
+                        return elem;
+                    }
             }
         }
     }

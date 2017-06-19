@@ -107,12 +107,12 @@ class HeapStateChunk implements StateChunk, HeapContainer {
 
     @Override
     public synchronized final Object getAt(final int p_key) {
-        return internal_get(p_key);
+        return internal_get(p_key, false);
     }
 
     @Override
-    public synchronized Object getRawAt(int p_key) {
-        return getAt(p_key);
+    public synchronized Object getRawAt(final int p_key) {
+        return internal_get(p_key, true);
     }
 
     @Override
@@ -166,7 +166,7 @@ class HeapStateChunk implements StateChunk, HeapContainer {
         }
     }
 
-    private Object internal_get(final int p_key) {
+    private Object internal_get(final int p_key, final boolean p_raw) {
         //empty chunk, we return immediately
         if (_size == 0) {
             return null;
@@ -208,11 +208,15 @@ class HeapStateChunk implements StateChunk, HeapContainer {
                     case Type.KDTREE:
                         return new KDTree((EGraph) result);
                     default:
-                        final TypeDeclaration declaration = graph().typeRegistry().declarationByHash(_type[found]);
-                        if (declaration == null) {
+                        if (p_raw) {
                             return result;
                         } else {
-                            return declaration.factory().wrap((EGraph) result);
+                            final TypeDeclaration declaration = graph().typeRegistry().declarationByHash(_type[found]);
+                            if (declaration == null) {
+                                return result;
+                            } else {
+                                return declaration.factory().wrap((EGraph) result);
+                            }
                         }
                 }
             }
@@ -261,7 +265,7 @@ class HeapStateChunk implements StateChunk, HeapContainer {
 
     @Override
     public synchronized final Object get(final String key) {
-        return internal_get(_space.graph().resolver().stringToHash(key, false));
+        return internal_get(_space.graph().resolver().stringToHash(key, false), false);
     }
 
     @Override
@@ -728,8 +732,7 @@ class HeapStateChunk implements StateChunk, HeapContainer {
                             }
                             break;
                         default:
-                            int __type = casted._type[i];
-                            if (__type >= Type.BOOL && __type <= Type.INT_TO_STRING_MAP) {
+                            if (!Type.isCustom(casted._type[i])) {
                                 _v[i] = casted._v[i];
                             } else {
                                 if (casted._v[i] != null) {

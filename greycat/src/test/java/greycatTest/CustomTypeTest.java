@@ -31,7 +31,36 @@ import org.junit.Test;
 public class CustomTypeTest {
 
     @Test
-    public void test() {
+    public void autoProxyTest() {
+        MockStorage storage = new MockStorage();
+        Graph g = GraphBuilder.newBuilder().withStorage(storage).withScheduler(new NoopScheduler()).build();
+        g.typeRegistry().getOrCreateDeclaration("GPSPosition").setFactory(new TypeFactory() {
+            @Override
+            public Object wrap(EGraph backend) {
+                return new GPSPosition(backend);
+            }
+        });
+        g.connect(null);
+
+        Node n = g.newNode(0, 0);
+        GPSPosition position = (GPSPosition) n.getOrCreate("complexAtt", HashHelper.hash("GPSPosition"));
+        position.setPosition(42.5d, 84.5d);
+
+        n.travelInTime(100, new Callback<Node>() {
+            @Override
+            public void on(Node n_100) {
+                GPSPosition position_n100 = (GPSPosition) n_100.get("complexAtt");
+                position_n100.setPosition(50.5, 90.5);
+                Assert.assertEquals("position(50.5,90.5)", position_n100.toString());
+                Assert.assertEquals("position(42.5,84.5)", position.toString());
+                Assert.assertEquals(position.get("lat")+"","42.5");
+                Assert.assertEquals(position.get("lng")+"","84.5");
+            }
+        });
+    }
+
+    @Test
+    public void saveLoadTest() {
         MockStorage storage = new MockStorage();
         Graph g = GraphBuilder.newBuilder().withStorage(storage).withScheduler(new NoopScheduler()).build();
         g.typeRegistry().getOrCreateDeclaration("GPSPosition").setFactory(new TypeFactory() {
@@ -64,13 +93,9 @@ public class CustomTypeTest {
             @Override
             public void on(Node g2_n) {
                 GPSPosition position2 = (GPSPosition) g2_n.get("complexAtt");
-                System.out.println(position2);
+                Assert.assertEquals("position(42.5,84.5)", position2.toString());
             }
         });
-
-        //TODO check auto proxy
-
-
     }
 
 }
