@@ -153,6 +153,9 @@ public class Model {
                 Attribute att = indexedClass.getAttribute(idxDclIdent.getText());
                 globalIndex.addAttribute(att);
             }
+            if (globalIdxDclContext.withTimeDcl() != null) {
+                globalIndex.setWithTime(true);
+            }
         }
 
 

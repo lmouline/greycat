@@ -15,7 +15,6 @@
  */
 package greycat.generator;
 
-import greycat.NodeIndex;
 import greycat.language.Attribute;
 import greycat.language.GlobalIndex;
 import greycat.language.Model;
@@ -30,7 +29,7 @@ public class GlobalIndexGenerator {
     static JavaSource[] generate(String packageName, Model model) {
         JavaSource[] sources = new JavaSource[model.globalIndexes().length];
 
-        for (int i = 0; i < model.customTypes().length; i++) {
+        for (int i = 0; i < model.globalIndexes().length; i++) {
             sources[i] = generateGlobalIndexes(packageName, model.globalIndexes()[i]);
         }
 
@@ -73,7 +72,28 @@ public class GlobalIndexGenerator {
 
         // declare index
         if (globalIndex.isWithTime()) {
+            MethodSource<JavaClassSource> declareIndex = javaClass.addMethod()
+                    .setName("declareTimedIndex")
+                    .setReturnTypeVoid()
+                    .setFinal(true)
+                    .setVisibility(Visibility.PUBLIC)
+                    .setStatic(true);
+            declareIndex.addParameter("greycat.Graph", "graph");
+            declareIndex.addParameter("long", "world");
+            declareIndex.addParameter("long", "time");
+            declareIndex.addParameter("greycat.Callback<Boolean>", "callback");
 
+            StringBuilder declareIndexBody = new StringBuilder();
+            declareIndexBody.append("graph.declareTimedIndex(world, time, " + indexName.toUpperCase() + ", new greycat.Callback<greycat.NodeIndex>() {");
+            declareIndexBody.append("@Override\n");
+            declareIndexBody.append("public void on(greycat.NodeIndex result) {");
+            declareIndexBody.append("if (callback != null) {");
+            declareIndexBody.append("callback.on(true);");
+            declareIndexBody.append("}");
+            declareIndexBody.append("}");
+            declareIndexBody.append("}, " + indexedAttributes.toString() + ");");
+
+            declareIndex.setBody(declareIndexBody.toString());
         } else {
             MethodSource<JavaClassSource> declareIndex = javaClass.addMethod()
                     .setName("declareIndex")
@@ -94,7 +114,6 @@ public class GlobalIndexGenerator {
             declareIndexBody.append("}");
             declareIndexBody.append("}");
             declareIndexBody.append("}, " + indexedAttributes.toString() + ");");
-
 
             declareIndex.setBody(declareIndexBody.toString());
         }
