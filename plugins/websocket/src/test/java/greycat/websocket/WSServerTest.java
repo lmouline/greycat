@@ -17,8 +17,6 @@ package greycat.websocket;
 
 import greycat.*;
 import greycat.struct.Buffer;
-import greycat.websocket.WSClient;
-import greycat.websocket.WSServer;
 import io.undertow.server.handlers.resource.ClassPathResourceManager;
 import io.undertow.server.handlers.resource.ResourceHandler;
 import org.junit.Assert;
@@ -57,9 +55,9 @@ public class WSServerTest {
                 root.addToRelation("children", n0);
                 root.addToRelation("children", n1);
 
-                graph.declareIndex(0, "nodes", new Callback<NodeIndex>() {
+                graph.declareIndex(0, "nodes", new Callback<Index>() {
                     @Override
-                    public void on(NodeIndex indexNode) {
+                    public void on(Index indexNode) {
                         indexNode.update(root);
 
                         System.out.println(indexNode.toString());
@@ -91,10 +89,10 @@ public class WSServerTest {
                 Node node = graph.newNode(0, 0);
                 node.set("name", Type.STRING, "hello");
 
-                graph.declareIndex(0, "nodes", new Callback<NodeIndex>() {
+                graph.declareIndex(0, "nodes", new Callback<Index>() {
 
                     @Override
-                    public void on(NodeIndex indexNode) {
+                    public void on(Index indexNode) {
                         indexNode.update(node);
 
 
@@ -122,9 +120,9 @@ public class WSServerTest {
                     @Override
                     public void on(Boolean result1) {
 
-                        graph2.index(0, 0, "nodes", new Callback<NodeIndex>() {
+                        graph2.index(0, 0, "nodes", new Callback<Index>() {
                             @Override
-                            public void on(NodeIndex indexNodes) {
+                            public void on(Index indexNodes) {
                                 indexNodes.find(new Callback<Node[]>() {
                                     @Override
                                     public void on(Node[] result1) {
@@ -135,9 +133,9 @@ public class WSServerTest {
 
                                         Assert.assertEquals("{\"world\":0,\"time\":0,\"id\":137438953473,\"name\":\"hello2\"}", newNode.toString());
 
-                                        graph2.declareIndex(0, "nodes", new Callback<NodeIndex>() {
+                                        graph2.declareIndex(0, "nodes", new Callback<Index>() {
                                             @Override
-                                            public void on(NodeIndex graph2Nodes) {
+                                            public void on(Index graph2Nodes) {
                                                 graph2Nodes.update(newNode);
                                                 graph2Nodes.find(new Callback<Node[]>() {
                                                     @Override
@@ -154,10 +152,10 @@ public class WSServerTest {
                                             public void on(Boolean result) {
                                                 //ok now try to access new node from graph
 
-                                                graph.index(0, 0, "nodes", new Callback<NodeIndex>() {
+                                                graph.index(0, 0, "nodes", new Callback<Index>() {
                                                     @Override
-                                                    public void on(NodeIndex grapNodeIndex) {
-                                                        grapNodeIndex.find(new Callback<Node[]>() {
+                                                    public void on(Index grapIndex) {
+                                                        grapIndex.find(new Callback<Node[]>() {
                                                             @Override
                                                             public void on(Node[] result) {
                                                                 Assert.assertEquals(2, result.length);

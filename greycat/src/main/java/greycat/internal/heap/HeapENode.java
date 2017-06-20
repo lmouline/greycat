@@ -15,10 +15,7 @@
  */
 package greycat.internal.heap;
 
-import greycat.Constants;
-import greycat.Container;
-import greycat.Graph;
-import greycat.Type;
+import greycat.*;
 import greycat.internal.CoreConstants;
 import greycat.plugin.NodeStateCallback;
 import greycat.plugin.Resolver;
@@ -75,11 +72,6 @@ class HeapENode implements ENode, HeapContainer {
                         case Type.INT_TO_STRING_MAP:
                             if (origin._v[i] != null) {
                                 _v[i] = ((HeapIntStringMap) origin._v[i]).cloneFor(this);
-                            }
-                            break;
-                        case Type.RELATION_INDEXED:
-                            if (origin._v[i] != null) {
-                                _v[i] = ((HeapRelationIndexed) origin._v[i]).cloneIRelFor(this, _eGraph.graph());
                             }
                             break;
                         case Type.LONG_TO_LONG_ARRAY_MAP:
@@ -335,9 +327,6 @@ class HeapENode implements ENode, HeapContainer {
                         break;
                     case Type.LONG_TO_LONG_ARRAY_MAP:
                         param_elem = (LongLongArrayMap) p_unsafe_elem;
-                        break;
-                    case Type.RELATION_INDEXED:
-                        param_elem = (RelationIndexed) p_unsafe_elem;
                         break;
                     default:
                         throw new RuntimeException("Internal Exception, unknown type");
@@ -626,9 +615,6 @@ class HeapENode implements ENode, HeapContainer {
             case Type.RELATION:
                 toSet = new HeapRelation(this, null);
                 break;
-            case Type.RELATION_INDEXED:
-                toSet = new HeapRelationIndexed(this, _eGraph.graph());
-                break;
             case Type.DMATRIX:
                 toSet = new HeapDMatrix(this, null);
                 break;
@@ -865,7 +851,6 @@ class HeapENode implements ENode, HeapContainer {
                         builder.append("}");
                         break;
                     }
-                    case Type.RELATION_INDEXED:
                     case Type.LONG_TO_LONG_ARRAY_MAP: {
                         builder.append("\"");
                         builder.append(resolveName);
@@ -1093,7 +1078,6 @@ class HeapENode implements ENode, HeapContainer {
                                 }
                             });
                             break;
-                        case Type.RELATION_INDEXED:
                         case Type.LONG_TO_LONG_ARRAY_MAP:
                             HeapLongLongArrayMap castedLongLongArrayMap = (HeapLongLongArrayMap) loopValue;
                             Base64.encodeIntToBuffer(castedLongLongArrayMap.size(), buffer);
@@ -1319,20 +1303,6 @@ class HeapENode implements ENode, HeapContainer {
                                     }
                                 }
                                 break;
-                            case Type.RELATION_INDEXED:
-                                HeapRelationIndexed relationIndexed = new HeapRelationIndexed(this, graph);
-                                cursor++;
-                                cursor = relationIndexed.load(buffer, cursor, payloadSize);
-                                internal_set(read_key, read_type, relationIndexed, true, initial);
-                                if (cursor < payloadSize) {
-                                    current = buffer.read(cursor);
-                                    if (current == Constants.CHUNK_ESEP && cursor < payloadSize) {
-                                        state = LOAD_WAITING_TYPE;
-                                        cursor++;
-                                        previous = cursor;
-                                    }
-                                }
-                                break;
                             case Type.STRING_TO_INT_MAP:
                                 HeapStringIntMap s2lmap = new HeapStringIntMap(this);
                                 cursor++;
@@ -1439,8 +1409,8 @@ class HeapENode implements ENode, HeapContainer {
     }
 
     @Override
-    public final RelationIndexed getRelationIndexed(String name) {
-        return (RelationIndexed) get(name);
+    public final Index getIndex(String name) {
+        return (Index) get(name);
     }
 
     @Override

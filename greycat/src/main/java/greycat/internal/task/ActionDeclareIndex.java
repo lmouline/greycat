@@ -16,9 +16,6 @@
 package greycat.internal.task;
 
 import greycat.*;
-import greycat.base.BaseNode;
-import greycat.internal.CoreDeferCounter;
-import greycat.plugin.Job;
 import greycat.struct.Buffer;
 
 class ActionDeclareIndex implements Action {
@@ -38,14 +35,14 @@ class ActionDeclareIndex implements Action {
         final TaskResult previousResult = ctx.result();
         final String templatedIndexName = ctx.template(_name);
         final String[] templatedAttributes = ctx.templates(_attributes);
-        if(_timed){
+        if (_timed) {
             ctx.graph().declareTimedIndex(ctx.world(), ctx.time(), templatedIndexName, new Callback<NodeIndex>() {
                 @Override
                 public void on(NodeIndex result) {
                     result.free();
                     ctx.continueTask();
                 }
-            },templatedAttributes);
+            }, templatedAttributes);
         } else {
             ctx.graph().declareIndex(ctx.world(), templatedIndexName, new Callback<NodeIndex>() {
                 @Override
@@ -53,7 +50,7 @@ class ActionDeclareIndex implements Action {
                     result.free();
                     ctx.continueTask();
                 }
-            },templatedAttributes);
+            }, templatedAttributes);
         }
     }
 
@@ -73,7 +70,7 @@ class ActionDeclareIndex implements Action {
 
     @Override
     public final String name() {
-        if(_timed){
+        if (_timed) {
             return CoreActionNames.DECLARE_TIMED_INDEX;
         } else {
             return CoreActionNames.DECLARE_INDEX;

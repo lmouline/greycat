@@ -22,7 +22,6 @@ import greycat.TaskContext;
 import greycat.TaskResult;
 import org.junit.Assert;
 import org.junit.Test;
-import greycat.struct.RelationIndexed;
 
 import static greycat.internal.task.CoreActions.readIndex;
 import static greycat.internal.task.CoreActions.attributes;

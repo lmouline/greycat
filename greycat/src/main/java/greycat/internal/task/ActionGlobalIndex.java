@@ -15,11 +15,8 @@
  */
 package greycat.internal.task;
 
-import greycat.Callback;
-import greycat.Constants;
-import greycat.NodeIndex;
-import greycat.Action;
-import greycat.TaskContext;
+import greycat.*;
+import greycat.Index;
 import greycat.struct.Buffer;
 
 class ActionGlobalIndex implements Action {

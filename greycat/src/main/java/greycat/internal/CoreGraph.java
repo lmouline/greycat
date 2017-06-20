@@ -80,6 +80,12 @@ public class CoreGraph implements Graph {
         CoreTask.fillDefault(this._actionRegistry);
 
         //Register default Custom Types
+        this._typeRegistry.getOrCreateDeclaration(IndexType.NAME).setFactory(new TypeFactory() {
+            @Override
+            public Object wrap(final EGraph backend) {
+                return new IndexType(backend);
+            }
+        });
         this._typeRegistry.getOrCreateDeclaration(KDTree.NAME).setFactory(new TypeFactory() {
             @Override
             public Object wrap(final EGraph backend) {
@@ -496,9 +502,14 @@ public class CoreGraph implements Graph {
     public final void declareIndex(long world, String name, Callback<NodeIndex> callback, String... indexedAttributes) {
         internal_index(world, Constants.BEGINNING_OF_TIME, name, false, new Callback<NodeIndex>() {
             @Override
-            public void on(final NodeIndex result) {
-                result.setTimeSensitivity(-1, 0);
-                result.declareAttributes(callback, indexedAttributes);
+            public void on(final NodeIndex nodeIndex) {
+                nodeIndex.setTimeSensitivity(-1, 0);
+                nodeIndex.declareAttributes(new Callback() {
+                    @Override
+                    public void on(Object result) {
+                        callback.on(nodeIndex);
+                    }
+                }, indexedAttributes);
             }
         });
     }
@@ -507,8 +518,13 @@ public class CoreGraph implements Graph {
     public final void declareTimedIndex(long world, long originTime, String name, Callback<NodeIndex> callback, String... indexedAttributes) {
         internal_index(world, originTime, name, false, new Callback<NodeIndex>() {
             @Override
-            public void on(final NodeIndex result) {
-                result.declareAttributes(callback, indexedAttributes);
+            public void on(final NodeIndex nodeIndex) {
+                nodeIndex.declareAttributes(new Callback() {
+                    @Override
+                    public void on(Object ignore) {
+                        callback.on(nodeIndex);
+                    }
+                }, indexedAttributes);
             }
         });
     }

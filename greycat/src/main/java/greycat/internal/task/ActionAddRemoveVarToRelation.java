@@ -15,14 +15,11 @@
  */
 package greycat.internal.task;
 
-import greycat.Constants;
-import greycat.Node;
+import greycat.*;
 import greycat.base.BaseNode;
-import greycat.Action;
-import greycat.TaskContext;
-import greycat.TaskResult;
-import greycat.TaskResultIterator;
+import greycat.internal.custom.IndexType;
 import greycat.struct.Buffer;
+import greycat.struct.Relation;
 
 class ActionAddRemoveVarToRelation implements Action {
 
@@ -55,10 +52,15 @@ class ActionAddRemoveVarToRelation implements Action {
                         if (toAddIter instanceof BaseNode) {
                             final Node castedToAddIter = (Node) toAddIter;
                             final Node castedIter = (Node) iter;
-                            if (_isAdd) {
-                                castedIter.addToRelation(relName, castedToAddIter, templatedAttributes);
+                            if(templatedAttributes == null || templatedAttributes.length == 0){
+                                final Relation castedIterRel = (Relation) castedIter.getOrCreate(relName, Type.RELATION);
+                                if (_isAdd) {
+                                    castedIterRel.add(castedToAddIter.id());
+                                } else {
+                                    castedIterRel.remove(castedToAddIter.id());
+                                }
                             } else {
-                                castedIter.removeFromRelation(relName, castedToAddIter, templatedAttributes);
+                                throw new RuntimeException("Not managed yet!!!");
                             }
                         }
                         toAddIter = savedVarIt.next();

@@ -201,8 +201,8 @@ public class BaseNode implements Node {
                     return new DMatrixProxy(index, this, (DMatrix) elem);
                 case Type.RELATION:
                     return new RelationProxy(index, this, (Relation) elem);
-                case Type.RELATION_INDEXED:
-                    return new RelationIndexedProxy(index, this, (RelationIndexed) elem);
+               /* case Type.RELATION_INDEXED:
+                    return new RelationIndexedProxy(index, this, (RelationIndexed) elem);*/
                /* case Type.KDTREE:
                     return new TreeProxy(index, this, (Tree) elem);
                 case Type.NDTREE:
@@ -389,7 +389,7 @@ public class BaseNode implements Node {
                 return true;
                 */
             case Type.RELATION:
-            case Type.RELATION_INDEXED:
+                //case Type.RELATION_INDEXED:
             case Type.STRING_TO_INT_MAP:
             case Type.LONG_TO_LONG_MAP:
             case Type.LONG_TO_LONG_ARRAY_MAP:
@@ -428,7 +428,7 @@ public class BaseNode implements Node {
     public final Node removeAt(final int index) {
         return setAt(index, Type.INT, null);
     }
-
+/*
     @Override
     public final void relation(String relationName, final Callback<Node[]> callback) {
         relationAt(this._resolver.stringToHash(relationName, false), callback);
@@ -530,7 +530,7 @@ public class BaseNode implements Node {
             }
         }
         return this;
-    }
+    }*/
 
     @Override
     public final void free() {
@@ -802,7 +802,6 @@ public class BaseNode implements Node {
                                 builder.append("}");
                                 break;
                             }
-                            case Type.RELATION_INDEXED:
                             case Type.LONG_TO_LONG_ARRAY_MAP: {
                                 builder.append(",\"");
                                 builder.append(resolveName);
@@ -879,8 +878,8 @@ public class BaseNode implements Node {
     }
 
     @Override
-    public final RelationIndexed getRelationIndexed(String name) {
-        return (RelationIndexed) get(name);
+    public final Index getIndex(String name) {
+        return (Index) get(name);
     }
 
     @Override
@@ -950,5 +949,80 @@ public class BaseNode implements Node {
         clonedStateChunk.loadFrom(currentStateChunk);
         return cloned;
     }
+
+    /* TODO check after */
+    @Override
+    public final void relation(String relationName, final Callback<Node[]> callback) {
+        relationAt(this._resolver.stringToHash(relationName, false), callback);
+    }
+
+    @Override
+    public void relationAt(int relationIndex, Callback<Node[]> callback) {
+        if (callback == null) {
+            return;
+        }
+        final NodeState resolved = this._resolver.resolveState(this);
+        if (resolved != null) {
+            final Relation relation = (Relation) resolved.getAt(relationIndex);
+            if (relation == null || relation.size() == 0) {
+                callback.on(new Node[0]);
+            } else {
+                final int relSize = relation.size();
+                final long[] ids = new long[relSize];
+                for (int i = 0; i < relSize; i++) {
+                    ids[i] = relation.get(i);
+                }
+                this._resolver.lookupAll(_world, _time, ids, new Callback<Node[]>() {
+                    @Override
+                    public void on(Node[] result) {
+                        callback.on(result);
+                    }
+                });
+            }
+        } else {
+            callback.on(new Node[0]);
+        }
+    }
+
+    @Override
+    public final Node addToRelation(String relationName, Node relatedNode) {
+        return addToRelationAt(this._resolver.stringToHash(relationName, true), relatedNode);
+    }
+
+    @Override
+    public Node addToRelationAt(int relationIndex, Node relatedNode) {
+        if (relatedNode != null) {
+            NodeState preciseState = this._resolver.alignState(this);
+            if (preciseState != null) {
+                Relation relationArray = (Relation) preciseState.getOrCreateAt(relationIndex, Type.RELATION);
+                relationArray.add(relatedNode.id());
+            } else {
+                throw new RuntimeException(Constants.CACHE_MISS_ERROR);
+            }
+        }
+        return this;
+    }
+
+    @Override
+    public final Node removeFromRelation(String relationName, Node relatedNode) {
+        return removeFromRelationAt(this._resolver.stringToHash(relationName, false), relatedNode);
+    }
+
+    @Override
+    public final Node removeFromRelationAt(int relationIndex, Node relatedNode) {
+        if (relatedNode != null) {
+            final NodeState preciseState = this._resolver.alignState(this);
+            if (preciseState != null) {
+                final Relation relationObj = (Relation) preciseState.getAt(relationIndex);
+                if (relationObj != null) {
+                    relationObj.remove(relatedNode.id());
+                }
+            } else {
+                throw new RuntimeException(Constants.CACHE_MISS_ERROR);
+            }
+        }
+        return this;
+    }
+
 
 }
