@@ -46,14 +46,14 @@ public class TaskServerTest {
                 root.addToRelation("children", n1);
 
                 //create some index
-                graph.declareIndex(0, "roots", new Callback<Index>() {
+                graph.declareIndex(0, "roots", new Callback<NodeIndex>() {
                     @Override
-                    public void on(Index rootsIndex) {
+                    public void on(NodeIndex rootsIndex) {
                         rootsIndex.update(root);
 
-                        graph.index(0, Constants.BEGINNING_OF_TIME, "nodes", new Callback<Index>() {
+                        graph.index(0, Constants.BEGINNING_OF_TIME, "nodes", new Callback<NodeIndex>() {
                             @Override
-                            public void on(Index nodesIndex) {
+                            public void on(NodeIndex nodesIndex) {
                                 nodesIndex.update(n0);
                                 nodesIndex.update(n1);
                                 nodesIndex.update(root);

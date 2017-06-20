@@ -18,7 +18,6 @@ package greycat.internal.task;
 import greycat.*;
 import greycat.base.BaseNode;
 import greycat.Action;
-import greycat.internal.custom.IndexType;
 import greycat.plugin.NodeState;
 import greycat.plugin.Resolver;
 import greycat.struct.Buffer;
@@ -86,7 +85,7 @@ class ActionTraverseOrAttribute implements Action {
                                 }
                             }
                             break;
-                        case IndexType.CODE:
+                        case Type.INDEX:
                             final Index relationIndexed = (Index) casted.get(flatName);
                             if (relationIndexed != null) {
                                 if (query != null) {

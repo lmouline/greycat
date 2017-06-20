@@ -55,9 +55,9 @@ public class WSServerTest {
                 root.addToRelation("children", n0);
                 root.addToRelation("children", n1);
 
-                graph.declareIndex(0, "nodes", new Callback<Index>() {
+                graph.declareIndex(0, "nodes", new Callback<NodeIndex>() {
                     @Override
-                    public void on(Index indexNode) {
+                    public void on(NodeIndex indexNode) {
                         indexNode.update(root);
 
                         System.out.println(indexNode.toString());
@@ -89,10 +89,10 @@ public class WSServerTest {
                 Node node = graph.newNode(0, 0);
                 node.set("name", Type.STRING, "hello");
 
-                graph.declareIndex(0, "nodes", new Callback<Index>() {
+                graph.declareIndex(0, "nodes", new Callback<NodeIndex>() {
 
                     @Override
-                    public void on(Index indexNode) {
+                    public void on(NodeIndex indexNode) {
                         indexNode.update(node);
 
 
@@ -120,10 +120,10 @@ public class WSServerTest {
                     @Override
                     public void on(Boolean result1) {
 
-                        graph2.index(0, 0, "nodes", new Callback<Index>() {
+                        graph2.index(0, 0, "nodes", new Callback<NodeIndex>() {
                             @Override
-                            public void on(Index indexNodes) {
-                                indexNodes.find(new Callback<Node[]>() {
+                            public void on(NodeIndex indexNodes) {
+                                indexNodes.findFrom(new Callback<Node[]>() {
                                     @Override
                                     public void on(Node[] result1) {
                                         Assert.assertEquals(result1[0].toString(), node.toString());
@@ -133,16 +133,16 @@ public class WSServerTest {
 
                                         Assert.assertEquals("{\"world\":0,\"time\":0,\"id\":137438953473,\"name\":\"hello2\"}", newNode.toString());
 
-                                        graph2.declareIndex(0, "nodes", new Callback<Index>() {
+                                        graph2.declareIndex(0, "nodes", new Callback<NodeIndex>() {
                                             @Override
-                                            public void on(Index graph2Nodes) {
+                                            public void on(NodeIndex graph2Nodes) {
                                                 graph2Nodes.update(newNode);
                                                 graph2Nodes.find(new Callback<Node[]>() {
                                                     @Override
                                                     public void on(Node[] result) {
                                                         Assert.assertEquals(2, result.length);
                                                     }
-                                                });
+                                                }, graph2Nodes.world(), graph2Nodes.time());
                                             }
                                         }, "name");
 
@@ -152,9 +152,9 @@ public class WSServerTest {
                                             public void on(Boolean result) {
                                                 //ok now try to access new node from graph
 
-                                                graph.index(0, 0, "nodes", new Callback<Index>() {
+                                                graph.index(0, 0, "nodes", new Callback<NodeIndex>() {
                                                     @Override
-                                                    public void on(Index grapIndex) {
+                                                    public void on(NodeIndex grapIndex) {
                                                         grapIndex.find(new Callback<Node[]>() {
                                                             @Override
                                                             public void on(Node[] result) {
@@ -163,7 +163,7 @@ public class WSServerTest {
                                                                 Assert.assertEquals(result[1].toString(), "{\"world\":0,\"time\":0,\"id\":137438953473,\"name\":\"hello2\"}");
                                                                 latch.countDown();
                                                             }
-                                                        });
+                                                        }, grapIndex.world(), grapIndex.time());
                                                     }
                                                 });
 

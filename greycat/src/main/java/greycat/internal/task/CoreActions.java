@@ -205,25 +205,23 @@ public class CoreActions {
     /**
      * Adds nodes present in the named variable to the named relation in all nodes present in the current task result.
      *
-     * @param relName    name of the relation
-     * @param varName    the name of the variable containing the nodes to add. It can use templates "{{}}".
-     * @param attributes the attributes that should be used to index the nodes in the relation
+     * @param relName name of the relation
+     * @param varName the name of the variable containing the nodes to add. It can use templates "{{}}".
      * @return the action to chain
      */
-    public static Action addVarToRelation(String relName, String varName, String... attributes) {
-        return new ActionAddRemoveVarToRelation(true, relName, varName, attributes);
+    public static Action addVarTo(String relName, String varName) {
+        return new ActionAddRemoveVarTo(true, relName, varName);
     }
 
     /**
      * Removes nodes present in the named variable from the named relation in all nodes present in the current result.
      *
-     * @param relName    name of the relation.
-     * @param varFrom    the name of the variable containing the nodes to remove. It can use templates "{{}}".
-     * @param attributes the attributes that should be used to find and remove the nodes from the relation
+     * @param relName name of the relation.
+     * @param varFrom the name of the variable containing the nodes to remove. It can use templates "{{}}".
      * @return the action to chain
      */
-    public static Action removeVarFromRelation(String relName, String varFrom, String... attributes) {
-        return new ActionAddRemoveVarToRelation(false, relName, varFrom, attributes);
+    public static Action removeVarFrom(String relName, String varFrom) {
+        return new ActionAddRemoveVarTo(false, relName, varFrom);
     }
 
     /**
@@ -275,6 +273,10 @@ public class CoreActions {
 
     public static Action declareIndex(String name, String... attributes) {
         return new ActionDeclareIndex(false, name, attributes);
+    }
+
+    public static Action declareLocalIndex(String name, String... attributes) {
+        return new ActionDeclareLocalIndex(name, attributes);
     }
 
     public static Action declareTimedIndex(String name, String... attributes) {

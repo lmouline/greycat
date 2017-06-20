@@ -80,10 +80,10 @@ public class CoreGraph implements Graph {
         CoreTask.fillDefault(this._actionRegistry);
 
         //Register default Custom Types
-        this._typeRegistry.getOrCreateDeclaration(IndexType.NAME).setFactory(new TypeFactory() {
+        this._typeRegistry.getOrCreateDeclaration(CoreIndexAttribute.NAME).setFactory(new TypeFactory() {
             @Override
             public Object wrap(final EGraph backend) {
-                return new IndexType(backend);
+                return new CoreIndexAttribute(backend);
             }
         });
         this._typeRegistry.getOrCreateDeclaration(KDTree.NAME).setFactory(new TypeFactory() {

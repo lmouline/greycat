@@ -442,7 +442,7 @@ public class RobustnessTests {
         //relationName
         boolean exceptionCaught = false;
         try {
-            newTask().then(inject(_graph.newNode(0, 0))).then(defineAsGlobalVar("x")).then(addVarToRelation(null, "x")).execute(_graph, null);
+            newTask().then(inject(_graph.newNode(0, 0))).then(defineAsGlobalVar("x")).then(addVarTo(null, "x")).execute(_graph, null);
         } catch (RuntimeException e) {
             exceptionCaught = true;
         } catch (Exception e) {
@@ -453,7 +453,7 @@ public class RobustnessTests {
         //relatedNode
         exceptionCaught = false;
         try {
-            newTask().then(addVarToRelation("", null)).execute(_graph, null);
+            newTask().then(addVarTo("", null)).execute(_graph, null);
         } catch (RuntimeException e) {
             exceptionCaught = true;
         } catch (Exception e) {

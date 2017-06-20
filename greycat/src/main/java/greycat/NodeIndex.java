@@ -16,5 +16,7 @@
 package greycat;
 
 public interface NodeIndex extends Index, Node {
-    
+
+    void findFrom(Callback<Node[]> callback, String... params);
+
 }

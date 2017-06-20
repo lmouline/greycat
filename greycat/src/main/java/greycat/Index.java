@@ -25,9 +25,11 @@ public interface Index {
 
     Index update(Node node);
 
+    Index unindex(Node node);
+
     Index clear();
 
-    void find(Callback<Node[]> callback,long world, long time, String... params);
+    void find(Callback<Node[]> callback, long world, long time, String... params);
 
     void findByQuery(Query query, Callback<Node[]> callback);
 

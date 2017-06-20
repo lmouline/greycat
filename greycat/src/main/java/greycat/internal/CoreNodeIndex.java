@@ -17,7 +17,7 @@ package greycat.internal;
 
 import greycat.*;
 import greycat.base.BaseNode;
-import greycat.internal.custom.IndexType;
+import greycat.internal.custom.CoreIndexAttribute;
 import greycat.utility.HashHelper;
 
 final class CoreNodeIndex extends BaseNode implements NodeIndex {
@@ -30,7 +30,7 @@ final class CoreNodeIndex extends BaseNode implements NodeIndex {
 
     @Override
     public final void init() {
-        getOrCreateAt(0, HashHelper.hash(IndexType.NAME));
+        getOrCreateAt(0, HashHelper.hash(CoreIndexAttribute.NAME));
     }
 
     @Override
@@ -51,6 +51,11 @@ final class CoreNodeIndex extends BaseNode implements NodeIndex {
     @Override
     public final Index update(Node node) {
         return ((Index) getAt(0)).update(node);
+    }
+
+    @Override
+    public final Index unindex(Node node) {
+        return ((Index) getAt(0)).unindex(node);
     }
 
     @Override
@@ -78,4 +83,8 @@ final class CoreNodeIndex extends BaseNode implements NodeIndex {
         return ((Index) getAt(0)).selectByQuery(query);
     }
 
+    @Override
+    public final void findFrom(Callback<Node[]> callback, String... params) {
+        ((Index) getAt(0)).find(callback, _world, _time, params);
+    }
 }

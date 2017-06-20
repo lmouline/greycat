@@ -22,16 +22,15 @@ import greycat.plugin.NodeState;
 import greycat.struct.*;
 import greycat.utility.HashHelper;
 
-public class IndexType extends BaseCustomTypeSingle implements Index {
+public class CoreIndexAttribute extends BaseCustomTypeSingle implements Index {
 
     private static final int P_MAP = 0;
     private static final int R_MAP = 1;
     private static final int HASHES = 2;
 
-    public static final String NAME = "Index";
-    public static final int CODE = 42; // HashHelper.hash(NAME);
+    public static final String NAME = "INDEX";
 
-    public IndexType(final EGraph p_backend) {
+    public CoreIndexAttribute(final EGraph p_backend) {
         super(p_backend);
     }
 
@@ -93,6 +92,16 @@ public class IndexType extends BaseCustomTypeSingle implements Index {
         relationIndexed.delete(prevHash, node.id());
         relationIndexed.put(newHash, node.id());
         reverseMap.put(node.id(), newHash);
+        return this;
+    }
+
+    @Override
+    public final Index unindex(final Node node) {
+        final LongLongArrayMap relationIndexed = (LongLongArrayMap) getAt(P_MAP);
+        final LongLongMap reverseMap = (LongLongMap) getAt(R_MAP);
+        final long prevHash = reverseMap.get(node.id());
+        relationIndexed.delete(prevHash, node.id());
+        reverseMap.remove(node.id());
         return this;
     }
 

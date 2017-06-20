@@ -34,9 +34,9 @@ public class IndexTest {
         graph.connect(new Callback<Boolean>() {
             @Override
             public void on(Boolean result) {
-                graph.declareIndex(0, index, new Callback<Index>() {
+                graph.declareIndex(0, index, new Callback<NodeIndex>() {
                     @Override
-                    public void on(Index result) {
+                    public void on(NodeIndex result) {
 
                         graph.save(new Callback<Boolean>() {
                             @Override
@@ -47,15 +47,15 @@ public class IndexTest {
                                         graph2.connect(new Callback<Boolean>() {
                                             @Override
                                             public void on(Boolean result) {
-                                                graph2.index(0, 0, index, new Callback<Index>() {
+                                                graph2.index(0, 0, index, new Callback<NodeIndex>() {
                                                     @Override
-                                                    public void on(Index result) {
+                                                    public void on(NodeIndex result) {
                                                         result.find(new Callback<Node[]>() {
                                                             @Override
                                                             public void on(Node[] result) {
 
                                                             }
-                                                        });
+                                                        }, result.world(), result.time());
                                                     }
                                                 });
                                             }

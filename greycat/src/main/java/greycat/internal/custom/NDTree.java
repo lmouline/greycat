@@ -24,7 +24,7 @@ import greycat.utility.distance.Distances;
 
 public class NDTree extends BaseCustomType implements NDIndexer {
 
-    public static final String NAME = "NDTree";
+    public static final String NAME = "NDTREE";
 
     //default values:
     public static int BUFFER_SIZE_DEF = 20;
