@@ -67,7 +67,7 @@ public class RobustnessTests {
             rootIndex.find(result -> {
                 for (Node r : result) {
                     final Node rr = r;
-                    r.relation("child", new Callback<Node[]>() {
+                    r.traverse("child", new Callback<Node[]>() {
                         @Override
                         public void on(Node[] result) {
                             for (Node n : result) {

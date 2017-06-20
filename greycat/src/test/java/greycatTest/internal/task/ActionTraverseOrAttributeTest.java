@@ -15,11 +15,7 @@
  */
 package greycatTest.internal.task;
 
-import greycat.Callback;
-import greycat.Node;
-import greycat.Type;
-import greycat.ActionFunction;
-import greycat.TaskContext;
+import greycat.*;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -103,17 +99,17 @@ public class ActionTraverseOrAttributeTest extends AbstractActionTest {
 
         graph.declareIndex(0, "roots", rootIndex -> {
             rootIndex.update(root);
-            RelationIndexed irel = (RelationIndexed) root.getOrCreate("childrenIndexed", Type.RELATION_INDEXED);
-            irel.add(node1, "name");
-            irel.add(node2, "name");
-            irel.add(node3, "name");
-
+            Index irel = (Index) root.getOrCreate("childrenIndexed", Type.INDEX);
+            irel.declareAttributes(null, "name");
+            irel.update(node1);
+            irel.update(node2);
+            irel.update(node3);
             root.travelInTime(12, new Callback<Node>() {
                 @Override
                 public void on(Node result) {
 
-                    RelationIndexed irel12 = (RelationIndexed) root.getOrCreate("childrenIndexed", Type.RELATION_INDEXED);
-                    irel12.add(node3, "name");
+                    Index irel12 = (Index) root.getOrCreate("childrenIndexed", Type.INDEX);
+                    irel12.update(node3);
                 }
             });
 
@@ -132,8 +128,8 @@ public class ActionTraverseOrAttributeTest extends AbstractActionTest {
 */
 
         newTask()
-                .then(readIndex("rootIndex", "name", "root2"))
-                .then(traverse("childrenIndexed", "name", "node3"))
+                .readIndex("rootIndex", "name", "root2")
+                .traverse("childrenIndexed", "name", "node3")
                 .thenDo(new ActionFunction() {
                     @Override
                     public void eval(TaskContext ctx) {

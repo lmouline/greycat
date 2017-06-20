@@ -17,13 +17,11 @@ package greycat.base;
 
 import greycat.*;
 import greycat.chunk.StateChunk;
-import greycat.chunk.WorldOrderChunk;
 import greycat.struct.*;
 import greycat.plugin.NodeDeclaration;
 import greycat.plugin.NodeState;
 import greycat.plugin.NodeStateCallback;
 import greycat.plugin.Resolver;
-import greycat.struct.*;
 import greycat.struct.proxy.*;
 import greycat.utility.Tuple;
 
@@ -430,7 +428,7 @@ public class BaseNode implements Node {
     }
 /*
     @Override
-    public final void relation(String relationName, final Callback<Node[]> callback) {
+    public final void traverse(String relationName, final Callback<Node[]> callback) {
         relationAt(this._resolver.stringToHash(relationName, false), callback);
     }
 
@@ -443,14 +441,14 @@ public class BaseNode implements Node {
         if (resolved != null) {
             switch (resolved.typeAt(relationIndex)) {
                 case Type.RELATION:
-                    final Relation relation = (Relation) resolved.getAt(relationIndex);
-                    if (relation == null || relation.size() == 0) {
+                    final Relation traverse = (Relation) resolved.getAt(relationIndex);
+                    if (traverse == null || traverse.size() == 0) {
                         callback.on(new Node[0]);
                     } else {
-                        final int relSize = relation.size();
+                        final int relSize = traverse.size();
                         final long[] ids = new long[relSize];
                         for (int i = 0; i < relSize; i++) {
-                            ids[i] = relation.get(i);
+                            ids[i] = traverse.get(i);
                         }
                         this._resolver.lookupAll(_world, _time, ids, new Callback<Node[]>() {
                             @Override
@@ -952,26 +950,38 @@ public class BaseNode implements Node {
 
     /* TODO check after */
     @Override
-    public final void relation(String relationName, final Callback<Node[]> callback) {
-        relationAt(this._resolver.stringToHash(relationName, false), callback);
+    public final void traverse(String relationName, final Callback<Node[]> callback) {
+        traverseAt(this._resolver.stringToHash(relationName, false), callback);
     }
 
     @Override
-    public void relationAt(int relationIndex, Callback<Node[]> callback) {
+    public void traverseAt(int relationIndex, Callback<Node[]> callback) {
         if (callback == null) {
             return;
         }
         final NodeState resolved = this._resolver.resolveState(this);
         if (resolved != null) {
-            final Relation relation = (Relation) resolved.getAt(relationIndex);
-            if (relation == null || relation.size() == 0) {
-                callback.on(new Node[0]);
-            } else {
-                final int relSize = relation.size();
-                final long[] ids = new long[relSize];
-                for (int i = 0; i < relSize; i++) {
-                    ids[i] = relation.get(i);
+            final int ftype = resolved.typeAt(relationIndex);
+            if (ftype == Type.RELATION) {
+                final Relation relation = (Relation) resolved.getAt(relationIndex);
+                if (relation == null || relation.size() == 0) {
+                    callback.on(new Node[0]);
+                } else {
+                    final int relSize = relation.size();
+                    final long[] ids = new long[relSize];
+                    for (int i = 0; i < relSize; i++) {
+                        ids[i] = relation.get(i);
+                    }
+                    this._resolver.lookupAll(_world, _time, ids, new Callback<Node[]>() {
+                        @Override
+                        public void on(Node[] result) {
+                            callback.on(result);
+                        }
+                    });
                 }
+            } else {
+                final Index findex = (Index) resolved.getAt(relationIndex);
+                final long[] ids = findex.all();
                 this._resolver.lookupAll(_world, _time, ids, new Callback<Node[]>() {
                     @Override
                     public void on(Node[] result) {

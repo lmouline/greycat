@@ -61,7 +61,7 @@ public class NDTree extends BaseCustomType implements NDIndexer {
         }
     }
 
-    //From a key to insert, and a parent space with min and max boundaries, get the relation id of the subspace of child where to insert the key
+    //From a key to insert, and a parent space with min and max boundaries, get the traverse id of the subspace of child where to insert the key
     private static int getRelationId(double[][] space, double[] keyToInsert) {
         int result = 0;
         for (int i = 0; i < space[MIN].length; i++) {
@@ -101,7 +101,7 @@ public class NDTree extends BaseCustomType implements NDIndexer {
         return center;
     }
 
-    //From a relation id, get the directions in the multidimensional subspace
+    //From a traverse id, get the directions in the multidimensional subspace
     //this function is somehow the inverse of getRelationId
     private static boolean[] binaryFromLong(long value, int dim) {
         long tempvalue = value - E_OFFSET_REL;

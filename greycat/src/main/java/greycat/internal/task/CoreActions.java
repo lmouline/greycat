@@ -203,9 +203,9 @@ public class CoreActions {
     }
 
     /**
-     * Adds nodes present in the named variable to the named relation in all nodes present in the current task result.
+     * Adds nodes present in the named variable to the named traverse in all nodes present in the current task result.
      *
-     * @param relName name of the relation
+     * @param relName name of the traverse
      * @param varName the name of the variable containing the nodes to add. It can use templates "{{}}".
      * @return the action to chain
      */
@@ -214,9 +214,9 @@ public class CoreActions {
     }
 
     /**
-     * Removes nodes present in the named variable from the named relation in all nodes present in the current result.
+     * Removes nodes present in the named variable from the named traverse in all nodes present in the current result.
      *
-     * @param relName name of the relation.
+     * @param relName name of the traverse.
      * @param varFrom the name of the variable containing the nodes to remove. It can use templates "{{}}".
      * @return the action to chain
      */

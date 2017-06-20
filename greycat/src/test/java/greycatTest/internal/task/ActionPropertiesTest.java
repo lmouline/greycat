@@ -48,7 +48,10 @@ public class ActionPropertiesTest {
                 child1.set("name", Type.STRING, "child1");
                 root.addToRelation("rel1", child1);
 
-                ((RelationIndexed) root.getOrCreate("localIindex1", Type.RELATION_INDEXED)).add(child1, "name");
+                Index localIindex1 = (Index) root.getOrCreate("localIindex1", Type.INDEX);
+                localIindex1.declareAttributes(null, "name");
+                localIindex1.update(child1);
+
             }
         });
     }
@@ -87,7 +90,7 @@ public class ActionPropertiesTest {
                 .then(readIndex("root"))
                 .pipe(
                         newTask().then(attributesWithTypes(Type.RELATION)),
-                        newTask().then(attributesWithTypes(Type.RELATION_INDEXED))
+                        newTask().then(attributesWithTypes(Type.INDEX))
                 ).flat()
                 .thenDo(new ActionFunction() {
                     @Override
