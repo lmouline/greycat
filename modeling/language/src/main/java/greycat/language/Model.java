@@ -33,17 +33,11 @@ public class Model {
     protected final Map<String, GlobalIndex> globalIndexesMap;
     private final Map<String, CustomType> customTypesMap;
 
-    private String name;
-
     public Model() {
         classesMap = new HashMap<>();
         globalConstantsMap = new HashMap<>();
         globalIndexesMap = new HashMap<>();
         customTypesMap = new HashMap<>();
-    }
-
-    public String name() {
-        return this.name;
     }
 
     public Constant[] globalConstants() {
@@ -63,7 +57,6 @@ public class Model {
     }
 
     public void parse(File content) throws Exception {
-        name = content.getName();
         build(new ANTLRFileStream(content.getAbsolutePath()));
     }
 

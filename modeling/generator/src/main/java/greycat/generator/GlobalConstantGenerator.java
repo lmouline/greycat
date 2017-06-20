@@ -23,18 +23,20 @@ import org.jboss.forge.roaster.model.source.JavaClassSource;
 import org.jboss.forge.roaster.model.source.JavaSource;
 
 public class GlobalConstantGenerator {
+    private static final String CONSTANT_CLASS_NAME = "Constants";
+
     static JavaSource[] generate(String packageName, Model model) {
         JavaSource[] sources = new JavaSource[1];
-        sources[0] = generateGlobalConstant(packageName, model.name(), model.globalConstants());
+        sources[0] = generateGlobalConstant(packageName, model.globalConstants());
 
         return sources;
     }
 
-    private static JavaSource generateGlobalConstant(String packageName, String modelName, Constant[] globalConstants) {
+    private static JavaSource generateGlobalConstant(String packageName, Constant[] globalConstants) {
         final JavaClassSource javaClass = Roaster.create(JavaClassSource.class);
         javaClass.setPackage(packageName);
 
-        String className = modelName.toLowerCase().split("\\.")[0];
+        String className = CONSTANT_CLASS_NAME;
         className = Generator.upperCaseFirstChar(className) + "Constants";
         javaClass.setName(className);
 
