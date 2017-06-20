@@ -73,11 +73,11 @@ public class TypeManager {
             case "LMatrix":
                 typeName = "Type.LMATRIX";
                 break;
-            case "StructArray":
-                typeName = "Type.STRUCT_ARRAY";
+            case "EGraph":
+                typeName = "Type.EGRAPH";
                 break;
-            case "Struct":
-                typeName = "Type.STRUCT";
+            case "ENode":
+                typeName = "Type.ENODE";
                 break;
             case "KDTree":
                 typeName = "Type.KDTREE";
@@ -153,10 +153,10 @@ public class TypeManager {
             case "LMatrix":
                 className = LMatrix.class.getCanonicalName();
                 break;
-            case "StructArray":
+            case "EGraph":
                 className = EGraph.class.getCanonicalName();
                 break;
-            case "Struct":
+            case "ENode":
                 className = ENode.class.getCanonicalName();
                 break;
             case "KDTree":
