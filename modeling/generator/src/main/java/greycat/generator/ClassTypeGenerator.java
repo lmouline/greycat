@@ -57,8 +57,7 @@ class ClassTypeGenerator {
                     .setVisibility(Visibility.PUBLIC)
                     .setFinal(true)
                     .setName(constant.name())
-                    // TODO custom type
-                    .setType(TypeManager.builtInClassName(constant.type()))
+                    .setType(TypeManager.cassName(constant.type()))
                     .setLiteralInitializer(value)
                     .setStatic(true);
         }
@@ -111,23 +110,21 @@ class ClassTypeGenerator {
                     .setVisibility(Visibility.PUBLIC)
                     .setFinal(true)
                     .setName(att.name().toUpperCase() + "_TYPE")
-                    .setType(byte.class)
+                    .setType(int.class)
                     .setStatic(true);
-            // TODO custom type
-            typeField.setLiteralInitializer(TypeManager.builtInTypeName(att.type()));
+            typeField.setLiteralInitializer(TypeManager.typeName(att.type()));
 
             // getter
             MethodSource<JavaClassSource> getter = javaClass.addMethod();
             getter.setVisibility(Visibility.PUBLIC).setFinal(true);
-            // TODO custom type
-            getter.setReturnType(TypeManager.builtInClassName(att.type()));
+            getter.setReturnType(TypeManager.cassName(att.type()));
             getter.setName("get" + Generator.upperCaseFirstChar(att.name()));
 
             if (TypeManager.isPrimitive(att.type())) {
-                getter.setBody("return (" + TypeManager.builtInClassName(att.type()) + ") super.get(" + att.name().toUpperCase() + ");");
+                getter.setBody("return (" + TypeManager.cassName(att.type()) + ") super.get(" + att.name().toUpperCase() + ");");
 
             } else {
-                getter.setBody("return (" + TypeManager.builtInClassName(att.type()) + ") super.getOrCreate(" + att.name().toUpperCase() + ", " + att.name().toUpperCase() + "_TYPE);");
+                getter.setBody("return (" + TypeManager.cassName(att.type()) + ") super.getOrCreate(" + att.name().toUpperCase() + ", " + att.name().toUpperCase() + "_TYPE);");
 
             }
 
@@ -139,8 +136,7 @@ class ClassTypeGenerator {
                     .setBody("super.set(" + att.name().toUpperCase() + ", " + att.name().toUpperCase()
                             + "_TYPE,value);\nreturn this;"
                     )
-                    // TODO custom type
-                    .addParameter(TypeManager.builtInClassName(att.type()), "value");
+                    .addParameter(TypeManager.cassName(att.type()), "value");
 
 
         }

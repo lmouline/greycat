@@ -1,4 +1,8 @@
 
+class SmartCity {
+    att location : GPSPosition
+}
+
 class Building extends ASuperType {
     const BUILDING_CONSTANT : String = "bla"
 

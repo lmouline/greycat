@@ -51,7 +51,7 @@ public class GlobalConstantGenerator {
                     .setFinal(true)
                     .setName(constant.name())
                     // TODO custom type
-                    .setType(TypeManager.builtInClassName(constant.type()))
+                    .setType(TypeManager.cassName(constant.type()))
                     .setLiteralInitializer(value)
                     .setStatic(true);
         }

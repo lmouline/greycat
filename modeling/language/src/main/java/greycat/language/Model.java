@@ -187,7 +187,7 @@ public class Model {
         if (typeDclContext.builtInTypeDcl() != null) {
             type = typeDclContext.builtInTypeDcl().getText();
         } else if (typeDclContext.customBuiltTypeDcl() != null) {
-            typeDclContext.customBuiltTypeDcl().getText();
+            type = typeDclContext.customBuiltTypeDcl().getText();
         }
 
         return type;
