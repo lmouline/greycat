@@ -4,6 +4,7 @@ class Building extends ASuperType {
 
     att name : String
     att height : Double
+    att longToLongArrayMap : LongToLongArrayMap
     rel rooms : Room
     ref specialRoom : Room
 

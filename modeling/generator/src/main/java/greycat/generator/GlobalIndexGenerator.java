@@ -15,11 +15,15 @@
  */
 package greycat.generator;
 
+import greycat.NodeIndex;
+import greycat.language.Attribute;
 import greycat.language.GlobalIndex;
 import greycat.language.Model;
 import org.jboss.forge.roaster.Roaster;
+import org.jboss.forge.roaster.model.Visibility;
 import org.jboss.forge.roaster.model.source.JavaClassSource;
 import org.jboss.forge.roaster.model.source.JavaSource;
+import org.jboss.forge.roaster.model.source.MethodSource;
 
 public class GlobalIndexGenerator {
 
@@ -37,6 +41,63 @@ public class GlobalIndexGenerator {
         final JavaClassSource javaClass = Roaster.create(JavaClassSource.class);
         javaClass.setPackage(packageName);
         javaClass.setName(globalIndex.name());
+
+        String indexName = globalIndex.name();
+
+        // index name constant
+        javaClass.addField()
+                .setVisibility(Visibility.PUBLIC)
+                .setFinal(true)
+                .setName(indexName.toUpperCase())
+                .setType(String.class)
+                .setStringInitializer(indexName)
+                .setStatic(true);
+
+        // attribute constants
+        for (Attribute att : globalIndex.attributes()) {
+            javaClass.addField()
+                    .setVisibility(Visibility.PUBLIC)
+                    .setFinal(true)
+                    .setName(att.name().toUpperCase())
+                    .setType(String.class)
+                    .setStringInitializer(att.name())
+                    .setStatic(true);
+        }
+
+        StringBuilder indexedAttributes = new StringBuilder();
+        for (Attribute att : globalIndex.attributes()) {
+            indexedAttributes.append(att.name().toUpperCase());
+            indexedAttributes.append(",");
+        }
+        indexedAttributes.deleteCharAt(indexedAttributes.length() - 1);
+
+        // declare index
+        if (globalIndex.isWithTime()) {
+
+        } else {
+            MethodSource<JavaClassSource> declareIndex = javaClass.addMethod()
+                    .setName("declareIndex")
+                    .setReturnTypeVoid()
+                    .setFinal(true)
+                    .setVisibility(Visibility.PUBLIC)
+                    .setStatic(true);
+            declareIndex.addParameter("greycat.Graph", "graph");
+            declareIndex.addParameter("long", "world");
+            declareIndex.addParameter("greycat.Callback<Boolean>", "callback");
+
+            StringBuilder declareIndexBody = new StringBuilder();
+            declareIndexBody.append("graph.declareIndex(world, " + indexName.toUpperCase() + ", new greycat.Callback<greycat.NodeIndex>() {");
+            declareIndexBody.append("@Override\n");
+            declareIndexBody.append("public void on(greycat.NodeIndex result) {");
+            declareIndexBody.append("if (callback != null) {");
+            declareIndexBody.append("callback.on(true);");
+            declareIndexBody.append("}");
+            declareIndexBody.append("}");
+            declareIndexBody.append("}, " + indexedAttributes.toString() + ");");
+
+
+            declareIndex.setBody(declareIndexBody.toString());
+        }
 
 
         return javaClass;

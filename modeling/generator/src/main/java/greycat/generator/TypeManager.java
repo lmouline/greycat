@@ -187,7 +187,9 @@ public class TypeManager {
         return primitives.contains(type);
     }
 
-
+    public static boolean isBuiltInType(String type) {
+        return builtInTypeName(type) != null ? true : false;
+    }
 }
 
 
