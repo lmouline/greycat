@@ -126,10 +126,10 @@ public class GlobalIndexGenerator {
                 .setReturnTypeVoid()
                 .setFinal(true)
                 .setStatic(true);
-        find.addParameter("greycat.Callback<" + globalIndex.type()+ "[]>", "callback");
         find.addParameter("Graph", "graph");
         find.addParameter("long", "world");
         find.addParameter("long", "time");
+        find.addParameter("greycat.Callback<" + globalIndex.type()+ "[]>", "callback");
         for (Attribute att : globalIndex.attributes()) {
             find.addParameter("String", att.name());
         }
@@ -150,12 +150,34 @@ public class GlobalIndexGenerator {
 
         find.setBody(findBody.toString());
 
+        // update index method
+        MethodSource updateIndex = javaClass.addMethod()
+                .setName("updateIndex")
+                .setVisibility(Visibility.PUBLIC)
+                .setReturnTypeVoid()
+                .setFinal(true)
+                .setStatic(true);
+        updateIndex.addParameter("greycat.Graph", "graph");
+        updateIndex.addParameter("long", "world");
+        updateIndex.addParameter("long", "time");
+        updateIndex.addParameter(globalIndex.type(), globalIndex.type().toLowerCase());
+        updateIndex.addParameter("greycat.Callback<Boolean>", "callback");
+
+        StringBuilder updateIndexBody = new StringBuilder();
+        updateIndexBody.append("graph.index(world, time, " + indexConstant + ", new Callback<greycat.NodeIndex>() {");
+        updateIndexBody.append("@Override\n");
+        updateIndexBody.append("public void on(greycat.NodeIndex result) {");
+        updateIndexBody.append("result.update(building);");
+        updateIndexBody.append("if (callback != null) {");
+        updateIndexBody.append("callback.on(true);");
+        updateIndexBody.append("}");
+        updateIndexBody.append("}");
+        updateIndexBody.append("});");
+
+        updateIndex.setBody(updateIndexBody.toString());
+
+
         return javaClass;
     }
 
 }
-
-
-
-
-
