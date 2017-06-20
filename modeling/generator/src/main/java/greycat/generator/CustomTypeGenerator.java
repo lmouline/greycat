@@ -45,10 +45,10 @@ public class CustomTypeGenerator {
         javaClass.setSuperType("greycat.base.BaseCustomTypeSingle");
 
         // constants
-        for(Constant constant : customType.constants()) {
+        for (Constant constant : customType.constants()) {
             String value = constant.value();
             if (!constant.type().equals("String")) {
-                value = value.replaceAll("\"","");
+                value = value.replaceAll("\"", "");
             }
             javaClass.addField()
                     .setVisibility(Visibility.PUBLIC)
@@ -109,6 +109,21 @@ public class CustomTypeGenerator {
         constructorBody.append("super(e);");
         constructor.setBody(constructorBody.toString());
 
+        // toString
+        MethodSource toString = javaClass.addMethod()
+                .setName("toString")
+                .setPublic()
+                .setReturnType(String.class);
+        String toStringBody = "return \"" + customType.name() + "(\"";
+        for (Attribute att : customType.attributes()) {
+            toStringBody += (" + " + "\"" + att.name() + ": \" " + "+ get" + Generator.upperCaseFirstChar(att.name()) + "()");
+            toStringBody += "+ \",\"";
+        }
+        if (customType.attributes().size() > 0) {
+            toStringBody = toStringBody.substring(0, toStringBody.length() - 2);
+        }
+        toStringBody += ")\";";
+        toString.setBody(toStringBody);
 
         return javaClass;
     }
