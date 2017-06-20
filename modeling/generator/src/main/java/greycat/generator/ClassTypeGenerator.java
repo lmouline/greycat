@@ -16,6 +16,7 @@
 package greycat.generator;
 
 import greycat.Graph;
+import greycat.Index;
 import greycat.Type;
 import greycat.language.*;
 import greycat.language.Class;
@@ -48,10 +49,10 @@ class ClassTypeGenerator {
         }
 
         // constants
-        for(Constant constant : classType.constants()) {
+        for (Constant constant : classType.constants()) {
             String value = constant.value();
             if (!constant.type().equals("String")) {
-                value = value.replaceAll("\"","");
+                value = value.replaceAll("\"", "");
             }
             javaClass.addField()
                     .setVisibility(Visibility.PUBLIC)
@@ -161,7 +162,7 @@ class ClassTypeGenerator {
             getter.setName("get" + Generator.upperCaseFirstChar(rel.name()));
             getter.addParameter("greycat.Callback<" + resultType + "[]>", "callback");
             getter.setBody(
-                    "this.relation(" + rel.name().toUpperCase() + ",new greycat.Callback<greycat.Node[]>() {\n" +
+                    "this.traverse(" + rel.name().toUpperCase() + ",new greycat.Callback<greycat.Node[]>() {\n" +
                             "@Override\n" +
                             "public void on(greycat.Node[] nodes) {\n" +
                             resultType + "[] result = new " + resultType + "[nodes.length];\n" +
@@ -217,7 +218,7 @@ class ClassTypeGenerator {
             getter.setName("get" + Generator.upperCaseFirstChar(ref.name()));
             getter.addParameter("greycat.Callback<" + resultType + ">", "callback");
             getter.setBody(
-                    "this.relation(" + ref.name().toUpperCase() + ",new greycat.Callback<greycat.Node[]>() {\n" +
+                    "this.traverse(" + ref.name().toUpperCase() + ",new greycat.Callback<greycat.Node[]>() {\n" +
                             "@Override\n" +
                             "public void on(greycat.Node[] nodes) {\n" +
                             resultType + " result = (" + resultType + ") nodes[0];\n" +
@@ -260,9 +261,69 @@ class ClassTypeGenerator {
             remove.setBody(removeFromBodyBuilder.toString());
         }
 
+        // local indexes
+        for (LocalIndex li : classType.localIndexes()) {
+            String indexConstant = li.name().toUpperCase();
+            String indexName = li.name();
+
+            // field for index name
+            javaClass.addField()
+                    .setName(indexConstant)
+                    .setType(String.class)
+                    .setStringInitializer(indexName)
+                    .setStatic(true)
+                    .setVisibility(Visibility.PUBLIC)
+                    .setFinal(true);
+
+            StringBuilder indexedAttBuilder = new StringBuilder();
+
+            for (String att : li.attributes()) {
+                indexedAttBuilder.append(li.type() + "." + att.toUpperCase());
+                indexedAttBuilder.append(",");
+            }
+            indexedAttBuilder.deleteCharAt(indexedAttBuilder.length() - 1);
+
+            // index method
+            MethodSource<JavaClassSource> indexMethod = javaClass.addMethod()
+                    .setName("index" + Generator.upperCaseFirstChar(indexName))
+                    .setVisibility(Visibility.PUBLIC)
+                    .setFinal(true)
+                    .setReturnType("greycat.Index");
+
+            StringBuilder indexBodyBuilder = new StringBuilder();
+            indexBodyBuilder.append("greycat.Index index = this.getIndex(" + indexConstant + ");");
+            indexBodyBuilder.append("if (index == null) {");
+            indexBodyBuilder.append("index = (greycat.Index) this.getOrCreate(" + indexConstant + ", Type.INDEX);");
+            indexBodyBuilder.append("index.declareAttributes(null, " + indexedAttBuilder.toString() + ");");
+            indexBodyBuilder.append("index.update(this);");
+            indexBodyBuilder.append("}");
+            indexBodyBuilder.append("return index;");
+
+            indexMethod.setBody(indexBodyBuilder.toString());
+
+            // unindex method
+            MethodSource<JavaClassSource> unindexMethod = javaClass.addMethod()
+                    .setName("unindex" + Generator.upperCaseFirstChar(indexName))
+                    .setVisibility(Visibility.PUBLIC)
+                    .setFinal(true)
+                    .setReturnTypeVoid();
+
+            StringBuilder unindexBodyBuilder = new StringBuilder();
+            unindexBodyBuilder.append("greycat.Index index = this.getIndex(" + indexConstant + ");");
+            unindexBodyBuilder.append("if (index != null) {");
+            unindexBodyBuilder.append("index.unindex(this);");
+            unindexBodyBuilder.append("}");
+
+            unindexMethod.setBody(unindexBodyBuilder.toString());
+
+            // find method
+
+        }
 
         return javaClass;
     }
 
 
 }
+
+

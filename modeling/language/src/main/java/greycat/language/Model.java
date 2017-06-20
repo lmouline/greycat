@@ -116,14 +116,12 @@ public class Model {
                 String name = localIndexDclCtx.name.getText();
                 String type = localIndexDclCtx.type.getText();
 
-                Class indexedClass = getOrAddClass(type);
-
                 LocalIndex localIndex = new LocalIndex(name, type);
                 for (TerminalNode idxDclIdent : localIndexDclCtx.indexAttributesDcl().IDENT()) {
-                    Attribute att = indexedClass.getAttribute(idxDclIdent.getText());
+                    String att = idxDclIdent.getText();
                     localIndex.addAttribute(att);
                 }
-                indexedClass.addLocalIndex(localIndex);
+                newClass.addLocalIndex(localIndex);
             }
 
             // constants

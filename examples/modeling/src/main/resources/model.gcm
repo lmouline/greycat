@@ -11,7 +11,7 @@ class Building extends ASuperType {
     att longToLongArrayMap : LongToLongArrayMap
     rel rooms : Room
     ref specialRoom : Room
-
+    index localIndex : Room using name
 }
 
 
