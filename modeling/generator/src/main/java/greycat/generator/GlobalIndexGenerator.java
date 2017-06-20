@@ -177,6 +177,32 @@ public class GlobalIndexGenerator {
         updateIndex.setBody(updateIndexBody.toString());
 
 
+        // unindex
+        MethodSource unindex = javaClass.addMethod()
+                .setName("unindex")
+                .setVisibility(Visibility.PUBLIC)
+                .setReturnTypeVoid()
+                .setFinal(true)
+                .setStatic(true);
+        unindex.addParameter("greycat.Graph", "graph");
+        unindex.addParameter("long", "world");
+        unindex.addParameter("long", "time");
+        unindex.addParameter(globalIndex.type(), globalIndex.type().toLowerCase());
+        unindex.addParameter("greycat.Callback<Boolean>", "callback");
+
+        StringBuilder unindexBody = new StringBuilder();
+        unindexBody.append("graph.index(world, time, " + indexConstant + ", new Callback<greycat.NodeIndex>() {");
+        unindexBody.append("@Override\n");
+        unindexBody.append("public void on(greycat.NodeIndex result) {");
+        unindexBody.append("result.unindex(building);");
+        unindexBody.append("if (callback != null) {");
+        unindexBody.append("callback.on(true);");
+        unindexBody.append("}");
+        unindexBody.append("}");
+        unindexBody.append("});");
+
+        unindex.setBody(unindexBody.toString());
+
         return javaClass;
     }
 
