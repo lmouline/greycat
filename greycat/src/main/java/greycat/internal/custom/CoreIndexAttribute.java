@@ -44,7 +44,9 @@ public class CoreIndexAttribute extends BaseCustomTypeSingle implements Index {
         for (int i = 0; i < casted.length; i++) {
             hashes.set(i, HashHelper.hash(casted[i]));
         }
-        callback.on(this);
+        if(callback != null){
+            callback.on(this);
+        }
     }
 
     @Override
