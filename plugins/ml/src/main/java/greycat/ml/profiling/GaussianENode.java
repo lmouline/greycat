@@ -359,4 +359,7 @@ public class GaussianENode {
     }
 
 
+    public void print() {
+        System.out.println("Gaussian Enode: "+ backend.toString());
+    }
 }

@@ -38,7 +38,7 @@ public class GmmManager implements NDManager {
     public long updateExistingLeafNode(long oldKey, double[] key, Object valueToInsert) {
         ENode node= _backend.node((int) oldKey);
         GaussianENode gn= new GaussianENode(node);
-        gn.learnWithOccurence(key,(int)valueToInsert);
+        gn.learnWithOccurence(key,((Long)valueToInsert).intValue());
         return oldKey;
     }
 
@@ -61,7 +61,7 @@ public class GmmManager implements NDManager {
     public long getNewLeafNode(double[] key, Object valueToInsert) {
         ENode node= _backend.newNode();
         GaussianENode gn= new GaussianENode(node);
-        gn.learnWithOccurence(key,(int)valueToInsert);
+        gn.learnWithOccurence(key,((Long)valueToInsert).intValue());
         return node.id();
     }
 
@@ -75,7 +75,7 @@ public class GmmManager implements NDManager {
     public long updateParent(long parentkey, double[] key, Object valueToInsert) {
         ENode node= _backend.node((int) parentkey);
         GaussianENode gn= new GaussianENode(node);
-        gn.learnWithOccurence(key,(int)valueToInsert);
+        gn.learnWithOccurence(key,((Long)valueToInsert).intValue());
         return parentkey;
     }
 }

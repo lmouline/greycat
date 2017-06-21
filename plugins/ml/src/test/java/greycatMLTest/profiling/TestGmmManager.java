@@ -17,16 +17,20 @@ package greycatMLTest.profiling;
 
 import greycat.*;
 import greycat.internal.custom.NDTree;
+import greycat.ml.profiling.GaussianENode;
 import greycat.ml.profiling.GmmManager;
 import greycat.struct.EGraph;
+import greycat.struct.ProfileResult;
 import org.junit.Test;
+
+import java.util.Random;
 
 /**
  * Created by assaad on 21/06/2017.
  */
 public class TestGmmManager {
-    @Test
-    public void Test() {
+    public static void main(String[] args) {
+        
         Graph graph = GraphBuilder
                 .newBuilder()
                 .build();
@@ -39,9 +43,43 @@ public class TestGmmManager {
 
                 EGraph ndTree = (EGraph) host.getOrCreate("graphNDTree", Type.EGRAPH);
                 EGraph gmmTree = (EGraph) host.getOrCreate("graphgmm", Type.EGRAPH);
+
                 GmmManager manager = new GmmManager(gmmTree);
 
                 NDTree tree = new NDTree(ndTree, manager);
+
+                int len=1000;
+                double[][] keys = new double[len][4];
+
+                Random rand = new Random();
+                for (int i = 0; i < len; i++) {
+                    for(int j=0;j<4;j++){
+                        keys[i][j]=rand.nextDouble();
+                    }
+                }
+
+                tree.setMinBound(new double[]{0, 0, 0, 0});
+                tree.setMaxBound(new double[]{1, 1, 1, 1});
+                tree.setResolution(new double[]{0.1, 0.1, 0.1, 0.1});
+
+                for (int i = 0; i < len; i++) {
+                    tree.insert(keys[i],1);
+                }
+
+                ProfileResult res= tree.queryAround(new double[]{0.4,0.5,0.6,0.7},4);
+
+                System.out.println("result: "+res.size());
+                for(int i=0;i<res.size();i++){
+                    int ind= (int)res.value(i);
+                    //System.out.println(ind);
+                    GaussianENode gn= new GaussianENode(gmmTree.node(ind));
+                    double[] av1=gn.getAvg();
+                    double[] k1=res.keys(i);
+                    System.out.println("Id: "+ind+" distance: "+res.distance(i)+" keys: ["+k1[0]+" "+k1[1]+" "+k1[2]+" "+k1[3]+" "+"] gmm avg:["+av1[0]+" "+av1[1]+" "+av1[2]+" "+av1[3]+" "+"] gmm Total: "+gn.getTotal());
+                    //gn.print();
+                }
+
+
 
 
             }
