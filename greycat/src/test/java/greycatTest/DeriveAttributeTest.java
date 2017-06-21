@@ -38,7 +38,7 @@ public class DeriveAttributeTest {
                 return new ExecutableNode(world, time, id, graph, gTask);
             }
         });
-        Node n = g.newTypedNode(0, 0, ExecutableNode.NAME);
+        final Node n = g.newTypedNode(0, 0, ExecutableNode.NAME);
         n.set("x", Type.DOUBLE, 5.1d);
         n.set("y", Type.DOUBLE, 1.5d);
         n.traverseAt(0, new Callback<Double>() {
@@ -52,7 +52,7 @@ public class DeriveAttributeTest {
             }
         });
         Task t = newTask().attribute("exec");
-        t.executeWith(g,n, new Callback<TaskResult>() {
+        t.executeWith(g, n, new Callback<TaskResult>() {
             @Override
             public void on(TaskResult result) {
                 Assert.assertEquals("6.6", result.get(0) + "");
