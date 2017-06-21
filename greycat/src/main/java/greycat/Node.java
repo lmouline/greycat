@@ -177,10 +177,9 @@ public interface Node extends Container {
      */
     void drop(Callback callback);
 
-    /* TODO check after */
-    void traverse(String relationName, Callback<Node[]> callback);
+    <A> void traverse(String relationName, Callback<A> callback);
 
-    void traverseAt(int relationIndex, Callback<Node[]> callback);
+    <A> void traverseAt(int relationIndex, Callback<A> callback);
 
     Node addToRelation(String relationName, Node relatedNode);
 

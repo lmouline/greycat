@@ -950,22 +950,21 @@ public class BaseNode implements Node {
 
     /* TODO check after */
     @Override
-    public final void traverse(String relationName, final Callback<Node[]> callback) {
+    public final <A> void traverse(String relationName, final Callback<A> callback) {
         traverseAt(this._resolver.stringToHash(relationName, false), callback);
     }
 
     @Override
-    public void traverseAt(int relationIndex, Callback<Node[]> callback) {
+    public final <A> void traverseAt(int indexToTraverse, Callback<A> callback) {
         if (callback == null) {
             return;
         }
-        final NodeState resolved = this._resolver.resolveState(this);
-        if (resolved != null) {
-            final int ftype = resolved.typeAt(relationIndex);
-            if (ftype == Type.RELATION) {
-                final Relation relation = (Relation) resolved.getAt(relationIndex);
+        final int ftype = typeAt(indexToTraverse);
+        switch (ftype) {
+            case Type.RELATION:
+                final Relation relation = (Relation) getAt(indexToTraverse);
                 if (relation == null || relation.size() == 0) {
-                    callback.on(new Node[0]);
+                    callback.on((A) (Object) new Node[0]);
                 } else {
                     final int relSize = relation.size();
                     final long[] ids = new long[relSize];
@@ -975,22 +974,36 @@ public class BaseNode implements Node {
                     this._resolver.lookupAll(_world, _time, ids, new Callback<Node[]>() {
                         @Override
                         public void on(Node[] result) {
-                            callback.on(result);
+                            callback.on((A) (Object) result);
                         }
                     });
                 }
-            } else {
-                final Index findex = (Index) resolved.getAt(relationIndex);
+                break;
+            case Type.INDEX:
+                final Index findex = (Index) getAt(indexToTraverse);
                 final long[] ids = findex.all();
                 this._resolver.lookupAll(_world, _time, ids, new Callback<Node[]>() {
                     @Override
                     public void on(Node[] result) {
-                        callback.on(result);
+                        callback.on((A) (Object )result);
                     }
                 });
-            }
-        } else {
-            callback.on(new Node[0]);
+                break;
+            case Type.TASK:
+                final Task t = (Task) getAt(indexToTraverse);
+                t.prepare(_graph, this, new Callback<TaskResult>() {
+                    @Override
+                    public void on(TaskResult result) {
+                        if (result.size() == 1) {
+                            callback.on((A) result.get(0));
+                        } else {
+                            callback.on((A) (Object) result);
+                        }
+                    }
+                });
+                break;
+            default:
+                callback.on(null);
         }
     }
 
