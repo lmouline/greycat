@@ -42,7 +42,7 @@ public class GlobalIndexGenerator {
         javaClass.setName(globalIndex.name());
 
         String indexName = globalIndex.name();
-        String indexConstant = indexName.toUpperCase();
+        String indexConstant = "INDEX_NAME";
 
         // index name constant
         javaClass.addField()
