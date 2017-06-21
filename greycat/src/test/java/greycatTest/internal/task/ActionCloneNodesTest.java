@@ -32,41 +32,46 @@ public class ActionCloneNodesTest extends AbstractActionTest {
     @Test
     public void testWithOneNode() {
 
-        long[] initialSpace = new long[1];
         newTask()
                 .readIndex("nodes")
                 .setAsVar("baseNodes")
                 .thenDo(ctx -> {
-                    initialSpace[0] = ctx.graph().space().available();
+                    ctx.defineVariable("spaceSize", ctx.graph().space().available());
                     ctx.continueTask();
                 })
+                .log("{{spaceSize}}")
                 .cloneNodes()
+                .thenDo(new ActionFunction() {
+                    @Override
+                    public void eval(TaskContext ctx) {
+                        //check clone result Size
+                        TaskResult<Node> initialNodes = ctx.variable("baseNodes");
+                        TaskResult<Node> clones = ctx.resultAsNodes();
+                        Assert.assertEquals(initialNodes.size(), clones.size());
+                        //check != ids
+                        for (int i = 0; i < initialNodes.size(); i++) {
+                            Assert.assertNotEquals(initialNodes.get(i).id(), clones.get(i).id());
+                        }
+                        //check == 'name'
+                        for (int i = 0; i < initialNodes.size(); i++) {
+                            Assert.assertEquals(initialNodes.get(i).get("name"), clones.get(i).get("name"));
+                        }
+                        //check == 'children'
+                        for (int i = 0; i < initialNodes.size(); i++) {
+                            Relation children = initialNodes.get(i).getRelation("children");
+                            if (children != null) {
+                                Assert.assertArrayEquals(children.all(), clones.get(i).getRelation("children").all());
+                            }
+                        }
+                        ctx.continueTask();
+                    }
+                })
                 .save()
+                .clearResult()
                 .thenDo(ctx -> {
                     //Check all cloned
-                    TaskResult<Node> initialNodes = ctx.variable("baseNodes");
-                    TaskResult<Node> clones = ctx.resultAsNodes();
-                    Assert.assertEquals(initialNodes.size(), clones.size());
-
-                    //check != ids
-                    for (int i = 0; i < initialNodes.size(); i++) {
-                        Assert.assertNotEquals(initialNodes.get(i).id(), clones.get(i).id());
-                    }
-
-                    //check == 'name'
-                    for (int i = 0; i < initialNodes.size(); i++) {
-                        Assert.assertEquals(initialNodes.get(i).get("name"), clones.get(i).get("name"));
-                    }
-
-                    //check == 'children'
-                    for (int i = 0; i < initialNodes.size(); i++) {
-                        Relation children = initialNodes.get(i).getRelation("children");
-                        if(children != null) {
-                            Assert.assertArrayEquals(children.all(), clones.get(i).getRelation("children").all());
-                        }
-                    }
                     //Assert no leak
-                    Assert.assertEquals(initialSpace[0], ctx.graph().space().available());
+                    Assert.assertEquals(ctx.longVar("spaceSize"), ctx.graph().space().available());
                     ctx.continueTask();
                 })
                 .execute(graph, new Callback<TaskResult>() {
