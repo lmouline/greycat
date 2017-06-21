@@ -235,7 +235,7 @@ public class NDTree extends BaseCustomType implements NDIndexer {
                             //call manager interface to get the boolean value here
                             //if the key already exist
                             LongArray bufferValue = (LongArray) node.getOrCreateAt(E_BUFFER_VALUES, Type.LONG_ARRAY);
-                            bufferValue.set(i, manager.updateExistingLeafNode(bufferValue.get(i), value));
+                            bufferValue.set(i, manager.updateExistingLeafNode(bufferValue.get(i), key, value));
 
                             if (manager.updateParentsOnExisting() && manager.parentsHaveNodes()) {
                                 node.setAt(E_TOTAL, Type.LONG, (long) node.getAt(E_TOTAL) + 1);
@@ -251,7 +251,7 @@ public class NDTree extends BaseCustomType implements NDIndexer {
                     buffer.appendColumn(key);
                     LongArray bufferValue = (LongArray) node.getOrCreateAt(E_BUFFER_VALUES, Type.LONG_ARRAY);
                     if (!bufferupdate) {
-                        bufferValue.addElement(manager.getNewLeafNode(value));
+                        bufferValue.addElement(manager.getNewLeafNode(key, value));
                         node.setAt(E_TOTAL, Type.LONG, (long) node.getAt(E_TOTAL) + 1);
                         if (manager.updateParentsOnNewValue() && manager.parentsHaveNodes()) {
                             node.setAt(E_VALUE, Type.LONG, manager.updateParent((long) node.getAt(E_VALUE), key, value));
@@ -293,11 +293,11 @@ public class NDTree extends BaseCustomType implements NDIndexer {
             } else {
                 long evalue = node.getAtWithDefault(E_VALUE, -1l);
                 if (evalue > 0) {
-                    long newvalue = manager.updateExistingLeafNode(evalue, value);
+                    long newvalue = manager.updateExistingLeafNode(evalue, key, value);
                     node.setAt(E_VALUE, Type.LONG, newvalue);
                     return manager.updateParentsOnExisting();
                 } else {
-                    node.setAt(E_VALUE, Type.LONG, manager.getNewLeafNode(value));
+                    node.setAt(E_VALUE, Type.LONG, manager.getNewLeafNode(key, value));
                     return manager.updateParentsOnNewValue();
                 }
             }

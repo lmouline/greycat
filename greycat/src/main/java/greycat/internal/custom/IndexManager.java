@@ -25,7 +25,7 @@ public class IndexManager implements NDManager {
     }
 
     @Override
-    public long updateExistingLeafNode(long oldKey, Object valueToInsert) {
+    public long updateExistingLeafNode(long oldKey, double[] key, Object valueToInsert) {
         return (long) valueToInsert;
     }
 
@@ -45,7 +45,7 @@ public class IndexManager implements NDManager {
     }
 
     @Override
-    public long getNewLeafNode(Object valueToInsert) {
+    public long getNewLeafNode(double[] key, Object valueToInsert) {
         return (long) valueToInsert;
     }
 
