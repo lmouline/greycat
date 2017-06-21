@@ -1247,14 +1247,16 @@ class HeapStateChunk implements StateChunk, HeapContainer {
                                 case Type.EGRAPH:
                                     HeapEGraph eGraph = new HeapEGraph(this, null, this.graph());
                                     cursor++;
-                                    cursor = eGraph.load(buffer, cursor, payloadSize);
-                                    internal_set(read_key, read_type, eGraph, true, initial);
                                     if (cursor < payloadSize) {
-                                        current = buffer.read(cursor);
-                                        if (current == Constants.CHUNK_SEP && cursor < payloadSize) {
-                                            state = LOAD_WAITING_TYPE;
-                                            cursor++;
-                                            previous = cursor;
+                                        cursor = eGraph.load(buffer, cursor, payloadSize);
+                                        internal_set(read_key, read_type, eGraph, true, initial);
+                                        if (cursor < payloadSize) {
+                                            current = buffer.read(cursor);
+                                            if (current == Constants.CHUNK_SEP && cursor < payloadSize) {
+                                                state = LOAD_WAITING_TYPE;
+                                                cursor++;
+                                                previous = cursor;
+                                            }
                                         }
                                     }
                                     break;*/
@@ -1270,6 +1272,7 @@ class HeapStateChunk implements StateChunk, HeapContainer {
                                             cursor++;
                                             previous = cursor;
                                         }
+                                    }
                                     }
                                     //throw new RuntimeException("Not implemented yet!!!");
                             }
