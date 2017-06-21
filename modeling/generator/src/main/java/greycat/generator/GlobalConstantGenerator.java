@@ -41,7 +41,7 @@ public class GlobalConstantGenerator {
         // constants
         for (Constant constant : globalConstants) {
             String value = constant.value();
-            if (!constant.type().equals("String")) {
+            if (!constant.type().equals("String") && value != null) {
                 value = value.replaceAll("\"", "");
             }
             FieldSource field = javaClass.addField()
