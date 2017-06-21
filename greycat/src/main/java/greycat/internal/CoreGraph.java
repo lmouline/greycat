@@ -127,14 +127,14 @@ public class CoreGraph implements Graph {
     }
 
     @Override
-    public long fork(long world) {
+    public final long fork(long world) {
         long childWorld = this._worldKeyCalculator.newKey();
         this._resolver.initWorld(world, childWorld);
         return childWorld;
     }
 
     @Override
-    public Node newNode(long world, long time) {
+    public final Node newNode(long world, long time) {
         if (!_isConnected.get()) {
             throw new RuntimeException(CoreConstants.DISCONNECTED_ERROR);
         }
@@ -144,7 +144,7 @@ public class CoreGraph implements Graph {
     }
 
     @Override
-    public Node newTypedNode(long world, long time, String nodeType) {
+    public final Node newTypedNode(long world, long time, String nodeType) {
         if (nodeType == null) {
             throw new RuntimeException("nodeType should not be null");
         }
@@ -168,12 +168,12 @@ public class CoreGraph implements Graph {
      * @ignore ts
      */
     @Override
-    public <A extends Node> A newTypedNode(long world, long time, String nodeType, Class<A> type) {
+    public final <A extends Node> A newTypedNode(long world, long time, String nodeType, Class<A> type) {
         return (A) newTypedNode(world, time, nodeType);
     }
 
     @Override
-    public Node cloneNode(Node origin) {
+    public final Node cloneNode(Node origin) {
         if (origin == null) {
             throw new RuntimeException("origin node should not be null");
         }
@@ -213,7 +213,7 @@ public class CoreGraph implements Graph {
         }
     }
 
-    NodeFactory factoryByCode(int code) {
+    final NodeFactory factoryByCode(int code) {
         NodeDeclaration declaration = _nodeRegistry.declarationByHash(code);
         if (declaration != null) {
             return declaration.factory();
@@ -507,7 +507,9 @@ public class CoreGraph implements Graph {
                 nodeIndex.declareAttributes(new Callback() {
                     @Override
                     public void on(Object result) {
-                        callback.on(nodeIndex);
+                        if (callback != null) {
+                            callback.on(nodeIndex);
+                        }
                     }
                 }, indexedAttributes);
             }
@@ -522,7 +524,9 @@ public class CoreGraph implements Graph {
                 nodeIndex.declareAttributes(new Callback() {
                     @Override
                     public void on(Object ignore) {
-                        callback.on(nodeIndex);
+                        if (callback != null) {
+                            callback.on(nodeIndex);
+                        }
                     }
                 }, indexedAttributes);
             }
@@ -558,7 +562,7 @@ public class CoreGraph implements Graph {
                             globalIndexNodeUnsafe.free();
                             callback.on(null);
                         } else {
-                            NodeIndex newIndexNode = (NodeIndex) selfPointer.newTypedNode(world, time, CoreNodeIndex.NAME);
+                            final NodeIndex newIndexNode = (NodeIndex) selfPointer.newTypedNode(world, time, CoreNodeIndex.NAME);
                             //newIndexNode.getOrCreate(CoreConstants.INDEX_ATTRIBUTE, Type.RELATION_INDEXED);
                             indexId = newIndexNode.id();
                             globalIndexContent.put(indexNameCoded, indexId);
