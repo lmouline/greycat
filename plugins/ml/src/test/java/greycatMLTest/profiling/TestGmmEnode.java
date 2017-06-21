@@ -16,6 +16,7 @@
 package greycatMLTest.profiling;
 
 import greycat.*;
+import greycat.ml.HelperForTest;
 import greycat.ml.profiling.GaussianENode;
 import greycat.struct.EGraph;
 import greycat.struct.ENode;
@@ -63,17 +64,17 @@ public class TestGmmEnode {
                 double[] sumsq2=gaussian2.getSumSq();
                 double[] sumsq3=gaussian3.getSumSq();
 
-                Assert.assertArrayEquals(sumsq,sumsq2,1e-7);
-                Assert.assertArrayEquals(sumsq,sumsq3,1e-7);
+
+                Assert.assertTrue(HelperForTest.assertArrayEquals(sumsq,sumsq2,1e-7));
+                Assert.assertTrue(HelperForTest.assertArrayEquals(sumsq,sumsq3,1e-7));
 
 
                 double[] sum=gaussian.getSum();
                 double[] sum2=gaussian2.getSum();
                 double[] sum3=gaussian3.getSum();
 
-                Assert.assertArrayEquals(sum,sum2,1e-7);
-                Assert.assertArrayEquals(sum,sum3,1e-7);
-
+                Assert.assertTrue(HelperForTest.assertArrayEquals(sum,sum2,1e-7));
+                Assert.assertTrue(HelperForTest.assertArrayEquals(sum,sum3,1e-7));
             }
         });
 
