@@ -35,10 +35,7 @@ public class GlobalConstantGenerator {
     private static JavaSource generateGlobalConstant(String packageName, Constant[] globalConstants) {
         final JavaClassSource javaClass = Roaster.create(JavaClassSource.class);
         javaClass.setPackage(packageName);
-
-        String className = CONSTANT_CLASS_NAME;
-        className = Generator.upperCaseFirstChar(className) + "Constants";
-        javaClass.setName(className);
+        javaClass.setName(CONSTANT_CLASS_NAME);
 
         // constants
         for(Constant constant : globalConstants) {

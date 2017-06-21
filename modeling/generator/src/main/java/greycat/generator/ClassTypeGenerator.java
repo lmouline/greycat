@@ -289,13 +289,14 @@ class ClassTypeGenerator {
                     .setVisibility(Visibility.PUBLIC)
                     .setFinal(true)
                     .setReturnType("greycat.Index");
+            indexMethod.addParameter(Generator.upperCaseFirstChar(li.type()), li.type().toLowerCase());
 
             StringBuilder indexBodyBuilder = new StringBuilder();
             indexBodyBuilder.append("greycat.Index index = this.getIndex(" + indexConstant + ");");
             indexBodyBuilder.append("if (index == null) {");
             indexBodyBuilder.append("index = (greycat.Index) this.getOrCreate(" + indexConstant + ", Type.INDEX);");
             indexBodyBuilder.append("index.declareAttributes(null, " + indexedAttBuilder.toString() + ");");
-            indexBodyBuilder.append("index.update(this);");
+            indexBodyBuilder.append("index.update(" + li.type().toLowerCase() + ");");
             indexBodyBuilder.append("}");
             indexBodyBuilder.append("return index;");
 
@@ -307,11 +308,12 @@ class ClassTypeGenerator {
                     .setVisibility(Visibility.PUBLIC)
                     .setFinal(true)
                     .setReturnTypeVoid();
+            unindexMethod.addParameter(Generator.upperCaseFirstChar(li.type()), li.type().toLowerCase());
 
             StringBuilder unindexBodyBuilder = new StringBuilder();
             unindexBodyBuilder.append("greycat.Index index = this.getIndex(" + indexConstant + ");");
             unindexBodyBuilder.append("if (index != null) {");
-            unindexBodyBuilder.append("index.unindex(this);");
+            unindexBodyBuilder.append("index.unindex(" + li.type().toLowerCase() + ");");
             unindexBodyBuilder.append("}");
 
             unindexMethod.setBody(unindexBodyBuilder.toString());
