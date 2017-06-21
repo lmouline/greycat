@@ -32,21 +32,19 @@ public class ActionCloneNodesTest extends AbstractActionTest {
     @Test
     public void testWithOneNode() {
 
+        graph.save(null);
+        final long spaceSize = graph.space().available();
+
         newTask()
                 .readIndex("nodes")
                 .setAsVar("baseNodes")
-                .thenDo(ctx -> {
-                    ctx.defineVariable("spaceSize", ctx.graph().space().available());
-                    ctx.continueTask();
-                })
-                .log("{{spaceSize}}")
                 .cloneNodes()
                 .thenDo(new ActionFunction() {
                     @Override
                     public void eval(TaskContext ctx) {
                         //check clone result Size
-                        TaskResult<Node> initialNodes = ctx.variable("baseNodes");
-                        TaskResult<Node> clones = ctx.resultAsNodes();
+                        final TaskResult<Node> initialNodes = ctx.variable("baseNodes");
+                        final TaskResult<Node> clones = ctx.resultAsNodes();
                         Assert.assertEquals(initialNodes.size(), clones.size());
                         //check != ids
                         for (int i = 0; i < initialNodes.size(); i++) {
@@ -67,17 +65,11 @@ public class ActionCloneNodesTest extends AbstractActionTest {
                     }
                 })
                 .save()
-                .clearResult()
-                .thenDo(ctx -> {
-                    //Check all cloned
-                    //Assert no leak
-                    Assert.assertEquals(ctx.longVar("spaceSize"), ctx.graph().space().available());
-                    ctx.continueTask();
-                })
                 .execute(graph, new Callback<TaskResult>() {
                     @Override
                     public void on(TaskResult result) {
                         result.free();
+                        Assert.assertEquals(spaceSize, graph.space().available());
                     }
                 });
     }
