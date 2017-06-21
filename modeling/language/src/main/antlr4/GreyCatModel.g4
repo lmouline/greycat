@@ -27,7 +27,12 @@ SL_COMMENT :  '//' ~('\r' | '\n')* ;
 
 modelDcl: (constDcl | classDcl | globalIndexDcl | customTypeDcl)*;
 
-constDcl: 'const' name=IDENT ':' typeDcl ('=' value=STRING)?;
+constDcl: 'const' name=IDENT ':' typeDcl ('=' constValueDcl)?;
+constValueDcl: (simpleValueDcl | taskValueDcl);
+simpleValueDcl: (IDENT | STRING);
+taskValueDcl: actionValueDcl ('.' actionValueDcl);
+actionValueDcl: IDENT ('(' actionParam* ')')?;
+actionParam: STRING | NUMBER;
 
 classDcl: 'class' name=IDENT parentDcl? '{' (constDcl | attributeDcl | relationDcl | referenceDcl | localIndexDcl)* '}';
 parentDcl: 'extends' IDENT;
@@ -36,10 +41,10 @@ attributeDcl: 'att' name=IDENT ':' typeDcl;
 typeDcl: (builtInTypeDcl | customBuiltTypeDcl);
 customBuiltTypeDcl: IDENT;
 builtInTypeDcl: ('Bool' | 'String' | 'Long' | 'Int' | 'Double' |
-                 'DoubleArray' | 'LongArray' | 'IntArray' | 'StringArray' |
-                 'LongToLongMap' | 'LongToLongArrayMap' | 'StringToIntMap'|
-                 'DMatrix' |'LMatrix' |'EGraph' |'ENode' | 'KDTree' | 'NDTree' |
-                 'IntToIntMap' | 'IntToStringMap' | 'Task' | 'TaskArray' | 'Node');
+                'DoubleArray' | 'LongArray' | 'IntArray' | 'StringArray' |
+                'LongToLongMap' | 'LongToLongArrayMap' | 'StringToIntMap'|
+                'DMatrix' |'LMatrix' |'EGraph' |'ENode' | 'KDTree' | 'NDTree' |
+                'IntToIntMap' | 'IntToStringMap' | 'Task' | 'TaskArray' | 'Node');
 relationDcl: 'rel' name=IDENT ':' type=IDENT;
 referenceDcl : 'ref' name=IDENT ':' type=IDENT;
 
