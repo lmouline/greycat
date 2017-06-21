@@ -34,3 +34,4 @@ index BuildingsTime with time of Building using name,height
 
 const GLOBAL_CONSTANT : Double = "4.5d"
 const ANOTHER_GLOBAL_CONSTANT : String = "my_constant"
+const CONSTANT_TO_OVERRIDE : String

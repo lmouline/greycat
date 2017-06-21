@@ -19,6 +19,7 @@ import greycat.language.Constant;
 import greycat.language.Model;
 import org.jboss.forge.roaster.Roaster;
 import org.jboss.forge.roaster.model.Visibility;
+import org.jboss.forge.roaster.model.source.FieldSource;
 import org.jboss.forge.roaster.model.source.JavaClassSource;
 import org.jboss.forge.roaster.model.source.JavaSource;
 
@@ -38,19 +39,21 @@ public class GlobalConstantGenerator {
         javaClass.setName(CONSTANT_CLASS_NAME);
 
         // constants
-        for(Constant constant : globalConstants) {
+        for (Constant constant : globalConstants) {
             String value = constant.value();
             if (!constant.type().equals("String")) {
-                value = value.replaceAll("\"","");
+                value = value.replaceAll("\"", "");
             }
-            javaClass.addField()
+            FieldSource field = javaClass.addField()
                     .setVisibility(Visibility.PUBLIC)
-                    .setFinal(true)
                     .setName(constant.name())
-                    // TODO custom type
                     .setType(TypeManager.cassName(constant.type()))
                     .setLiteralInitializer(value)
                     .setStatic(true);
+            if (value != null) {
+                field.setFinal(true);
+            }
+
         }
 
         return javaClass;

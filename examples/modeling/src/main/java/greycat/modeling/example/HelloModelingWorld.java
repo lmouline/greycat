@@ -15,10 +15,9 @@
  */
 package greycat.modeling.example;
 
-import greycat.Callback;
-import greycat.Graph;
-import greycat.GraphBuilder;
+import greycat.*;
 import model.*;
+import model.Constants;
 
 public class HelloModelingWorld {
 
@@ -68,6 +67,29 @@ public class HelloModelingWorld {
                 building.findLocalIndex("localIdxRoom", rooms -> {
                     System.out.println("found " + rooms.length + " room with local index");
                 });
+
+                // global index
+                Buildings.declareIndex(graph, 0, new Callback<Boolean>() {
+                    @Override
+                    public void on(Boolean result) {
+                        Buildings.updateIndex(graph, 0, 0, building, new Callback<Boolean>() {
+                            @Override
+                            public void on(Boolean result) {
+                                Buildings.find(graph, 0, 0, new Callback<Building[]>() {
+                                    @Override
+                                    public void on(Building[] result) {
+                                        System.out.println("found " + result.length + " building with global index");
+
+                                    }
+                                }, "building");
+                            }
+                        });
+                    }
+                });
+
+
+                // override constant
+                Constants.CONSTANT_TO_OVERRIDE = "new value";
 
             }
         });
