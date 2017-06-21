@@ -1053,9 +1053,19 @@ public class CoreTask implements Task {
                 .setFactory(new ActionFactory() {
                     @Override
                     public Action create(Object[] params) {
-                        return new ActionUpdateIndex((String) params[0]);
+                        return new ActionUpdateIndex((String) params[0], true);
                     }
                 });
+        registry.getOrCreateDeclaration(CoreActionNames.UNINDEX_FROM)
+                .setParams(Type.STRING)
+                .setDescription("Remove the nodes present in the current result from the global index given in parameter.")
+                .setFactory(new ActionFactory() {
+                    @Override
+                    public Action create(Object[] params) {
+                        return new ActionUpdateIndex((String) params[0], false);
+                    }
+                });
+
         registry.getOrCreateDeclaration(CoreActionNames.LOOP)
                 .setParams(Type.STRING, Type.STRING, Type.TASK)
                 .setDescription("Executes a task in a range.")
@@ -1411,6 +1421,11 @@ public class CoreTask implements Task {
     @Override
     public final Task updateIndex(String name) {
         return then(CoreActions.updateIndex(name));
+    }
+
+    @Override
+    public final Task unindexFrom(String name) {
+        return then(CoreActions.unindexFrom(name));
     }
 
     @Override

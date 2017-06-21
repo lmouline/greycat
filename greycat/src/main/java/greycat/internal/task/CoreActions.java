@@ -262,13 +262,23 @@ public class CoreActions {
     }
 
     /**
-     * Adds node to the named global index.
+     * Adds node to the named global index; updates if the node is already indexed
      *
      * @param name of the index
      * @return the action to chain
      */
     public static Action updateIndex(String name) {
-        return new ActionUpdateIndex(name);
+        return new ActionUpdateIndex(name, true);
+    }
+
+    /**
+     * Removes the node from the named global index.
+     *
+     * @param name of the index
+     * @return the action to chain
+     */
+    public static Action unindexFrom(String name) {
+        return new ActionUpdateIndex(name, false);
     }
 
     public static Action declareIndex(String name, String... attributes) {

@@ -353,6 +353,8 @@ public interface Task {
 
     Task updateIndex(String name);
 
+    Task unindexFrom(String name);
+
     Task declareIndex(String indexName, String... indexedAttributesNames);
 
     Task declareLocalIndex(String name, String... attributes);

@@ -22,8 +22,10 @@ public class CoreActionNames {
     public static String ADD_VAR_TO = "addVarTo";
     public static String REMOVE_VAR_FROM = "removeVarFrom";
 
+    public static String UNINDEX_FROM = "unindexFrom";
     public static String UPDATE_INDEX = "updateIndex";
     public static String DECLARE_INDEX = "declareIndex";
+
     public static String DECLARE_LOCAL_INDEX = "declareLocalIndex";
     public static String DECLARE_TIMED_INDEX = "declareTimedIndex";
     public static String CREATE_NODE = "createNode";
