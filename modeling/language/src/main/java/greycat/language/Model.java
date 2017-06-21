@@ -181,8 +181,7 @@ public class Model {
                 value = constDclCtx.constValueDcl().simpleValueDcl().getText();
             } else if (constDclCtx.constValueDcl().taskValueDcl() != null) {
                 GreyCatModelParser.TaskValueDclContext taskDcl = constDclCtx.constValueDcl().taskValueDcl();
-                //TODO
-
+                value = taskDcl.getText();
             }
 
         }
