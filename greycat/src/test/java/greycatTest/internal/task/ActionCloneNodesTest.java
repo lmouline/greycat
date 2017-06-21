@@ -16,6 +16,7 @@
 package greycatTest.internal.task;
 
 import greycat.*;
+import greycat.struct.Relation;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -47,9 +48,6 @@ public class ActionCloneNodesTest extends AbstractActionTest {
                     TaskResult<Node> clones = ctx.resultAsNodes();
                     Assert.assertEquals(initialNodes.size(), clones.size());
 
-                    //Assert no leak
-                    Assert.assertEquals(initialSpace[0], ctx.graph().space().available());
-
                     //check != ids
                     for (int i = 0; i < initialNodes.size(); i++) {
                         Assert.assertNotEquals(initialNodes.get(i).id(), clones.get(i).id());
@@ -62,8 +60,13 @@ public class ActionCloneNodesTest extends AbstractActionTest {
 
                     //check == 'children'
                     for (int i = 0; i < initialNodes.size(); i++) {
-                        Assert.assertEquals(initialNodes.get(i).get("children"), clones.get(i).get("children"));
+                        Relation children = initialNodes.get(i).getRelation("children");
+                        if(children != null) {
+                            Assert.assertArrayEquals(children.all(), clones.get(i).getRelation("children").all());
+                        }
                     }
+                    //Assert no leak
+                    Assert.assertEquals(initialSpace[0], ctx.graph().space().available());
                     ctx.continueTask();
                 })
                 .execute(graph, new Callback<TaskResult>() {
