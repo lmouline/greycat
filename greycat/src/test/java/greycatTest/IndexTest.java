@@ -34,11 +34,18 @@ public class IndexTest {
                         .declareIndex("nodes", "name")
                         .createNode().setAttribute("name", Type.STRING, "sensor_1").updateIndex("nodes")
                         .createNode().setAttribute("name", Type.STRING, "sensor_2").updateIndex("nodes")
+                        .globalIndex("nodes")
                         .readIndex("nodes", "sensor_1");
                 t.execute(g, new Callback<TaskResult>() {
                     @Override
                     public void on(TaskResult result) {
                         Assert.assertEquals("{\"result\":[{\"world\":0,\"time\":-9007199254740990,\"id\":2,\"name\":\"sensor_1\"}]}", result.toString());
+
+                        newTask().readIndex("nodes", "sensor_1").unindexFrom("nodes").globalIndex("nodes").execute(g,result2->{
+                            Assert.assertEquals("{\"result\":[{\"world\":0,\"time\":-9007199254740990,\"id\":3,\"name\":\"sensor_2\"}]}", result2.toString());
+                        });
+
+
                     }
                 });
             }
