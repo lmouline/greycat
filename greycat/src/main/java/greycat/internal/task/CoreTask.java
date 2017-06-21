@@ -115,6 +115,11 @@ public class CoreTask implements Task {
     }
 
     @Override
+    public Task ifThenTask(Task condTask, Task then) {
+        return then(new CF_IfThenTask(condTask,then));
+    }
+
+    @Override
     public final Task ifThenScript(String condScript, Task then) {
         return then(new CF_IfThen(condFromScript(condScript), then, condScript));
     }

@@ -128,6 +128,15 @@ public interface Task {
     /**
      * Executes a sub task if a given condition is evaluated to true.
      *
+     * @param condTask condition to check, the result should be a boolean
+     * @param then sub task to execute if the condition is evaluated to true
+     * @return this task to chain
+     */
+    Task ifThenTask(Task condTask, Task then);
+
+    /**
+     * Executes a sub task if a given condition is evaluated to true.
+     *
      * @param condScript condition to check (JavaScript)
      * @param then       sub task to execute if the condition is evaluated to true
      * @return this task to chain
