@@ -37,7 +37,9 @@ class ActionGlobalIndex implements Action {
             @Override
             public void on(NodeIndex resolvedIndex) {
                 if (resolvedIndex != null) {
-                    ctx.continueWith(ctx.wrap(resolvedIndex));
+                    ctx.graph().lookupAll(ctx.world(), ctx.time(), resolvedIndex.all(), containedNodes->{
+                        ctx.continueWith(ctx.wrap(containedNodes));
+                    });
                 } else {
                     ctx.continueWith(ctx.newResult());
                 }
