@@ -46,7 +46,7 @@ public class GaussianENode {
     }
 
 
-    public void learnNTimes(double[] values, int occ){
+    public void learnWithOccurence(double[] values, int occ){
         int features = values.length;
         int total = backend.getWithDefault(Gaussian.TOTAL, 0);
         //Create dirac only save total and sum
@@ -136,7 +136,7 @@ public class GaussianENode {
     }
 
     public void learn(double[] values) {
-        learnNTimes(values,1);
+        learnWithOccurence(values,1);
     }
 
     private void invalidate() {
