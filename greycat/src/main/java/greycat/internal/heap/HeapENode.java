@@ -711,12 +711,12 @@ class HeapENode implements ENode, HeapContainer {
                         builder.append(resolveName);
                         builder.append("\":");
                         builder.append("[");
-                        double[] castedArr = (double[]) elem;
-                        for (int j = 0; j < castedArr.length; j++) {
+                        DoubleArray castedArr = (DoubleArray) elem;
+                        for (int j = 0; j < castedArr.size(); j++) {
                             if (j != 0) {
                                 builder.append(",");
                             }
-                            builder.append(castedArr[j]);
+                            builder.append(castedArr.get(j));
                         }
                         builder.append("]");
                         break;
@@ -754,12 +754,12 @@ class HeapENode implements ENode, HeapContainer {
                         builder.append(resolveName);
                         builder.append("\":");
                         builder.append("[");
-                        long[] castedArr2 = (long[]) elem;
-                        for (int j = 0; j < castedArr2.length; j++) {
+                        LongArray castedArr2 = (LongArray) elem;
+                        for (int j = 0; j < castedArr2.size(); j++) {
                             if (j != 0) {
                                 builder.append(",");
                             }
-                            builder.append(castedArr2[j]);
+                            builder.append(castedArr2.get(j));
                         }
                         builder.append("]");
                         break;
@@ -769,12 +769,12 @@ class HeapENode implements ENode, HeapContainer {
                         builder.append(resolveName);
                         builder.append("\":");
                         builder.append("[");
-                        int[] castedArr3 = (int[]) elem;
-                        for (int j = 0; j < castedArr3.length; j++) {
+                        IntArray castedArr3 = (IntArray) elem;
+                        for (int j = 0; j < castedArr3.size(); j++) {
                             if (j != 0) {
                                 builder.append(",");
                             }
-                            builder.append(castedArr3[j]);
+                            builder.append(castedArr3.get(j));
                         }
                         builder.append("]");
                         break;
