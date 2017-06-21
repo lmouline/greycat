@@ -58,7 +58,11 @@ public class ActionCloneNodesTest extends AbstractActionTest {
                         for (int i = 0; i < initialNodes.size(); i++) {
                             Relation children = initialNodes.get(i).getRelation("children");
                             if (children != null) {
-                                Assert.assertArrayEquals(children.all(), clones.get(i).getRelation("children").all());
+                                long[] sourceChildrenId = children.all();
+                                long[] clonedChildrenId = clones.get(i).getRelation("children").all();
+                                for(int j = 0; j < sourceChildrenId.length; j++) {
+                                    Assert.assertEquals(sourceChildrenId[j], clonedChildrenId[j]);
+                                }
                             }
                         }
                         ctx.continueTask();
