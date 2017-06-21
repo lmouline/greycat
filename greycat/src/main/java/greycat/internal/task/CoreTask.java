@@ -964,15 +964,6 @@ public class CoreTask implements Task {
                         }
                     }
                 });
-        registry.getOrCreateDeclaration(CoreActionNames.GLOBAL_INDEX)
-                .setParams(Type.STRING)
-                .setDescription("Retrieve global index node")
-                .setFactory(new ActionFactory() {
-                    @Override
-                    public Action create(Object[] params) {
-                        return new ActionGlobalIndex((String) params[0]);
-                    }
-                });
         registry.getOrCreateDeclaration(CoreActionNames.INDEX_NAMES)
                 .setDescription("Retrieves existing indexes")
                 .setFactory(new ActionFactory() {
@@ -1411,11 +1402,6 @@ public class CoreTask implements Task {
     @Override
     public final Task readIndex(final String name, final String... query) {
         return then(CoreActions.readIndex(name, query));
-    }
-
-    @Override
-    public final Task globalIndex(String indexName) {
-        return then(CoreActions.globalIndex(indexName));
     }
 
     @Override

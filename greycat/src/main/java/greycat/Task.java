@@ -349,8 +349,6 @@ public interface Task {
 
     Task readIndex(String indexName, String... query);
 
-    Task globalIndex(String indexName);
-
     Task updateIndex(String name);
 
     Task unindexFrom(String name);

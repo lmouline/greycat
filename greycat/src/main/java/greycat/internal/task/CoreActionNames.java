@@ -18,14 +18,11 @@ package greycat.internal.task;
 public class CoreActionNames {
 
     public static String TRAVERSE_TIMELINE = "traverseTimeline";
-
     public static String ADD_VAR_TO = "addVarTo";
     public static String REMOVE_VAR_FROM = "removeVarFrom";
-
     public static String UNINDEX_FROM = "unindexFrom";
     public static String UPDATE_INDEX = "updateIndex";
     public static String DECLARE_INDEX = "declareIndex";
-
     public static String DECLARE_LOCAL_INDEX = "declareLocalIndex";
     public static String DECLARE_TIMED_INDEX = "declareTimedIndex";
     public static String CREATE_NODE = "createNode";
@@ -50,7 +47,6 @@ public class CoreActionNames {
     public static String PRINT = "print";
     public static String PRINTLN = "println";
     public static String READ_INDEX = "readIndex";
-    public static String GLOBAL_INDEX = "globalIndex";
     public static String READ_VAR = "readVar";
     public static String REMOVE = "remove";
     public static String SAVE = "save";

@@ -257,10 +257,6 @@ public class CoreActions {
         return new ActionReadIndex(indexName, query);
     }
 
-    public static Action globalIndex(String indexName) {
-        return new ActionGlobalIndex(indexName);
-    }
-
     /**
      * Adds node to the named global index; updates if the node is already indexed
      *

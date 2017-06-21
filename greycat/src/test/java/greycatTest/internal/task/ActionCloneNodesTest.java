@@ -33,7 +33,7 @@ public class ActionCloneNodesTest extends AbstractActionTest {
 
         long[] initialSpace = new long[1];
         newTask()
-                .globalIndex("nodes")
+                .readIndex("nodes")
                 .setAsVar("baseNodes")
                 .thenDo(ctx -> {
                     initialSpace[0] = ctx.graph().space().available();
