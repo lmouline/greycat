@@ -24,9 +24,17 @@ import java.io.IOException;
 public class FullParsingTest {
 
     @Test
-    public void test() throws IOException {
+    public void testFull() throws IOException {
         Model model = new Model();
         model.parseStream(this.getClass().getClassLoader().getResourceAsStream("full.gcm"));
+        model.consolidate();
+        Checker.check(model);
+    }
+
+    @Test
+    public void testMedium() throws IOException {
+        Model model = new Model();
+        model.parseStream(this.getClass().getClassLoader().getResourceAsStream("medium.gcm"));
         model.consolidate();
         Checker.check(model);
     }

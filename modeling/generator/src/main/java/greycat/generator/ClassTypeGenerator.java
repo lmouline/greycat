@@ -222,7 +222,6 @@ class ClassTypeGenerator {
                                 "}\n" +
                                 "});"
                 );
-
                 // setter
                 StringBuilder addToBodyBuilder = new StringBuilder();
                 MethodSource<JavaClassSource> add = javaClass.addMethod();
@@ -255,8 +254,9 @@ class ClassTypeGenerator {
                 removeFromBodyBuilder.append("}");
                 removeFromBodyBuilder.append("});");
                 remove.setBody(removeFromBodyBuilder.toString());
-            } else if (o instanceof Index) {
+            } else if (o instanceof greycat.language.Index) {
                 greycat.language.Index li = (greycat.language.Index) o;
+
                 String indexConstant = li.name().toUpperCase();
                 String indexName = li.name();
                 // field for index name
