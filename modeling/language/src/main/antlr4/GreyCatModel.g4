@@ -32,12 +32,12 @@ constValueDcl: (simpleValueDcl | taskValueDcl);
 simpleValueDcl: (IDENT | STRING);
 taskValueDcl: actionValueDcl ('.' actionValueDcl);
 actionValueDcl: IDENT ('(' actionParam* ')')?;
-actionParam: STRING | NUMBER;
+actionParam: STRING | NUMBER | subTask;
+subTask: '{' taskValueDcl '}';
 
 classDcl: 'class' name=IDENT parentDcl? '{' (constDcl | attributeDcl | relationDcl | referenceDcl | localIndexDcl)* '}';
 parentDcl: 'extends' IDENT;
 attributeDcl: 'att' name=IDENT ':' typeDcl;
-
 typeDcl: (builtInTypeDcl | customBuiltTypeDcl);
 customBuiltTypeDcl: IDENT;
 builtInTypeDcl: ('Bool' | 'String' | 'Long' | 'Int' | 'Double' |
@@ -51,7 +51,7 @@ referenceDcl : 'ref' name=IDENT ':' type=IDENT;
 localIndexDcl: 'index' name=IDENT ':' type=IDENT 'using' indexAttributesDcl;
 indexAttributesDcl: IDENT (',' IDENT)*;
 
-globalIndexDcl: 'index' name=IDENT withTimeDcl? 'of' type=IDENT 'using' indexAttributesDcl;
-withTimeDcl: 'with time';
+globalIndexDcl: 'index' name=IDENT ':' type=IDENT 'using' indexAttributesDcl;
 
 customTypeDcl: 'type' name=IDENT '{' (attributeDcl | constDcl)* '}';
+

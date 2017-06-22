@@ -29,7 +29,7 @@ public class Model {
 
     protected final Map<String, Class> classesMap;
     protected final Map<String, Constant> globalConstantsMap;
-    protected final Map<String, GlobalIndex> globalIndexesMap;
+    protected final Map<String, Index> globalIndexesMap;
     private final Map<String, CustomType> customTypesMap;
 
     public Model() {
@@ -43,8 +43,8 @@ public class Model {
         return globalConstantsMap.values().toArray(new Constant[globalConstantsMap.size()]);
     }
 
-    public GlobalIndex[] globalIndexes() {
-        return globalIndexesMap.values().toArray(new GlobalIndex[globalIndexesMap.size()]);
+    public Index[] globalIndexes() {
+        return globalIndexesMap.values().toArray(new Index[globalIndexesMap.size()]);
     }
 
     public CustomType[] customTypes() {
@@ -128,13 +128,10 @@ public class Model {
             String name = globalIdxDclContext.name.getText();
             String type = globalIdxDclContext.type.getText();
             Class indexedClass = getOrAddClass(type);
-            final GlobalIndex globalIndex = getOrAddGlobalIndex(name, type);
+            final Index index = getOrAddGlobalIndex(name, type);
             for (TerminalNode idxDclIdent : globalIdxDclContext.indexAttributesDcl().IDENT()) {
                 Attribute att = indexedClass.getAttribute(idxDclIdent.getText());
-                globalIndex.addAttribute(att);
-            }
-            if (globalIdxDclContext.withTimeDcl() != null) {
-                globalIndex.setWithTime(true);
+                index.addAttribute(att);
             }
         }
         // custom types
@@ -197,10 +194,10 @@ public class Model {
         return c;
     }
 
-    private GlobalIndex getOrAddGlobalIndex(String name, String type) {
-        GlobalIndex gi = globalIndexesMap.get(name);
+    private Index getOrAddGlobalIndex(String name, String type) {
+        Index gi = globalIndexesMap.get(name);
         if (gi == null) {
-            gi = new GlobalIndex(name, type);
+            gi = new Index(name, type);
             globalIndexesMap.put(name, gi);
         }
         return gi;
