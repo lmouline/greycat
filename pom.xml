@@ -108,7 +108,9 @@
         <module>modeling/mavenplugin</module>
 
         <!--Examples-->
+        <!--
         <module>examples/modeling</module>
+        -->
 
     </modules>
 
