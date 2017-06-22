@@ -13,38 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package greycat.language;
+package greycatTest;
 
-import java.util.ArrayList;
-import java.util.List;
+import greycat.language.Checker;
+import greycat.language.Model;
+import org.junit.Test;
 
-public class Attribute {
+import java.io.IOException;
 
-    private final String name;
-    private final Container parent;
-    final List<AttributeRef> references = new ArrayList<AttributeRef>();
+public class FullParsingTest {
 
-    private String type;
-
-    Attribute(final String name, Container parent) {
-        this.name = name;
-        this.parent = parent;
-    }
-
-    public final String name() {
-        return name;
-    }
-
-    public final String type() {
-        return type;
-    }
-
-    public final Container parent() {
-        return parent;
-    }
-
-    final void setType(String type) {
-        this.type = type;
+    @Test
+    public void test() throws IOException {
+        Model model = new Model();
+        model.parseStream(this.getClass().getClassLoader().getResourceAsStream("full.gcm"));
+        model.consolidate();
+        Checker.check(model);
     }
 
 }
