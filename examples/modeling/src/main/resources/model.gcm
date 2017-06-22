@@ -38,3 +38,5 @@ const CONSTANT_TO_OVERRIDE : String
 const TASK_CONSTANT : Task
 
 const listNodeNames : Task = readIndex("nodes").name
+
+const isStatic : Boolean
