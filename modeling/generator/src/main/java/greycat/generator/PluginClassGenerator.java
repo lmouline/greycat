@@ -16,9 +16,8 @@
 package greycat.generator;
 
 import greycat.Graph;
+import greycat.language.*;
 import greycat.language.Class;
-import greycat.language.CustomType;
-import greycat.language.Model;
 import greycat.plugin.NodeFactory;
 import greycat.plugin.Plugin;
 import org.jboss.forge.roaster.Roaster;
@@ -62,6 +61,32 @@ class PluginClassGenerator {
             startBodyBuilder.append("@Override\n");
             startBodyBuilder.append("public Object wrap(final greycat.struct.EGraph backend) {");
             startBodyBuilder.append("return new " + customType.name() + "(backend);");
+            startBodyBuilder.append("}");
+            startBodyBuilder.append("});");
+        }
+
+        if (model.globalIndexes().length > 0) {
+            startBodyBuilder.append("greycat.DeferCounter dc = graph.newCounter(" + model.globalIndexes().length + ");");
+
+            for (Index idx : model.globalIndexes()) {
+                StringBuilder paramsBuilder = new StringBuilder();
+                for (AttributeRef att : idx.attributes()) {
+                    paramsBuilder.append(idx.name() + "." + att.ref().name().toUpperCase());
+                    paramsBuilder.append(",");
+                }
+                paramsBuilder.deleteCharAt(paramsBuilder.length() - 1);
+
+                startBodyBuilder.append("graph.declareIndex(0, " + idx.name() + ".INDEX_NAME" + ", new greycat.Callback<greycat.NodeIndex>() {");
+                startBodyBuilder.append("@Override\n");
+                startBodyBuilder.append("public void on(greycat.NodeIndex result) {");
+                startBodyBuilder.append("dc.count();");
+                startBodyBuilder.append("}");
+                startBodyBuilder.append("}, " + paramsBuilder.toString() + ");");
+            }
+
+            startBodyBuilder.append("dc.then(new greycat.plugin.Job() {");
+            startBodyBuilder.append("@Override\n");
+            startBodyBuilder.append("public void run() {");
             startBodyBuilder.append("}");
             startBodyBuilder.append("});");
         }
