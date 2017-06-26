@@ -75,13 +75,13 @@ public class HelloModelingWorld {
                         Buildings.updateIndex(graph, 0, 0, building, new Callback<Boolean>() {
                             @Override
                             public void on(Boolean result) {
-                                Buildings.find(graph, 0, 0, new Callback<Building[]>() {
+                                Buildings.find(graph, 0, 0, "building", new Callback<Building[]>() {
                                     @Override
                                     public void on(Building[] result) {
                                         System.out.println("found " + result.length + " building with global index");
 
                                     }
-                                }, "building");
+                                });
                             }
                         });
                     }

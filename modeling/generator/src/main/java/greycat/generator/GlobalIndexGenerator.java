@@ -132,7 +132,6 @@ public class GlobalIndexGenerator {
         find.addParameter("Graph", "graph");
         find.addParameter("long", "world");
         find.addParameter("long", "time");
-        find.addParameter("greycat.Callback<" + index.type() + "[]>", "callback");
 
         StringBuilder paramsBuilder = new StringBuilder();
         for (AttributeRef att : index.attributes()) {
@@ -141,6 +140,9 @@ public class GlobalIndexGenerator {
             paramsBuilder.append(",");
         }
         paramsBuilder.deleteCharAt(paramsBuilder.length() - 1);
+
+        find.addParameter("greycat.Callback<" + index.type() + "[]>", "callback");
+
 
         StringBuilder findBody = new StringBuilder();
         findBody.append(" graph.index(world, time, " + indexConstant + ", new Callback<greycat.NodeIndex>() {");
