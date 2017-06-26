@@ -335,6 +335,9 @@ class ClassTypeGenerator {
                 findBodyBuilder.deleteCharAt(findBodyBuilder.length() - 1);
                 findBodyBuilder.append(");");
                 findBodyBuilder.append("}");
+                findBodyBuilder.append("else {");
+                findBodyBuilder.append("callback.on(null);");
+                findBodyBuilder.append("}");
 
                 find.setBody(findBodyBuilder.toString());
             }
