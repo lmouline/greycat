@@ -161,11 +161,15 @@ class ClassTypeGenerator {
                         "this.traverse(" + rel.name().toUpperCase() + ",new greycat.Callback<greycat.Node[]>() {\n" +
                                 "@Override\n" +
                                 "public void on(greycat.Node[] nodes) {\n" +
+                                "if(nodes != null) {\n" +
                                 resultType + "[] result = new " + resultType + "[nodes.length];\n" +
                                 "for(int i=0;i<result.length;i++) {\n" +
                                 "result[i] = (" + resultType + ") nodes[i];\n" +
                                 "}\n" +
-                                "callback.on(result);" +
+                                "callback.on(result);\n" +
+                                "} else {\n" +
+                                "callback.on(new "+resultType+"[0]);\n" +
+                                "}\n" +
                                 "}\n" +
                                 "});"
                 );
@@ -214,8 +218,12 @@ class ClassTypeGenerator {
                         "this.traverse(" + ref.name().toUpperCase() + ",new greycat.Callback<greycat.Node[]>() {\n" +
                                 "@Override\n" +
                                 "public void on(greycat.Node[] nodes) {\n" +
+                                "if(nodes != null) {\n" +
                                 resultType + " result = (" + resultType + ") nodes[0];\n" +
-                                "callback.on(result);" +
+                                "callback.on(result);\n" +
+                                "} else {\n" +
+                                "callback.on(null);\n" +
+                                "}\n" +
                                 "}\n" +
                                 "});"
                 );
