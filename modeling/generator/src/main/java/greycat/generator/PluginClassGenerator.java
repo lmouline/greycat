@@ -44,6 +44,10 @@ class PluginClassGenerator {
                 .addAnnotation(Override.class);
 
         StringBuilder startBodyBuilder = new StringBuilder();
+        startBodyBuilder.append("graph.addConnectHook(new greycat.Callback<greycat.Callback<Boolean>>() {");
+        startBodyBuilder.append("@Override\n");
+        startBodyBuilder.append("public void on(greycat.Callback<Boolean> result) {");
+
         for (Class classType : model.classes()) {
             startBodyBuilder.append("\t\tgraph.nodeRegistry()\n")
                     .append("\t\t\t.getOrCreateDeclaration(").append(classType.name()).append(".NODE_NAME").append(")").append("\n")
@@ -87,9 +91,13 @@ class PluginClassGenerator {
             startBodyBuilder.append("dc.then(new greycat.plugin.Job() {");
             startBodyBuilder.append("@Override\n");
             startBodyBuilder.append("public void run() {");
+            startBodyBuilder.append("result.on(true);");
             startBodyBuilder.append("}");
             startBodyBuilder.append("});");
         }
+
+        startBodyBuilder.append("}");
+        startBodyBuilder.append("});");
 
         MethodSource<JavaClassSource> startMethod = pluginClass.addMethod();
         startMethod.setReturnTypeVoid()
@@ -98,6 +106,7 @@ class PluginClassGenerator {
         startMethod.setBody(startBodyBuilder.toString());
         startMethod.setName("start");
         startMethod.addParameter("Graph", "graph");
+
 
         return pluginClass;
     }
