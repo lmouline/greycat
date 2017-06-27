@@ -22,10 +22,11 @@ import greycat.internal.custom.NDTree;
 import greycat.struct.*;
 
 import java.util.Arrays;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 public class TypeManager {
-    private static List<String> primitives = Arrays.asList("Bool", "Boolean", "String", "Long", "Int", "Integer", "Double");
+    private static Set<String> primitives = new HashSet<String>(Arrays.asList("Bool", "Boolean", "String", "Long", "Int", "Integer", "Double"));
 
     public static String typeName(String type) {
         String typeName;
