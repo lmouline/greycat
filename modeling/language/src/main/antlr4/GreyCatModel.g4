@@ -45,8 +45,9 @@ builtInTypeDcl: ('Bool' | 'String' | 'Long' | 'Int' | 'Double' |
                 'LongToLongMap' | 'LongToLongArrayMap' | 'StringToIntMap'|
                 'DMatrix' |'LMatrix' |'EGraph' |'ENode' | 'KDTree' | 'NDTree' |
                 'IntToIntMap' | 'IntToStringMap' | 'Task' | 'TaskArray' | 'Node');
-relationDcl: 'rel' name=IDENT ':' type=IDENT;
-referenceDcl : 'ref' name=IDENT ':' type=IDENT;
+relationDcl: 'rel' name=IDENT ':' type=IDENT (oppositeDcl)?;
+referenceDcl: 'ref' name=IDENT ':' type=IDENT (oppositeDcl)?;
+oppositeDcl: 'oppositeOf' name=IDENT;
 
 localIndexDcl: 'index' name=IDENT ':' type=IDENT 'using' indexAttributesDcl;
 indexAttributesDcl: IDENT (',' IDENT)*;
