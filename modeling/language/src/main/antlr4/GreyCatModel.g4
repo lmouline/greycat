@@ -40,7 +40,7 @@ parentDcl: 'extends' IDENT;
 attributeDcl: 'att' name=IDENT ':' typeDcl;
 typeDcl: (builtInTypeDcl | customBuiltTypeDcl);
 customBuiltTypeDcl: IDENT;
-builtInTypeDcl: ('Bool' | 'String' | 'Long' | 'Int' | 'Double' |
+builtInTypeDcl: ('Bool' | 'Boolean' | 'String' | 'Long' | 'Int' | 'Integer' | 'Double' |
                 'DoubleArray' | 'LongArray' | 'IntArray' | 'StringArray' |
                 'LongToLongMap' | 'LongToLongArrayMap' | 'StringToIntMap'|
                 'DMatrix' |'LMatrix' |'EGraph' |'ENode' | 'KDTree' | 'NDTree' |
