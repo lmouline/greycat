@@ -58,7 +58,7 @@ public class Type {
     public static final int NDTREE = -1996510636; //hash of 'NDTREE';
 
     public static boolean isCustom(int p_type) {
-        return p_type < BOOL || p_type > INT_TO_STRING_MAP;
+        return (p_type != -1 && (p_type < BOOL || p_type > INT_TO_STRING_MAP));
     }
 
     /**
