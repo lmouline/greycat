@@ -21,7 +21,7 @@ import org.junit.Test;
 
 import java.io.IOException;
 
-public class FullParsingTest {
+public class ParsingTest {
 
     @Test
     public void testFull() throws IOException {

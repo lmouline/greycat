@@ -30,7 +30,7 @@ modelDcl: (constDcl | classDcl | globalIndexDcl | customTypeDcl)*;
 constDcl: 'const' name=IDENT ':' typeDcl ('=' constValueDcl)?;
 constValueDcl: (simpleValueDcl | taskValueDcl);
 simpleValueDcl: (IDENT | STRING);
-taskValueDcl: actionValueDcl ('.' actionValueDcl);
+taskValueDcl: actionValueDcl ('.' actionValueDcl)*;
 actionValueDcl: IDENT ('(' actionParam* ')')?;
 actionParam: STRING | NUMBER | subTask;
 subTask: '{' taskValueDcl '}';
