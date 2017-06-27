@@ -281,8 +281,8 @@ class ClassTypeGenerator {
                 indexBodyBuilder.append("if (index == null) {");
                 indexBodyBuilder.append("index = (greycat.Index) this.getOrCreate(" + indexConstant + ", Type.INDEX);");
                 indexBodyBuilder.append("index.declareAttributes(null, " + indexedAttBuilder.toString() + ");");
-                indexBodyBuilder.append("index.update(" + li.type().toLowerCase() + ");");
                 indexBodyBuilder.append("}");
+                indexBodyBuilder.append("index.update(" + li.type().toLowerCase() + ");");
                 indexBodyBuilder.append("return index;");
 
                 indexMethod.setBody(indexBodyBuilder.toString());
@@ -341,7 +341,6 @@ class ClassTypeGenerator {
 
         return javaClass;
     }
-
 
 }
 
