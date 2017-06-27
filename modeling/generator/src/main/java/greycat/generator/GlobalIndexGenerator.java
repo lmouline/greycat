@@ -154,8 +154,7 @@ public class GlobalIndexGenerator {
         findAll.addParameter("long", "world");
         findAll.addParameter("long", "time");
         findAll.addParameter("greycat.Callback<" + index.type() + "[]>", "callback");
-        paramsBuilder = new StringBuilder("null");
-        StringBuilder findAllBody = createFindMethodBody(index, indexConstant, paramsBuilder);
+        StringBuilder findAllBody = createFindMethodBody(index, indexConstant, null);
         findAll.setBody(findAllBody.toString());
 
 
@@ -229,7 +228,11 @@ public class GlobalIndexGenerator {
         findBody.append("java.lang.System.arraycopy(result, 0, typedResult, 0, result.length);");
         findBody.append("callback.on(typedResult);");
         findBody.append("}");
-        findBody.append("}, " + paramsBuilder.toString() + ");");
+        if (paramsBuilder == null) {
+            findBody.append("});");
+        } else {
+            findBody.append("}, " + paramsBuilder.toString() + ");");
+        }
         findBody.append("}");
         findBody.append("});");
         return findBody;
