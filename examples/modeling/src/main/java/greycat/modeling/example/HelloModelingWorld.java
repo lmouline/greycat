@@ -78,8 +78,14 @@ public class HelloModelingWorld {
                                 Buildings.find(graph, 0, 0, "building", new Callback<Building[]>() {
                                     @Override
                                     public void on(Building[] result) {
-                                        System.out.println("found " + result.length + " building with global index");
+                                        System.out.println("find: found " + result.length + " building with global index");
 
+                                    }
+                                });
+                                Buildings.findAll(graph, 0, 0, new Callback<Building[]>() {
+                                    @Override
+                                    public void on(Building[] result) {
+                                        System.out.println("findAll: found " + result.length + " building with global index");
                                     }
                                 });
                             }
