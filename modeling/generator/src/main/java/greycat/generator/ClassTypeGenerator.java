@@ -16,7 +16,6 @@
 package greycat.generator;
 
 import greycat.Graph;
-import greycat.Index;
 import greycat.Type;
 import greycat.language.*;
 import greycat.language.Class;
@@ -46,24 +45,6 @@ class ClassTypeGenerator {
         } else {
             javaClass.setSuperType("greycat.base.BaseNode");
         }
-
-        // constants
-        classType.properties().forEach(o -> {
-            if (o instanceof Constant) {
-                Constant constant = (Constant) o;
-                String value = constant.value();
-                if (!constant.type().equals("String")) {
-                    value = value.replaceAll("\"", "");
-                }
-                javaClass.addField()
-                        .setVisibility(Visibility.PUBLIC)
-                        .setFinal(true)
-                        .setName(constant.name())
-                        .setType(TypeManager.cassName(constant.type()))
-                        .setLiteralInitializer(value)
-                        .setStatic(true);
-            }
-        });
 
         // create method
         MethodSource<JavaClassSource> create = javaClass.addMethod()
@@ -99,7 +80,21 @@ class ClassTypeGenerator {
 
         // attributes
         classType.properties().forEach(o -> {
-            if (o instanceof Attribute) {
+            // constants
+            if (o instanceof Constant) {
+                Constant constant = (Constant) o;
+                String value = constant.value();
+                if (!constant.type().equals("String")) {
+                    value = value.replaceAll("\"", "");
+                }
+                javaClass.addField()
+                        .setVisibility(Visibility.PUBLIC)
+                        .setFinal(true)
+                        .setName(constant.name())
+                        .setType(TypeManager.cassName(constant.type()))
+                        .setLiteralInitializer(value)
+                        .setStatic(true);
+            } else if (o instanceof Attribute) {
                 Attribute att = (Attribute) o;
                 javaClass.addField()
                         .setVisibility(Visibility.PUBLIC)
