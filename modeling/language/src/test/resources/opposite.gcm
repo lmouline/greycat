@@ -9,5 +9,5 @@ class Room {
 }
 
 class Furniture {
-    rel buildings : Building oppositeOf2 furnitures
+    rel buildings : Building oppositeOf furnitures
 }

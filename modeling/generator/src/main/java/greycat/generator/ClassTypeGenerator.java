@@ -128,14 +128,16 @@ class ClassTypeGenerator {
                 }
 
                 // setter
-                javaClass.addMethod()
-                        .setVisibility(Visibility.PUBLIC).setFinal(true)
-                        .setName("set" + Generator.upperCaseFirstChar(att.name()))
-                        .setReturnType(classType.name())
-                        .setBody("super.set(" + att.name().toUpperCase() + ", " + att.name().toUpperCase()
-                                + "_TYPE,value);\nreturn this;"
-                        )
-                        .addParameter(TypeManager.cassName(att.type()), "value");
+                if (TypeManager.isPrimitive(att.type())) {
+                    javaClass.addMethod()
+                            .setVisibility(Visibility.PUBLIC).setFinal(true)
+                            .setName("set" + Generator.upperCaseFirstChar(att.name()))
+                            .setReturnType(classType.name())
+                            .setBody("super.set(" + att.name().toUpperCase() + ", " + att.name().toUpperCase()
+                                    + "_TYPE,value);\nreturn this;"
+                            )
+                            .addParameter(TypeManager.cassName(att.type()), "value");
+                }
             } else if (o instanceof Relation) {
                 Relation rel = (Relation) o;
                 // field

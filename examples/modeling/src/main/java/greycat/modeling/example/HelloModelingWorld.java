@@ -16,6 +16,7 @@
 package greycat.modeling.example;
 
 import greycat.*;
+import greycat.struct.LongLongArrayMap;
 import model.*;
 import model.Constants;
 
@@ -93,10 +94,13 @@ public class HelloModelingWorld {
                     }
                 });
 
-
                 // override constant
                 Constants.CONSTANT_TO_OVERRIDE = "new value";
 
+                // complex types
+                LongLongArrayMap llam = building.getLongToLongArrayMap();
+                llam.put(5, 5);
+                System.out.println(llam.get(5)[0]);
             }
         });
     }
