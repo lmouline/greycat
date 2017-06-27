@@ -25,7 +25,7 @@ import java.util.Arrays;
 import java.util.List;
 
 public class TypeManager {
-    private static List<String> primitives = Arrays.asList("Bool", "String", "Long", "Int", "Double");
+    private static List<String> primitives = Arrays.asList("Bool", "Boolean", "String", "Long", "Int", "Integer", "Double");
 
     public static String typeName(String type) {
         String typeName;
