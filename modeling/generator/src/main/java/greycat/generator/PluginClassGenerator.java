@@ -44,9 +44,6 @@ class PluginClassGenerator {
                 .addAnnotation(Override.class);
 
         StringBuilder startBodyBuilder = new StringBuilder();
-        startBodyBuilder.append("graph.addConnectHook(new greycat.Callback<greycat.Callback<Boolean>>() {");
-        startBodyBuilder.append("@Override\n");
-        startBodyBuilder.append("public void on(greycat.Callback<Boolean> result) {");
 
         for (Class classType : model.classes()) {
             startBodyBuilder.append("\t\tgraph.nodeRegistry()\n")
@@ -56,7 +53,7 @@ class PluginClassGenerator {
                             "\t\t\t\t\tpublic greycat.Node create(long world, long time, long id, Graph graph) {\n" +
                             "\t\t\t\t\t\treturn new ").append(classType.name()).append("(world,time,id,graph);\n" +
                     "\t\t\t\t\t}\n" +
-                    "\t\t\t\t});\n");
+                    "\t\t\t\t});\n\n");
 
         }
 
@@ -66,8 +63,13 @@ class PluginClassGenerator {
             startBodyBuilder.append("public Object wrap(final greycat.struct.EGraph backend) {");
             startBodyBuilder.append("return new " + customType.name() + "(backend);");
             startBodyBuilder.append("}");
-            startBodyBuilder.append("});");
+            startBodyBuilder.append("});\n\n");
         }
+
+        startBodyBuilder.append("graph.addConnectHook(new greycat.Callback<greycat.Callback<Boolean>>() {");
+        startBodyBuilder.append("@Override\n");
+        startBodyBuilder.append("public void on(greycat.Callback<Boolean> result) {");
+
 
         if (model.globalIndexes().length > 0) {
             startBodyBuilder.append("greycat.DeferCounter dc = graph.newCounter(" + model.globalIndexes().length + ");");
@@ -85,7 +87,7 @@ class PluginClassGenerator {
                 startBodyBuilder.append("public void on(greycat.NodeIndex result) {");
                 startBodyBuilder.append("dc.count();");
                 startBodyBuilder.append("}");
-                startBodyBuilder.append("}, " + paramsBuilder.toString() + ");");
+                startBodyBuilder.append("}, " + paramsBuilder.toString() + ");\n\n");
             }
 
             startBodyBuilder.append("dc.then(new greycat.plugin.Job() {");
