@@ -42,26 +42,15 @@ public class Generator {
         return init.substring(0, 1).toUpperCase() + init.substring(1);
     }
 
-    public void scan(File target) throws Exception {
-        if (target.isDirectory()) {
-            String[] files = target.list();
-            if (files == null) {
-                throw new RuntimeException("no files to parse found");
-            } else {
-                for (String name : files) {
-                    if (name.trim().endsWith(FILE_EXTENSION)) {
-                        this.model.parse(new File(target, name));
-                    }
-                }
-            }
-
-        } else if (target.getName().endsWith(FILE_EXTENSION)) {
+    public void parse(File target) throws Exception {
+        if (target.getName().endsWith(FILE_EXTENSION)) {
             this.model.parse(target);
         } else {
             throw new RuntimeException("no file with correct extension found");
         }
     }
 
+    /*
     public void deepScan(File target) throws Exception {
         if (target.isDirectory()) {
             String[] files = target.list();
@@ -83,7 +72,7 @@ public class Generator {
         } else if (target.getName().endsWith(FILE_EXTENSION)) {
             this.model.parse(target);
         }
-    }
+    }*/
 
     private void generateJava(String packageName, String pluginName, File target) {
         int index = 0;

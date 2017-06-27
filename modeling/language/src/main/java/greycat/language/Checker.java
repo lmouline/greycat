@@ -28,32 +28,28 @@ public class Checker {
                     if (attribute.type() == null) {
                         throw new RuntimeException("Untyped attribute " + attribute.name() + " contained in " + attribute.parent());
                     }
-                } else if(o instanceof Constant){
+                } else if (o instanceof Constant) {
                     final Constant constant = (Constant) o;
-                    if(constant.type().equals("Task") && constant.value() != null){
-                        try {
-                            greycat.Task t = newTask().parse(constant.value(),null);
-                            System.out.println(t);
-                        } catch (Exception e){
-                            e.printStackTrace();
-                            throw new RuntimeException("Task parsing error");
-                        }
+                    if (constant.type().equals("Task") && constant.value() != null) {
+                        checkTask(constant.value());
                     }
                 }
             });
         });
         model.constants.values().forEach(constant -> {
-            if(constant.type().equals("Task") && constant.value() != null){
-                try {
-                    greycat.Task t = newTask().parse(constant.value(),null);
-                    System.out.println(t);
-                } catch (Exception e){
-                    e.printStackTrace();
-                    throw new RuntimeException("Task parsing error");
-                }
+            if (constant.type().equals("Task") && constant.value() != null) {
+                checkTask(constant.value());
             }
         });
+    }
 
+    private static void checkTask(String value) {
+        try {
+            greycat.Task t = newTask().parse(value, null);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("Task parsing error");
+        }
     }
 
 }

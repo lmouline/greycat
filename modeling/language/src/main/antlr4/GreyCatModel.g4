@@ -25,11 +25,11 @@ NUMBER : [\-]?[0-9]+'.'?[0-9]*;
 WS : ([ \t\r\n]+ | SL_COMMENT) -> skip ; // skip spaces, tabs, newlines
 SL_COMMENT :  '//' ~('\r' | '\n')* ;
 
-modelDcl: (constDcl | classDcl | globalIndexDcl | customTypeDcl)*;
-
+modelDcl: (constDcl | classDcl | globalIndexDcl | customTypeDcl | importDcl)*;
+importDcl: 'import' STRING;
 constDcl: 'const' name=IDENT ':' typeDcl ('=' constValueDcl)?;
 constValueDcl: (simpleValueDcl | taskValueDcl);
-simpleValueDcl: (IDENT | STRING);
+simpleValueDcl: (IDENT | STRING | NUMBER);
 taskValueDcl: actionValueDcl ('.' actionValueDcl)*;
 actionValueDcl: IDENT ('(' actionParam* ')')?;
 actionParam: STRING | NUMBER | subTask;

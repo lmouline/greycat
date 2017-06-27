@@ -26,7 +26,7 @@ public class ParsingTest {
     @Test
     public void testFull() throws IOException {
         Model model = new Model();
-        model.parseStream(this.getClass().getClassLoader().getResourceAsStream("full.gcm"));
+        model.parseResource("full.gcm", this.getClass().getClassLoader());
         model.consolidate();
         Checker.check(model);
     }
@@ -34,7 +34,7 @@ public class ParsingTest {
     @Test
     public void testMedium() throws IOException {
         Model model = new Model();
-        model.parseStream(this.getClass().getClassLoader().getResourceAsStream("medium.gcm"));
+        model.parseResource("medium.gcm", this.getClass().getClassLoader());
         model.consolidate();
         Checker.check(model);
     }

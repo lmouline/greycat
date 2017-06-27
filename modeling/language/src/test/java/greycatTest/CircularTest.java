@@ -21,12 +21,12 @@ import org.junit.Test;
 
 import java.io.IOException;
 
-public class TaskTest {
+public class CircularTest {
 
     @Test
-    public void testFull() throws IOException {
+    public void test() throws IOException {
         Model model = new Model();
-        model.parseResource("task.gcm", this.getClass().getClassLoader());
+        model.parseResource("circular.gcm", this.getClass().getClassLoader());
         model.consolidate();
         Checker.check(model);
     }

@@ -17,18 +17,20 @@ package greycatTest;
 
 import greycat.language.Checker;
 import greycat.language.Model;
+import org.junit.Assert;
 import org.junit.Test;
 
-import java.io.IOException;
-
-public class TaskTest {
+public class ImportTest {
 
     @Test
-    public void testFull() throws IOException {
+    public void importTest() throws Exception {
         Model model = new Model();
-        model.parseResource("task.gcm", this.getClass().getClassLoader());
+        model.parseResource("import.gcm", this.getClass().getClassLoader());
+        //model.parse(new File("/Users/duke/Documents/datathings/greycat/modeling/language/src/test/resources/import.gcm"));
         model.consolidate();
         Checker.check(model);
+        Assert.assertEquals(1, model.classes().length);
+        Assert.assertEquals(1, model.globalConstants().length);
     }
 
 }
