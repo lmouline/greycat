@@ -171,7 +171,7 @@ class ClassTypeGenerator {
                                 "}\n" +
                                 "callback.on(result);\n" +
                                 "} else {\n" +
-                                "callback.on(new "+resultType+"[0]);\n" +
+                                "callback.on(new " + resultType + "[0]);\n" +
                                 "}\n" +
                                 "}\n" +
                                 "});"
@@ -185,6 +185,13 @@ class ClassTypeGenerator {
                 add.setReturnType(classType.name());
                 add.addParameter(rel.type(), "value");
                 addToBodyBuilder.append("super.addToRelation(").append(rel.name().toUpperCase()).append(", value);");
+                if (rel.opposite() != null) {
+                    String oppositeName = rel.opposite().isReference() ? rel.opposite().reference().name() : rel.opposite().relation().name();
+                    if (rel.opposite().isReference()) {
+                        addToBodyBuilder.append("value.removeFromRelation(").append(rel.type()).append(".").append(oppositeName.toUpperCase()).append(", this);");
+                    }
+                    addToBodyBuilder.append("value.addToRelation(").append(rel.type()).append(".").append(oppositeName.toUpperCase()).append(", this);");
+                }
                 addToBodyBuilder.append("return this;");
                 add.setBody(addToBodyBuilder.toString());
 
@@ -196,6 +203,10 @@ class ClassTypeGenerator {
                 remove.setReturnType(classType.name());
                 remove.addParameter(rel.type(), "value");
                 removeFromBodyBuilder.append("super.removeFromRelation(").append(rel.name().toUpperCase()).append(", value);");
+                if (rel.opposite() != null) {
+                    String oppositeName = rel.opposite().isReference() ? rel.opposite().reference().name() : rel.opposite().relation().name();
+                    removeFromBodyBuilder.append("value.removeFromRelation(").append(rel.type()).append(".").append(oppositeName.toUpperCase()).append(", this);");
+                }
                 removeFromBodyBuilder.append("return this;");
                 remove.setBody(removeFromBodyBuilder.toString());
             } else if (o instanceof Reference) {
@@ -240,6 +251,13 @@ class ClassTypeGenerator {
                 addToBodyBuilder.append("if(value != null) {");
                 addToBodyBuilder.append("super.removeFromRelation(").append(ref.name().toUpperCase()).append(", value );");
                 addToBodyBuilder.append("super.addToRelation(").append(ref.name().toUpperCase()).append(", value );");
+                if (ref.opposite() != null) {
+                    String oppositeName = ref.opposite().isReference() ? ref.opposite().reference().name() : ref.opposite().relation().name();
+                    if (ref.opposite().isReference()) {
+                        addToBodyBuilder.append("value.removeFromRelation(").append(ref.type()).append(".").append(oppositeName.toUpperCase()).append(", this);");
+                    }
+                    addToBodyBuilder.append("value.addToRelation(").append(ref.type()).append(".").append(oppositeName.toUpperCase()).append(", this);");
+                }
                 addToBodyBuilder.append("}");
                 addToBodyBuilder.append("return this;");
                 add.setBody(addToBodyBuilder.toString());
