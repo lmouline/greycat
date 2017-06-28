@@ -127,6 +127,9 @@ class ClassTypeGenerator {
 
                 }
 
+                // TS getter
+
+
                 // setter
                 if (TypeManager.isPrimitive(att.type())) {
                     javaClass.addMethod()
