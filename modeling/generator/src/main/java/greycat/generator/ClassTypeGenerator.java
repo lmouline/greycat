@@ -15,10 +15,10 @@
  */
 package greycat.generator;
 
-import greycat.Graph;
-import greycat.Type;
+import greycat.*;
 import greycat.language.*;
 import greycat.language.Class;
+import greycat.language.Index;
 import org.jboss.forge.roaster.Roaster;
 import org.jboss.forge.roaster.model.Visibility;
 import org.jboss.forge.roaster.model.source.*;
@@ -47,16 +47,16 @@ class ClassTypeGenerator {
 
         StringBuilder TS_GET_SET = new StringBuilder();
         classType.properties().forEach(o -> {
-            if(o instanceof Attribute){
+            if (o instanceof Attribute) {
                 Attribute attribute = (Attribute) o;
-                if(TypeManager.isPrimitive(attribute.type())){
-                    TS_GET_SET.append("get "+attribute.name()+"() : "+TypeManager.cassTsName(attribute.type())+" {return this.get"+Generator.upperCaseFirstChar(attribute.name())+"();}\n");
-                    TS_GET_SET.append("set "+attribute.name()+"(p : "+TypeManager.cassTsName(attribute.type())+"){ this.set"+Generator.upperCaseFirstChar(attribute.name())+"(p);}\n");
+                if (TypeManager.isPrimitive(attribute.type())) {
+                    TS_GET_SET.append("get " + attribute.name() + "() : " + TypeManager.cassTsName(attribute.type()) + " {return this.get" + Generator.upperCaseFirstChar(attribute.name()) + "();}\n");
+                    TS_GET_SET.append("set " + attribute.name() + "(p : " + TypeManager.cassTsName(attribute.type()) + "){ this.set" + Generator.upperCaseFirstChar(attribute.name()) + "(p);}\n");
                 }
             }
         });
         //generate TS getter and setter
-        javaClass.getJavaDoc().setFullText("<pre>{@extend ts\n"+TS_GET_SET+"\n}\n</pre>");
+        javaClass.getJavaDoc().setFullText("<pre>{@extend ts\n" + TS_GET_SET + "\n}\n</pre>");
 
         // create method
         MethodSource<JavaClassSource> create = javaClass.addMethod()
@@ -194,12 +194,24 @@ class ClassTypeGenerator {
                 add.setReturnType(classType.name());
                 add.addParameter(rel.type(), "value");
                 addToBodyBuilder.append("super.addToRelation(").append(rel.name().toUpperCase()).append(", value);");
+
+                // TODO
+                String oppositeName = null;
                 if (rel.opposite() != null) {
-                    String oppositeName = rel.opposite().isReference() ? rel.opposite().reference().name() : rel.opposite().relation().name();
-                    if (rel.opposite().isReference()) {
+                    if (rel.opposite().edge() instanceof Relation) {
+                        oppositeName = ((Relation) rel.opposite().edge()).name();
+                        addToBodyBuilder.append("value.addToRelation(").append(rel.type()).append(".").append(oppositeName.toUpperCase()).append(", this);");
+
+                    } else if (rel.opposite().edge() instanceof Reference) {
+                        oppositeName = ((Reference) rel.opposite().edge()).name();
                         addToBodyBuilder.append("value.removeFromRelation(").append(rel.type()).append(".").append(oppositeName.toUpperCase()).append(", this);");
+                        addToBodyBuilder.append("value.addToRelation(").append(rel.type()).append(".").append(oppositeName.toUpperCase()).append(", this);");
+
+                    } else if (rel.opposite().edge() instanceof Index) {
+                        oppositeName = ((Index) rel.opposite().edge()).name();
+                        addToBodyBuilder.append("value.index").append(Generator.upperCaseFirstChar(oppositeName)).append("(this);");
                     }
-                    addToBodyBuilder.append("value.addToRelation(").append(rel.type()).append(".").append(oppositeName.toUpperCase()).append(", this);");
+
                 }
                 addToBodyBuilder.append("return this;");
                 add.setBody(addToBodyBuilder.toString());
@@ -213,8 +225,12 @@ class ClassTypeGenerator {
                 remove.addParameter(rel.type(), "value");
                 removeFromBodyBuilder.append("super.removeFromRelation(").append(rel.name().toUpperCase()).append(", value);");
                 if (rel.opposite() != null) {
-                    String oppositeName = rel.opposite().isReference() ? rel.opposite().reference().name() : rel.opposite().relation().name();
-                    removeFromBodyBuilder.append("value.removeFromRelation(").append(rel.type()).append(".").append(oppositeName.toUpperCase()).append(", this);");
+                    if ((rel.opposite().edge() instanceof Relation) || (rel.opposite().edge() instanceof Reference)) {
+                        removeFromBodyBuilder.append("value.removeFromRelation(").append(rel.type()).append(".").append(oppositeName.toUpperCase()).append(", this);");
+
+                    } else if (rel.opposite().edge() instanceof Index) {
+                        removeFromBodyBuilder.append("value.unindex").append(Generator.upperCaseFirstChar(oppositeName)).append("(this);");
+                    }
                 }
                 removeFromBodyBuilder.append("return this;");
                 remove.setBody(removeFromBodyBuilder.toString());
@@ -260,11 +276,20 @@ class ClassTypeGenerator {
                 addToBodyBuilder.append("if(value != null) {");
                 addToBodyBuilder.append("super.removeFromRelation(").append(ref.name().toUpperCase()).append(", value );");
                 addToBodyBuilder.append("super.addToRelation(").append(ref.name().toUpperCase()).append(", value );");
+
+                String oppositeName = null;
                 if (ref.opposite() != null) {
-                    String oppositeName = ref.opposite().isReference() ? ref.opposite().reference().name() : ref.opposite().relation().name();
-                    if (ref.opposite().isReference()) {
+                    if (ref.opposite().edge() instanceof Relation) {
+                        oppositeName = ((Relation) ref.opposite().edge()).name();
+
+                    } else if (ref.opposite().edge() instanceof Reference) {
+                        oppositeName = ((Reference) ref.opposite().edge()).name();
                         addToBodyBuilder.append("value.removeFromRelation(").append(ref.type()).append(".").append(oppositeName.toUpperCase()).append(", this);");
+
+                    } else if (ref.opposite().edge() instanceof Index) {
+                        oppositeName = ((Index) ref.opposite().edge()).name();
                     }
+
                     addToBodyBuilder.append("value.addToRelation(").append(ref.type()).append(".").append(oppositeName.toUpperCase()).append(", this);");
                 }
                 addToBodyBuilder.append("}");
