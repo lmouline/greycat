@@ -31,6 +31,25 @@ import org.junit.Test;
 public class CustomTypeTest {
 
     @Test
+    public void initTest() {
+        MockStorage storage = new MockStorage();
+        Graph g = GraphBuilder.newBuilder().withStorage(storage).withScheduler(new NoopScheduler()).build();
+        g.typeRegistry().getOrCreateDeclaration("GPSPosition").setFactory(new TypeFactory() {
+            @Override
+            public Object wrap(final EGraph backend) {
+                return new GPSPosition(backend);
+            }
+        });
+        g.connect(null);
+
+        Node n = g.newNode(0, 0);
+        GPSPosition position = (GPSPosition) n.getOrCreate("complexAtt", HashHelper.hash("GPSPosition"));
+        Assert.assertEquals("position(1.5,1.5)", position.toString());
+        GPSPosition position1 = (GPSPosition) n.getOrCreate("complexAtt", HashHelper.hash("GPSPosition"));
+        Assert.assertEquals("position(1.5,1.5)", position1.toString());
+    }
+
+    @Test
     public void autoProxyTest() {
         MockStorage storage = new MockStorage();
         Graph g = GraphBuilder.newBuilder().withStorage(storage).withScheduler(new NoopScheduler()).build();

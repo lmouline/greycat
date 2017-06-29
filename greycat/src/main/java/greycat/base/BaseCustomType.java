@@ -24,6 +24,10 @@ public class BaseCustomType implements Container {
 
     public EGraph _backend;
 
+    public void init(){
+
+    }
+
     public BaseCustomType(final EGraph p_backend) {
         this._backend = p_backend;
     }

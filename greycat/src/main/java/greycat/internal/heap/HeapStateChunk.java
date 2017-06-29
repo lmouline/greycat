@@ -16,6 +16,7 @@
 package greycat.internal.heap;
 
 import greycat.*;
+import greycat.base.BaseCustomType;
 import greycat.chunk.ChunkType;
 import greycat.chunk.StateChunk;
 import greycat.internal.CoreConstants;
@@ -373,13 +374,14 @@ class HeapStateChunk implements StateChunk, HeapContainer {
         }
         //Default, custom Type
         if (toSet == null) {
-            EGraph tempND = new HeapEGraph(this, null, _space.graph());
+            final EGraph tempND = new HeapEGraph(this, null, _space.graph());
             toSet = tempND;
             final TypeDeclaration typeDeclaration = graph().typeRegistry().declarationByHash(p_type);
             if (typeDeclaration == null) {
                 toGet = toSet;
             } else {
                 toGet = typeDeclaration.factory().wrap(tempND);
+                ((BaseCustomType) toGet).init();
             }
         }
         internal_set(p_key, p_type, toSet, true, false);
