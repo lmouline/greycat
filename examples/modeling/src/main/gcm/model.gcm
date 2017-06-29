@@ -7,7 +7,9 @@ class Building extends ASuperType {
     const BUILDING_CONSTANT : String = "bla"
 
     att name : String
-    att height : Double
+    att houseNumber : Int = 5
+    att height : Double = 3.12
+    att description : String = "my_description"
     att longToLongArrayMap : LongToLongArrayMap
     rel rooms : Room
     ref specialRoom : Room

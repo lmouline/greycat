@@ -58,6 +58,14 @@ class ClassTypeGenerator {
         //generate TS getter and setter
         javaClass.getJavaDoc().setFullText("<pre>{@extend ts\n" + TS_GET_SET + "\n}\n</pre>");
 
+        // init method
+        MethodSource<JavaClassSource> init = javaClass.addMethod()
+                .setName("init")
+                .setVisibility(Visibility.PUBLIC)
+                .setReturnTypeVoid();
+        StringBuilder initBodyBuilder = new StringBuilder();
+
+
         // create method
         MethodSource<JavaClassSource> create = javaClass.addMethod()
                 .setName("create")
@@ -150,6 +158,12 @@ class ClassTypeGenerator {
                             )
                             .addParameter(TypeManager.cassName(att.type()), "value");
                 }
+
+                // init
+                if (att.value() != null) {
+                    initBodyBuilder.append(createDefaultValueBody(att).toString());
+                }
+
             } else if (o instanceof Relation) {
                 Relation rel = (Relation) o;
                 // field
@@ -376,6 +390,8 @@ class ClassTypeGenerator {
 
         });
 
+        init.setBody(initBodyBuilder.toString());
+
         return javaClass;
     }
 
@@ -455,6 +471,17 @@ class ClassTypeGenerator {
             oppositeBodyBuilder.append("}");
         }
         return oppositeBodyBuilder;
+    }
+
+    public static StringBuilder createDefaultValueBody(Attribute att) {
+        StringBuilder builder = new StringBuilder();
+
+        if (TypeManager.isPrimitive(att.type())) {
+            builder.append("super.set(").append(att.name().toUpperCase()).append(", ").
+                    append(att.name().toUpperCase()).append("_TYPE, ").append(att.value().get(0).get(0)).append(");");
+        }
+
+        return builder;
     }
 
 }

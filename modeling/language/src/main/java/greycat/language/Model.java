@@ -188,6 +188,9 @@ public class Model {
                 String name = attDcl.name.getText();
                 final Attribute attribute = newClass.getOrCreateAttribute(name);
                 attribute.setType(getType(attDcl.typeDcl()));
+                if (attDcl.attributeValueDcl() != null) {
+                    attribute.setValue(getAttributeValue(attDcl.attributeValueDcl()));
+                }
             }
             // relations
             for (GreyCatModelParser.RelationDclContext relDclCtx : classDclCtx.relationDcl()) {
@@ -367,4 +370,21 @@ public class Model {
         return ct;
     }
 
+    private List<List<Object>> getAttributeValue(GreyCatModelParser.AttributeValueDclContext attValueDclCtx) {
+        List<List<Object>> attValues = new ArrayList<List<Object>>();
+
+        if (attValueDclCtx.complexAttributeValueDcl() != null) {
+            // TODO
+
+        } else if (attValueDclCtx.IDENT() != null) {
+            attValues.add(Arrays.asList(attValueDclCtx.IDENT().getText()));
+
+        } else if (attValueDclCtx.STRING() != null) {
+            attValues.add(Arrays.asList(attValueDclCtx.STRING().getText()));
+
+        } else if (attValueDclCtx.NUMBER() != null) {
+            attValues.add(Arrays.asList(attValueDclCtx.NUMBER().getText()));
+        }
+        return attValues;
+    }
 }
