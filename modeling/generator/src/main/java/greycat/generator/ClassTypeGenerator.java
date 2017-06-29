@@ -207,6 +207,7 @@ class ClassTypeGenerator {
                 remove.setName("removeFrom" + Generator.upperCaseFirstChar(rel.name()));
                 remove.setReturnType(classType.name());
                 remove.addParameter(rel.type(), "value");
+                removeFromBodyBuilder.append(classType.name()).append(" self = this;");
                 removeFromBodyBuilder.append("super.removeFromRelation(").append(rel.name().toUpperCase()).append(", value);");
                 if (rel.opposite() != null) {
                     removeFromBodyBuilder.append(createRemoveOppositeBody(rel.type(), rel).toString());
@@ -274,8 +275,8 @@ class ClassTypeGenerator {
                 removeFromBodyBuilder.append(classType.name() + " self = this;");
                 removeFromBodyBuilder.append("get" + refName + "(new greycat.Callback<" + refType + ">() {");
                 removeFromBodyBuilder.append("@Override\n");
-                removeFromBodyBuilder.append("public void on(" + refType + " result) {");
-                removeFromBodyBuilder.append("self.removeFromRelation(").append(ref.name().toUpperCase()).append(", result);");
+                removeFromBodyBuilder.append("public void on(" + refType + " value) {");
+                removeFromBodyBuilder.append("self.removeFromRelation(").append(ref.name().toUpperCase()).append(", value);");
                 if (ref.opposite() != null) {
                     removeFromBodyBuilder.append(createRemoveOppositeBody(ref.type(), ref).toString());
                 }
@@ -334,6 +335,7 @@ class ClassTypeGenerator {
                 unindexMethod.addParameter(Generator.upperCaseFirstChar(li.type()), "value");
 
                 StringBuilder unindexBodyBuilder = new StringBuilder();
+                unindexBodyBuilder.append(classType.name()).append(" self = this;");
                 unindexBodyBuilder.append("greycat.Index index = this.getIndex(" + indexConstant + ");");
                 unindexBodyBuilder.append("if (index != null) {");
                 unindexBodyBuilder.append("index.unindex(value);");
@@ -443,13 +445,13 @@ class ClassTypeGenerator {
         String oppositeName;
         if ((edge.opposite().edge() instanceof Relation) || (edge.opposite().edge() instanceof Reference)) {
             oppositeName = (edge.opposite().edge() instanceof Relation) ? ((Relation) edge.opposite().edge()).name() : ((Reference) edge.opposite().edge()).name();
-            oppositeBodyBuilder.append("value.removeFromRelation(").append(edgeType).append(".").append(oppositeName.toUpperCase()).append(", this);");
+            oppositeBodyBuilder.append("value.removeFromRelation(").append(edgeType).append(".").append(oppositeName.toUpperCase()).append(", self);");
 
         } else if (edge.opposite().edge() instanceof Index) {
             oppositeName = ((Index) edge.opposite().edge()).name();
             oppositeBodyBuilder.append("greycat.Index index = value.getIndex(").append(edgeType).append(".").append(oppositeName.toUpperCase()).append(");");
             oppositeBodyBuilder.append(" if (index != null) {");
-            oppositeBodyBuilder.append("index.unindex(this);");
+            oppositeBodyBuilder.append("index.unindex(self);");
             oppositeBodyBuilder.append("}");
         }
         return oppositeBodyBuilder;
