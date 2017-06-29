@@ -27,6 +27,8 @@ import java.util.Set;
 
 public class TypeManager {
     private static Set<String> primitives = new HashSet<String>(Arrays.asList("Bool", "Boolean", "String", "Long", "Int", "Integer", "Double"));
+    private static Set<String> primitiveArrays = new HashSet<String>(Arrays.asList("BoolArray", "BooleanArray", "StringArray", "LongArray", "IntArray", "IntegerArray", "DoubleArray"));
+
 
     public static String typeName(String type) {
         String typeName;
@@ -212,6 +214,10 @@ public class TypeManager {
 
     public static boolean isPrimitive(String type) {
         return primitives.contains(type);
+    }
+
+    public static boolean isPrimitiveArray(String type) {
+        return primitiveArrays.contains(type);
     }
 
 }

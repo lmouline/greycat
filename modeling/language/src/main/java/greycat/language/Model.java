@@ -374,7 +374,36 @@ public class Model {
         List<List<Object>> attValues = new ArrayList<List<Object>>();
 
         if (attValueDclCtx.complexAttributeValueDcl() != null) {
-            // TODO
+            for (GreyCatModelParser.ComplexValueDclContext cvDclCtx : attValueDclCtx.complexAttributeValueDcl().complexValueDcl()) {
+                if (cvDclCtx.ntupleValueDlc() != null) {
+                    List<Object> identTuples = new ArrayList<Object>();
+                    for (TerminalNode ident : cvDclCtx.ntupleValueDlc().IDENT()) {
+                        identTuples.add(ident.getText());
+                    }
+                    attValues.add(identTuples);
+
+                    List<Object> strTuples = new ArrayList<Object>();
+                    for (TerminalNode str : cvDclCtx.ntupleValueDlc().STRING()) {
+                        strTuples.add(str.getText());
+                    }
+                    attValues.add(strTuples);
+
+                    List<Object> nbTuples = new ArrayList<Object>();
+                    for (TerminalNode nb : cvDclCtx.ntupleValueDlc().NUMBER()) {
+                        nbTuples.add(nb.getText());
+                    }
+                    attValues.add(nbTuples);
+
+                } else if (cvDclCtx.IDENT() != null) {
+                    attValues.add(Arrays.asList(cvDclCtx.IDENT().getText()));
+
+                } else if (cvDclCtx.STRING() != null) {
+                    attValues.add(Arrays.asList(cvDclCtx.STRING().getText()));
+
+                } else if (cvDclCtx.NUMBER() != null) {
+                    attValues.add(Arrays.asList(cvDclCtx.NUMBER().getText()));
+                }
+            }
 
         } else if (attValueDclCtx.IDENT() != null) {
             attValues.add(Arrays.asList(attValueDclCtx.IDENT().getText()));

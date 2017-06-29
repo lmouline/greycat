@@ -23,6 +23,8 @@ import org.jboss.forge.roaster.Roaster;
 import org.jboss.forge.roaster.model.Visibility;
 import org.jboss.forge.roaster.model.source.*;
 
+import java.util.List;
+
 class ClassTypeGenerator {
 
     static JavaSource[] generate(String packageName, Model model) {
@@ -479,8 +481,16 @@ class ClassTypeGenerator {
         if (TypeManager.isPrimitive(att.type())) {
             builder.append("super.set(").append(att.name().toUpperCase()).append(", ").
                     append(att.name().toUpperCase()).append("_TYPE, ").append(att.value().get(0).get(0)).append(");");
-        }
 
+        } else if (TypeManager.isPrimitiveArray(att.type())) {
+            builder.append(TypeManager.cassName(att.type())).append(" ").append(att.name()).append(" = ");
+            builder.append("(").append(TypeManager.cassName(att.type())).append(")").append(" super.getOrCreate(").
+                    append(att.name().toUpperCase()).append(", ").append(att.name().toUpperCase()).append("_TYPE);");
+
+            for (List<Object> flatVal : att.value()) {
+                builder.append(att.name()).append(".addElement(").append(flatVal.get(0)).append(");");
+            }
+        }
         return builder;
     }
 
