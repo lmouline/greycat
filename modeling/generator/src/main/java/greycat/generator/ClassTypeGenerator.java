@@ -194,24 +194,8 @@ class ClassTypeGenerator {
                 add.setReturnType(classType.name());
                 add.addParameter(rel.type(), "value");
                 addToBodyBuilder.append("super.addToRelation(").append(rel.name().toUpperCase()).append(", value);");
-
-                // TODO
-                String oppositeName = null;
                 if (rel.opposite() != null) {
-                    if (rel.opposite().edge() instanceof Relation) {
-                        oppositeName = ((Relation) rel.opposite().edge()).name();
-                        addToBodyBuilder.append("value.addToRelation(").append(rel.type()).append(".").append(oppositeName.toUpperCase()).append(", this);");
-
-                    } else if (rel.opposite().edge() instanceof Reference) {
-                        oppositeName = ((Reference) rel.opposite().edge()).name();
-                        addToBodyBuilder.append("value.removeFromRelation(").append(rel.type()).append(".").append(oppositeName.toUpperCase()).append(", this);");
-                        addToBodyBuilder.append("value.addToRelation(").append(rel.type()).append(".").append(oppositeName.toUpperCase()).append(", this);");
-
-                    } else if (rel.opposite().edge() instanceof Index) {
-                        oppositeName = ((Index) rel.opposite().edge()).name();
-                        addToBodyBuilder.append("value.index").append(Generator.upperCaseFirstChar(oppositeName)).append("(this);");
-                    }
-
+                    addToBodyBuilder.append(createAddOppositeBody(rel.type(), rel).toString());
                 }
                 addToBodyBuilder.append("return this;");
                 add.setBody(addToBodyBuilder.toString());
@@ -225,12 +209,7 @@ class ClassTypeGenerator {
                 remove.addParameter(rel.type(), "value");
                 removeFromBodyBuilder.append("super.removeFromRelation(").append(rel.name().toUpperCase()).append(", value);");
                 if (rel.opposite() != null) {
-                    if ((rel.opposite().edge() instanceof Relation) || (rel.opposite().edge() instanceof Reference)) {
-                        removeFromBodyBuilder.append("value.removeFromRelation(").append(rel.type()).append(".").append(oppositeName.toUpperCase()).append(", this);");
-
-                    } else if (rel.opposite().edge() instanceof Index) {
-                        removeFromBodyBuilder.append("value.unindex").append(Generator.upperCaseFirstChar(oppositeName)).append("(this);");
-                    }
+                    removeFromBodyBuilder.append(createRemoveOppositeBody(rel.type(), rel).toString());
                 }
                 removeFromBodyBuilder.append("return this;");
                 remove.setBody(removeFromBodyBuilder.toString());
@@ -276,21 +255,8 @@ class ClassTypeGenerator {
                 addToBodyBuilder.append("if(value != null) {");
                 addToBodyBuilder.append("super.removeFromRelation(").append(ref.name().toUpperCase()).append(", value );");
                 addToBodyBuilder.append("super.addToRelation(").append(ref.name().toUpperCase()).append(", value );");
-
-                String oppositeName = null;
                 if (ref.opposite() != null) {
-                    if (ref.opposite().edge() instanceof Relation) {
-                        oppositeName = ((Relation) ref.opposite().edge()).name();
-
-                    } else if (ref.opposite().edge() instanceof Reference) {
-                        oppositeName = ((Reference) ref.opposite().edge()).name();
-                        addToBodyBuilder.append("value.removeFromRelation(").append(ref.type()).append(".").append(oppositeName.toUpperCase()).append(", this);");
-
-                    } else if (ref.opposite().edge() instanceof Index) {
-                        oppositeName = ((Index) ref.opposite().edge()).name();
-                    }
-
-                    addToBodyBuilder.append("value.addToRelation(").append(ref.type()).append(".").append(oppositeName.toUpperCase()).append(", this);");
+                    addToBodyBuilder.append(createAddOppositeBody(ref.type(), ref).toString());
                 }
                 addToBodyBuilder.append("}");
                 addToBodyBuilder.append("return this;");
@@ -310,11 +276,14 @@ class ClassTypeGenerator {
                 removeFromBodyBuilder.append("@Override\n");
                 removeFromBodyBuilder.append("public void on(" + refType + " result) {");
                 removeFromBodyBuilder.append("self.removeFromRelation(").append(ref.name().toUpperCase()).append(", result);");
+                if (ref.opposite() != null) {
+                    removeFromBodyBuilder.append(createRemoveOppositeBody(ref.type(), ref).toString());
+                }
                 removeFromBodyBuilder.append("callback.on(true);");
                 removeFromBodyBuilder.append("}");
                 removeFromBodyBuilder.append("});");
                 remove.setBody(removeFromBodyBuilder.toString());
-            } else if (o instanceof greycat.language.Index) {
+            } else if (o instanceof Index) {
                 greycat.language.Index li = (greycat.language.Index) o;
 
                 String indexConstant = li.name().toUpperCase();
@@ -339,7 +308,7 @@ class ClassTypeGenerator {
                         .setVisibility(Visibility.PUBLIC)
                         .setFinal(true)
                         .setReturnType("greycat.Index");
-                indexMethod.addParameter(Generator.upperCaseFirstChar(li.type()), li.type().toLowerCase());
+                indexMethod.addParameter(Generator.upperCaseFirstChar(li.type()), "value");
 
                 StringBuilder indexBodyBuilder = new StringBuilder();
                 indexBodyBuilder.append("greycat.Index index = this.getIndex(" + indexConstant + ");");
@@ -347,7 +316,11 @@ class ClassTypeGenerator {
                 indexBodyBuilder.append("index = (greycat.Index) this.getOrCreate(" + indexConstant + ", Type.INDEX);");
                 indexBodyBuilder.append("index.declareAttributes(null, " + indexedAttBuilder.toString() + ");");
                 indexBodyBuilder.append("}");
-                indexBodyBuilder.append("index.update(" + li.type().toLowerCase() + ");");
+                indexBodyBuilder.append("index.update(value);");
+
+                if (li.opposite() != null) {
+                    indexBodyBuilder.append(createAddOppositeBody(li.type(), li).toString());
+                }
                 indexBodyBuilder.append("return index;");
 
                 indexMethod.setBody(indexBodyBuilder.toString());
@@ -358,12 +331,15 @@ class ClassTypeGenerator {
                         .setVisibility(Visibility.PUBLIC)
                         .setFinal(true)
                         .setReturnTypeVoid();
-                unindexMethod.addParameter(Generator.upperCaseFirstChar(li.type()), li.type().toLowerCase());
+                unindexMethod.addParameter(Generator.upperCaseFirstChar(li.type()), "value");
 
                 StringBuilder unindexBodyBuilder = new StringBuilder();
                 unindexBodyBuilder.append("greycat.Index index = this.getIndex(" + indexConstant + ");");
                 unindexBodyBuilder.append("if (index != null) {");
-                unindexBodyBuilder.append("index.unindex(" + li.type().toLowerCase() + ");");
+                unindexBodyBuilder.append("index.unindex(value);");
+                if (li.opposite() != null) {
+                    unindexBodyBuilder.append(createRemoveOppositeBody(li.type(), li).toString());
+                }
                 unindexBodyBuilder.append("}");
 
                 unindexMethod.setBody(unindexBodyBuilder.toString());
@@ -423,6 +399,60 @@ class ClassTypeGenerator {
         findBodyBuilder.append("}");
 
         return findBodyBuilder;
+    }
+
+    private static StringBuilder createAddOppositeBody(String edgeType, Edge edge) {
+        StringBuilder oppositeBodyBuilder = new StringBuilder();
+        String oppositeName;
+        if (edge.opposite() != null) {
+            if (edge.opposite().edge() instanceof Relation) {
+                oppositeName = ((Relation) edge.opposite().edge()).name();
+                oppositeBodyBuilder.append("value.addToRelation(").append(edgeType).append(".").append(oppositeName.toUpperCase()).append(", this);");
+
+            } else if (edge.opposite().edge() instanceof Reference) {
+                oppositeName = ((Reference) edge.opposite().edge()).name();
+                oppositeBodyBuilder.append("value.removeFromRelation(").append(edgeType).append(".").append(oppositeName.toUpperCase()).append(", this);");
+                oppositeBodyBuilder.append("value.addToRelation(").append(edgeType).append(".").append(oppositeName.toUpperCase()).append(", this);");
+
+            } else if (edge.opposite().edge() instanceof Index) {
+                Index idx = ((Index) edge.opposite().edge());
+                oppositeName = idx.name();
+                oppositeBodyBuilder.append("greycat.Index index = value.getIndex(").
+                        append(Generator.upperCaseFirstChar(edgeType)).append(".").append(oppositeName.toUpperCase()).append(");");
+                oppositeBodyBuilder.append("if (index == null) {");
+                oppositeBodyBuilder.append("index = (greycat.Index) value.getOrCreate(").
+                        append(Generator.upperCaseFirstChar(edgeType)).append(".").append(oppositeName.toUpperCase()).append(", Type.INDEX);");
+                StringBuilder indexedAttBuilder = new StringBuilder();
+                for (AttributeRef attRef : idx.attributes()) {
+                    indexedAttBuilder.append(idx.type() + "." + attRef.ref().name().toUpperCase());
+                    indexedAttBuilder.append(",");
+                }
+                indexedAttBuilder.deleteCharAt(indexedAttBuilder.length() - 1);
+                oppositeBodyBuilder.append("index.declareAttributes(null, " + indexedAttBuilder.toString() + ");");
+
+                oppositeBodyBuilder.append("}");
+                oppositeBodyBuilder.append("index.update(").append("this").append(");");
+            }
+        }
+        return oppositeBodyBuilder;
+    }
+
+    private static StringBuilder createRemoveOppositeBody(String edgeType, Edge edge) {
+        StringBuilder oppositeBodyBuilder = new StringBuilder();
+
+        String oppositeName;
+        if ((edge.opposite().edge() instanceof Relation) || (edge.opposite().edge() instanceof Reference)) {
+            oppositeName = (edge.opposite().edge() instanceof Relation) ? ((Relation) edge.opposite().edge()).name() : ((Reference) edge.opposite().edge()).name();
+            oppositeBodyBuilder.append("value.removeFromRelation(").append(edgeType).append(".").append(oppositeName.toUpperCase()).append(", this);");
+
+        } else if (edge.opposite().edge() instanceof Index) {
+            oppositeName = ((Index) edge.opposite().edge()).name();
+            oppositeBodyBuilder.append("greycat.Index index = value.getIndex(").append(edgeType).append(".").append(oppositeName.toUpperCase()).append(");");
+            oppositeBodyBuilder.append(" if (index != null) {");
+            oppositeBodyBuilder.append("index.unindex(this);");
+            oppositeBodyBuilder.append("}");
+        }
+        return oppositeBodyBuilder;
     }
 
 }
