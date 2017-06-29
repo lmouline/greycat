@@ -38,7 +38,8 @@ subTask: '{' taskValueDcl '}';
 
 classDcl: 'class' name=IDENT parentDcl? '{' (constDcl | attributeDcl | relationDcl | referenceDcl | localIndexDcl)* '}';
 parentDcl: 'extends' IDENT;
-attributeDcl: 'att' name=IDENT ':' typeDcl;
+attributeDcl: 'att' name=IDENT ':' typeDcl ('=' attributeValueDcl)?;
+
 typeDcl: (builtInTypeDcl | customBuiltTypeDcl);
 customBuiltTypeDcl: IDENT;
 builtInTypeDcl: ('Bool' | 'Boolean' | 'String' | 'Long' | 'Int' | 'Integer' | 'Double' |
@@ -46,6 +47,12 @@ builtInTypeDcl: ('Bool' | 'Boolean' | 'String' | 'Long' | 'Int' | 'Integer' | 'D
                 'LongToLongMap' | 'LongToLongArrayMap' | 'StringToIntMap'|
                 'DMatrix' |'LMatrix' |'EGraph' |'ENode' | 'KDTree' | 'NDTree' |
                 'IntToIntMap' | 'IntToStringMap' | 'Task' | 'TaskArray' | 'Node');
+
+attributeValueDcl: (IDENT | STRING | NUMBER | complexAttributeValueDcl);
+complexAttributeValueDcl: '(' complexValueDcl (',' complexValueDcl)* ')';
+complexValueDcl: (IDENT | STRING | NUMBER | ntupleValueDlc);
+ntupleValueDlc: '(' (IDENT | STRING | NUMBER) (',' (IDENT | STRING | NUMBER))* ')';
+
 relationDcl: 'rel' name=IDENT ':' type=IDENT (oppositeDcl)?;
 referenceDcl: 'ref' name=IDENT ':' type=IDENT (oppositeDcl)?;
 oppositeDcl: 'oppositeOf' name=IDENT;
