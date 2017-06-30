@@ -948,12 +948,7 @@ class HeapEStruct implements EStruct, HeapContainer {
                             Base64.encodeIntToBuffer(((HeapEStruct) loopValue)._id, buffer);
                             break;
                         case Type.ERELATION:
-                            HeapERelation castedLongArrERel = (HeapERelation) loopValue;
-                            Base64.encodeIntToBuffer(castedLongArrERel.size(), buffer);
-                            for (int j = 0; j < castedLongArrERel.size(); j++) {
-                                buffer.write(CoreConstants.CHUNK_VAL_SEP);
-                                Base64.encodeIntToBuffer(((HeapEStruct) castedLongArrERel.node(j))._id, buffer);
-                            }
+                            ((HeapERelation) loopValue).save(buffer);
                             break;
                         //common types
                         case Type.STRING:

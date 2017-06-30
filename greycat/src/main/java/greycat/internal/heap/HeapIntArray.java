@@ -205,7 +205,6 @@ final class HeapIntArray implements IntArray {
         }
     }
 
-    /* TODO merge */
     public final long load(final Buffer buffer, final long offset, final long max) {
         long cursor = offset;
         byte current = buffer.read(cursor);
