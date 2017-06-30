@@ -385,8 +385,7 @@ class ClassTypeGenerator {
                 findAll.setName("findAll" + Generator.upperCaseFirstChar(indexName));
                 findAll.setReturnTypeVoid();
                 findAll.addParameter("greycat.Callback<" + li.type() + "[]>", "callback");
-                paramsBuilder = new StringBuilder("null");
-                StringBuilder findAllBodyBuilder = createFindMethodBody(li, indexConstant, paramsBuilder);
+                StringBuilder findAllBodyBuilder = createFindMethodBody(li, indexConstant, null);
                 findAll.setBody(findAllBodyBuilder.toString());
             }
 
@@ -410,8 +409,10 @@ class ClassTypeGenerator {
         findBodyBuilder.append("callback.on(typedResult);");
         findBodyBuilder.append("}");
         findBodyBuilder.append("},");
-        findBodyBuilder.append("this.world(), this.time(),");
-        findBodyBuilder.append(paramsBuilder.toString());
+        findBodyBuilder.append("this.world(), this.time()");
+        if (paramsBuilder != null) {
+            findBodyBuilder.append(", " + paramsBuilder.toString());
+        }
         findBodyBuilder.append(");");
         findBodyBuilder.append("}");
         findBodyBuilder.append("else {");
