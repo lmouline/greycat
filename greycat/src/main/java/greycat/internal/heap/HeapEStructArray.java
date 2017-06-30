@@ -17,6 +17,7 @@ package greycat.internal.heap;
 
 import greycat.Constants;
 import greycat.Graph;
+import greycat.internal.CoreConstants;
 import greycat.struct.Buffer;
 import greycat.struct.EStructArray;
 import greycat.struct.EStruct;
@@ -27,7 +28,6 @@ class HeapEStructArray implements EStructArray {
     private final Graph _graph;
     private final HeapContainer parent;
 
-    boolean _dirty;
     HeapEStruct[] _nodes = null;
     private int _nodes_capacity = 0;
     private int _nodes_index = 0;
@@ -97,11 +97,8 @@ class HeapEStructArray implements EStructArray {
     }
 
     final void declareDirty() {
-        if (!_dirty) {
-            _dirty = true;
-            if (parent != null) {
-                parent.declareDirty();
-            }
+        if (parent != null) {
+            parent.declareDirty();
         }
     }
 
@@ -153,7 +150,7 @@ class HeapEStructArray implements EStructArray {
     }
 
     @Override
-    public final EStructArray drop(EStruct eStruct) {
+    public final EStructArray drop(final EStruct eStruct) {
         HeapEStruct casted = (HeapEStruct) eStruct;
         int previousId = casted._id;
         if (previousId == _nodes_index - 1) {
@@ -180,6 +177,18 @@ class HeapEStructArray implements EStructArray {
         }
         builder.append("]}");
         return builder.toString();
+    }
+
+    public final void save(final Buffer buffer) {
+        if (_nodes != null) {
+            Base64.encodeIntToBuffer(_nodes_index, buffer);
+            for (int j = 0; j < _nodes_index; j++) {
+                buffer.write(CoreConstants.CHUNK_ENODE_SEP);
+                _nodes[j].save(buffer);
+            }
+        } else {
+            Base64.encodeIntToBuffer(0, buffer);
+        }
     }
 
     public final long load(final Buffer buffer, final long offset, final long max) {

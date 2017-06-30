@@ -16,6 +16,7 @@
 package greycat.internal.heap;
 
 import greycat.Constants;
+import greycat.internal.CoreConstants;
 import greycat.struct.Buffer;
 import greycat.struct.LongLongMap;
 import greycat.struct.LongLongMapCallBack;
@@ -280,6 +281,20 @@ class HeapLongLongMap implements LongLongMap {
                     }
                 }
             }
+        }
+    }
+
+    public final void save(final Buffer buffer) {
+        if (mapSize != 0) {
+            Base64.encodeIntToBuffer(mapSize, buffer);
+            for (int j = 0; j < mapSize; j++) {
+                buffer.write(CoreConstants.CHUNK_VAL_SEP);
+                Base64.encodeLongToBuffer(keys[j], buffer);
+                buffer.write(CoreConstants.CHUNK_VAL_SEP);
+                Base64.encodeLongToBuffer(values[j], buffer);
+            }
+        } else {
+            Base64.encodeIntToBuffer(0, buffer);
         }
     }
 
