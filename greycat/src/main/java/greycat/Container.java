@@ -128,6 +128,10 @@ public interface Container {
      */
     Object getOrCreateAt(int index, int type);
     
+    Object getOrCreateCustom(String name, String typeName);
+
+    Object getOrCreateCustomAt(int index, String typeName);
+
     <A> A getWithDefault(String key, A defaultValue);
 
     <A> A getAtWithDefault(int key, A defaultValue);

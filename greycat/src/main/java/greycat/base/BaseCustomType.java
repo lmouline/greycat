@@ -24,8 +24,7 @@ public class BaseCustomType implements Container {
 
     public EGraph _backend;
 
-    public void init(){
-
+    public void init() {
     }
 
     public BaseCustomType(final EGraph p_backend) {
@@ -166,6 +165,16 @@ public class BaseCustomType implements Container {
     @Override
     public Object getOrCreateAt(int index, int type) {
         return null;
+    }
+
+    @Override
+    public final Object getOrCreateCustom(String name, String typeName) {
+        return getOrCreateAt(HashHelper.hash(name), HashHelper.hash(typeName));
+    }
+
+    @Override
+    public final Object getOrCreateCustomAt(int index, String typeName) {
+        return getOrCreateAt(index, HashHelper.hash(typeName));
     }
 
     @Override

@@ -294,6 +294,16 @@ class HeapStateChunk implements StateChunk, HeapContainer {
     }
 
     @Override
+    public final Object getOrCreateCustom(final String name, final String typeName) {
+        return getOrCreateAt(HashHelper.hash(name), HashHelper.hash(typeName));
+    }
+
+    @Override
+    public final Object getOrCreateCustomAt(final int index, final String typeName) {
+        return getOrCreateAt(index, HashHelper.hash(typeName));
+    }
+
+    @Override
     public synchronized final Object getOrCreateAt(final int p_key, final int p_type) {
         final int found = internal_find(p_key);
         if (found != -1) {

@@ -31,18 +31,9 @@ public class GPSPosition extends BaseCustomTypeSingle {
         super(p_backend);
     }
 
-    /*
-    public GPSPosition(final EGraph e) {
-        super(e);
-
-        if (this._backend.node(DEF_NODE).typeAt(LAT_H) != Type.DOUBLE) {
-            this._backend.node(DEF_NODE).setAt(LAT_H, Type.DOUBLE, 1.5d).setAt(LNG_H, Type.DOUBLE, 1.5d);
-        }
-    }*/
-
     @Override
     public void init() {
-        this._backend.node(DEF_NODE).setAt(LAT_H, Type.DOUBLE, 1.5d).setAt(LNG_H, Type.DOUBLE, 1.5d);
+        setAt(LAT_H, Type.DOUBLE, 1.5d).setAt(LNG_H, Type.DOUBLE, 1.5d);
     }
 
     public final double lat() {

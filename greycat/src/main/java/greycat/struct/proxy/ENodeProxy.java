@@ -20,6 +20,7 @@ import greycat.Index;
 import greycat.Type;
 import greycat.plugin.NodeStateCallback;
 import greycat.struct.*;
+import greycat.utility.HashHelper;
 
 public final class ENodeProxy implements ENode {
 
@@ -148,6 +149,16 @@ public final class ENodeProxy implements ENode {
             check();
             return _node.getOrCreateAt(index, type);
         }
+    }
+
+    @Override
+    public Object getOrCreateCustom(String name, String typeName) {
+        return getOrCreateAt(HashHelper.hash(name), HashHelper.hash(typeName));
+    }
+
+    @Override
+    public Object getOrCreateCustomAt(int index, String typeName) {
+        return getOrCreateAt(index, HashHelper.hash(typeName));
     }
 
     private Object proxifyIfNeeded(Object elem, int index) {

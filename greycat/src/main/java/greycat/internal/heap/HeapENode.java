@@ -21,6 +21,7 @@ import greycat.plugin.NodeStateCallback;
 import greycat.plugin.Resolver;
 import greycat.struct.*;
 import greycat.utility.Base64;
+import greycat.utility.HashHelper;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -639,6 +640,16 @@ class HeapENode implements ENode, HeapContainer {
         }
         internal_set(key, type, toSet, true, false);
         return toSet;
+    }
+
+    @Override
+    public final Object getOrCreateCustom(String name, String typeName) {
+        return getOrCreateAt(HashHelper.hash(name), HashHelper.hash(typeName));
+    }
+
+    @Override
+    public final Object getOrCreateCustomAt(int index, String typeName) {
+        return getOrCreateAt(index, HashHelper.hash(typeName));
     }
 
     @Override

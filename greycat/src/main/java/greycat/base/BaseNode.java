@@ -23,6 +23,7 @@ import greycat.plugin.NodeState;
 import greycat.plugin.NodeStateCallback;
 import greycat.plugin.Resolver;
 import greycat.struct.proxy.*;
+import greycat.utility.HashHelper;
 import greycat.utility.Tuple;
 
 import java.lang.reflect.Field;
@@ -261,6 +262,16 @@ public class BaseNode implements Node {
                 throw new RuntimeException(Constants.CACHE_MISS_ERROR);
             }
         }
+    }
+
+    @Override
+    public final Object getOrCreateCustom(String name, String typeName) {
+        return this.getOrCreateAt(this._resolver.stringToHash(name, true), HashHelper.hash(typeName));
+    }
+
+    @Override
+    public final Object getOrCreateCustomAt(int index, String typeName) {
+        return this.getOrCreateAt(index, HashHelper.hash(typeName));
     }
 
     @Override

@@ -230,6 +230,16 @@ public class MockNodeStateDValue implements StateChunk {
     }
 
     @Override
+    public Object getOrCreateCustom(String name, String typeName) {
+        return null;
+    }
+
+    @Override
+    public Object getOrCreateCustomAt(int index, String typeName) {
+        return null;
+    }
+
+    @Override
     public final Container rephase() {
         return this;
     }
