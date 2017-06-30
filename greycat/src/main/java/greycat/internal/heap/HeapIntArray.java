@@ -211,7 +211,7 @@ final class HeapIntArray implements IntArray {
         boolean isFirst = true;
         long previous = offset;
         int elemIndex = 0;
-        while (cursor < max && current != Constants.CHUNK_SEP && current != Constants.CHUNK_ENODE_SEP && current != Constants.CHUNK_ESEP) {
+        while (cursor < max && current != Constants.CHUNK_SEP && current != Constants.BLOCK_CLOSE) {
             if (current == Constants.CHUNK_VAL_SEP) {
                 if (isFirst) {
                     _backend = new int[Base64.decodeToIntWithBounds(buffer, previous, cursor)];
@@ -227,6 +227,7 @@ final class HeapIntArray implements IntArray {
                 current = buffer.read(cursor);
             }
         }
+        //we keep the last one
         if (isFirst) {
             _backend = new int[Base64.decodeToIntWithBounds(buffer, previous, cursor)];
         } else {

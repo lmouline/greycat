@@ -402,7 +402,7 @@ class HeapStringIntMap implements StringIntMap {
         boolean isFirst = true;
         long previous = offset;
         String previousKey = null;
-        while (cursor < max && current != Constants.CHUNK_SEP && current != Constants.CHUNK_ENODE_SEP && current != Constants.CHUNK_ESEP) {
+        while (cursor < max && current != Constants.CHUNK_SEP && current != Constants.BLOCK_CLOSE) {
             if (current == Constants.CHUNK_VAL_SEP) {
                 if (isFirst) {
                     reallocate(Base64.decodeToIntWithBounds(buffer, previous, cursor));

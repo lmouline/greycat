@@ -1171,7 +1171,6 @@ class HeapStateChunk implements StateChunk, HeapContainer {
                                             previous = cursor;
                                         }
                                     }
-                                    //throw new RuntimeException("Not implemented yet!!!");
                             }
                             break;
                         case LOAD_WAITING_VALUE:

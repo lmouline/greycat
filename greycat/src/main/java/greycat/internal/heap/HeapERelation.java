@@ -27,9 +27,9 @@ class HeapERelation implements ERelation {
     private EStruct[] _backend;
     private int _size;
     private int _capacity;
-    private final HeapContainer parent;
+    private final HeapEStruct parent;
 
-    HeapERelation(final HeapContainer p_parent, final HeapERelation origin) {
+    HeapERelation(final HeapEStruct p_parent, final HeapERelation origin) {
         parent = p_parent;
         if (origin != null) {
             _backend = new EStruct[origin._capacity];
@@ -138,6 +138,36 @@ class HeapERelation implements ERelation {
                 Base64.encodeIntToBuffer(_backend[j].id(), buffer);
             }
         }
+    }
+
+    public final long load(final Buffer buffer, final long offset, final long max) {
+
+        HeapEStructArray container = (HeapEStructArray) parent.egraph();
+        long cursor = offset;
+        byte current = buffer.read(cursor);
+        boolean isFirst = true;
+        long previous = offset;
+        while (cursor < max && current != Constants.CHUNK_SEP && current != Constants.BLOCK_CLOSE) {
+            if (current == Constants.CHUNK_VAL_SEP) {
+                if (isFirst) {
+                    allocate(Base64.decodeToIntWithBounds(buffer, previous, cursor));
+                    isFirst = false;
+                } else {
+                    add(container.nodeByIndex((int) Base64.decodeToLongWithBounds(buffer, previous, cursor), true));
+                }
+                previous = cursor + 1;
+            }
+            cursor++;
+            if (cursor < max) {
+                current = buffer.read(cursor);
+            }
+        }
+        if (isFirst) {
+            allocate(Base64.decodeToIntWithBounds(buffer, previous, cursor));
+        } else {
+            add(container.nodeByIndex(Base64.decodeToIntWithBounds(buffer, previous, cursor), true));
+        }
+        return cursor;
     }
 
 }

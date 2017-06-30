@@ -27,7 +27,7 @@ class HeapEStructArray implements EStructArray {
 
     private final Graph _graph;
     private final HeapContainer parent;
-
+    
     HeapEStruct[] _nodes = null;
     private int _nodes_capacity = 0;
     private int _nodes_index = 0;
@@ -183,8 +183,9 @@ class HeapEStructArray implements EStructArray {
         if (_nodes != null) {
             Base64.encodeIntToBuffer(_nodes_index, buffer);
             for (int j = 0; j < _nodes_index; j++) {
-                buffer.write(CoreConstants.CHUNK_ENODE_SEP);
+                buffer.write(CoreConstants.BLOCK_OPEN);
                 _nodes[j].save(buffer);
+                buffer.write(CoreConstants.BLOCK_CLOSE);
             }
         } else {
             Base64.encodeIntToBuffer(0, buffer);
@@ -197,18 +198,17 @@ class HeapEStructArray implements EStructArray {
         boolean isFirst = true;
         int insertIndex = 0;
         while (cursor < max && current != Constants.CHUNK_SEP) {
-            if (current == Constants.CHUNK_ENODE_SEP) {
+            if (current == Constants.BLOCK_OPEN) {
                 if (isFirst) {
                     allocate(Base64.decodeToIntWithBounds(buffer, offset, cursor));
                     isFirst = false;
                 }
                 cursor++;
-                HeapEStruct eNode = nodeByIndex(insertIndex, true);
+                final HeapEStruct eNode = nodeByIndex(insertIndex, true);
                 cursor = eNode.load(buffer, cursor, _graph);
                 insertIndex++;
-            } else {
-                cursor++;
             }
+            cursor++; //consume block end
             if (cursor < max) {
                 current = buffer.read(cursor);
             }

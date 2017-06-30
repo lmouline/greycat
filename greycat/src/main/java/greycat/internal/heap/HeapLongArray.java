@@ -194,14 +194,13 @@ final class HeapLongArray implements LongArray {
         }
     }
 
-    /* TODO merge */
     public final long load(final Buffer buffer, final long offset, final long max) {
         long cursor = offset;
         byte current = buffer.read(cursor);
         boolean isFirst = true;
         long previous = offset;
         int elemIndex = 0;
-        while (cursor < max && current != Constants.CHUNK_SEP && current != Constants.CHUNK_ENODE_SEP && current != Constants.CHUNK_ESEP) {
+        while (cursor < max && current != Constants.CHUNK_SEP && current != Constants.BLOCK_CLOSE) {
             if (current == Constants.CHUNK_VAL_SEP) {
                 if (isFirst) {
                     _backend = new long[Base64.decodeToIntWithBounds(buffer, previous, cursor)];
