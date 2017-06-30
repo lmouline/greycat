@@ -52,8 +52,8 @@ class ClassTypeGenerator {
             if (o instanceof Attribute) {
                 Attribute attribute = (Attribute) o;
                 if (TypeManager.isPrimitive(attribute.type())) {
-                    TS_GET_SET.append("get " + attribute.name() + "() : " + TypeManager.cassTsName(attribute.type()) + " {return this.get" + Generator.upperCaseFirstChar(attribute.name()) + "();}\n");
-                    TS_GET_SET.append("set " + attribute.name() + "(p : " + TypeManager.cassTsName(attribute.type()) + "){ this.set" + Generator.upperCaseFirstChar(attribute.name()) + "(p);}\n");
+                    TS_GET_SET.append("get " + attribute.name() + "() : " + TypeManager.classTsName(attribute.type()) + " {return this.get" + Generator.upperCaseFirstChar(attribute.name()) + "();}\n");
+                    TS_GET_SET.append("set " + attribute.name() + "(p : " + TypeManager.classTsName(attribute.type()) + "){ this.set" + Generator.upperCaseFirstChar(attribute.name()) + "(p);}\n");
                 }
             }
         });
@@ -113,7 +113,7 @@ class ClassTypeGenerator {
                         .setVisibility(Visibility.PUBLIC)
                         .setFinal(true)
                         .setName(constant.name())
-                        .setType(TypeManager.cassName(constant.type()))
+                        .setType(TypeManager.className(constant.type()))
                         .setLiteralInitializer(value)
                         .setStatic(true);
             } else if (o instanceof Attribute) {
@@ -138,14 +138,14 @@ class ClassTypeGenerator {
                 // getter
                 MethodSource<JavaClassSource> getter = javaClass.addMethod();
                 getter.setVisibility(Visibility.PUBLIC).setFinal(true);
-                getter.setReturnType(TypeManager.cassName(att.type()));
+                getter.setReturnType(TypeManager.className(att.type()));
                 getter.setName("get" + Generator.upperCaseFirstChar(att.name()));
 
                 if (TypeManager.isPrimitive(att.type())) {
-                    getter.setBody("return (" + TypeManager.cassName(att.type()) + ") super.get(" + att.name().toUpperCase() + ");");
+                    getter.setBody("return (" + TypeManager.className(att.type()) + ") super.get(" + att.name().toUpperCase() + ");");
 
                 } else {
-                    getter.setBody("return (" + TypeManager.cassName(att.type()) + ") super.getOrCreate(" + att.name().toUpperCase() + ", " + att.name().toUpperCase() + "_TYPE);");
+                    getter.setBody("return (" + TypeManager.className(att.type()) + ") super.getOrCreate(" + att.name().toUpperCase() + ", " + att.name().toUpperCase() + "_TYPE);");
 
                 }
 
@@ -158,7 +158,7 @@ class ClassTypeGenerator {
                             .setBody("super.set(" + att.name().toUpperCase() + ", " + att.name().toUpperCase()
                                     + "_TYPE,value);\nreturn this;"
                             )
-                            .addParameter(TypeManager.cassName(att.type()), "value");
+                            .addParameter(TypeManager.className(att.type()), "value");
                 }
 
                 // init
@@ -484,15 +484,27 @@ class ClassTypeGenerator {
                     append(att.name().toUpperCase()).append("_TYPE, ").append(att.value().get(0).get(0)).append(");");
 
         } else if (TypeManager.isPrimitiveArray(att.type())) {
-            builder.append(TypeManager.cassName(att.type())).append(" ").append(att.name()).append(" = ");
-            builder.append("(").append(TypeManager.cassName(att.type())).append(")").append(" super.getOrCreate(").
+            // primitive arrays
+            builder.append(TypeManager.className(att.type())).append(" ").append(att.name()).append(" = ");
+            builder.append("(").append(TypeManager.className(att.type())).append(")").append(" super.getOrCreate(").
                     append(att.name().toUpperCase()).append(", ").append(att.name().toUpperCase()).append("_TYPE);");
 
-            for (List<Object> flatVal : att.value()) {
-                builder.append(att.name()).append(".addElement(").append(flatVal.get(0)).append(");");
+            for (List<Object> val : att.value()) {
+                builder.append(att.name()).append(".addElement(").append(val.get(0)).append(");");
+            }
+
+        } else if (TypeManager.isMap(att.type())) {
+            // maps
+            builder.append(TypeManager.className(att.type())).append(" ").append(att.name()).append(" = ");
+            builder.append("(").append(TypeManager.className(att.type())).append(")").append(" super.getOrCreate(").
+                    append(att.name().toUpperCase()).append(", ").append(att.name().toUpperCase()).append("_TYPE);");
+
+            for (List<Object> val : att.value()) {
+                builder.append(att.name()).append(".put(").append(val.get(0)).append(",").append(val.get(1)).append(");");
             }
         }
         return builder;
+
     }
 
 }

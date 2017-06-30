@@ -44,14 +44,15 @@ typeDcl: (builtInTypeDcl | customBuiltTypeDcl);
 customBuiltTypeDcl: IDENT;
 builtInTypeDcl: ('Bool' | 'Boolean' | 'String' | 'Long' | 'Int' | 'Integer' | 'Double' |
                 'DoubleArray' | 'LongArray' | 'IntArray' | 'StringArray' |
-                'LongToLongMap' | 'LongToLongArrayMap' | 'StringToIntMap'|
-                'DMatrix' |'LMatrix' |'EGraph' |'ENode' | 'KDTree' | 'NDTree' |
-                'IntToIntMap' | 'IntToStringMap' | 'Task' | 'TaskArray' | 'Node');
+                'LongToLongMap' | 'LongToLongArrayMap' | 'StringToIntMap'| 'IntToIntMap' | 'IntToStringMap' |
+                'DMatrix' |'LMatrix' |'EStruct' |'EStructArray' | 'KDTree' | 'NDTree' | 'Node' |
+                'Task' | 'TaskArray');
 
 attributeValueDcl: (IDENT | STRING | NUMBER | complexAttributeValueDcl);
 complexAttributeValueDcl: '(' complexValueDcl (',' complexValueDcl)* ')';
 complexValueDcl: (IDENT | STRING | NUMBER | ntupleValueDlc);
-ntupleValueDlc: '(' (IDENT | STRING | NUMBER) (',' (IDENT | STRING | NUMBER))* ')';
+ntupleValueDlc: '(' ntupleElementDlc (',' ntupleElementDlc)* ')';
+ntupleElementDlc: (IDENT | STRING | NUMBER);
 
 relationDcl: 'rel' name=IDENT ':' type=IDENT (oppositeDcl)?;
 referenceDcl: 'ref' name=IDENT ':' type=IDENT (oppositeDcl)?;

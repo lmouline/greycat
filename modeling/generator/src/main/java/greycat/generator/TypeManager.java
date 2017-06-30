@@ -28,6 +28,7 @@ import java.util.Set;
 public class TypeManager {
     private static Set<String> primitives = new HashSet<String>(Arrays.asList("Bool", "Boolean", "String", "Long", "Int", "Integer", "Double"));
     private static Set<String> primitiveArrays = new HashSet<String>(Arrays.asList("BoolArray", "BooleanArray", "StringArray", "LongArray", "IntArray", "IntegerArray", "DoubleArray"));
+    private static Set<String> maps = new HashSet<String>(Arrays.asList("LongToLongMap", "LongToLongArrayMap", "StringToIntMap", "IntToIntMap", "IntToStringMap"));
 
 
     public static String typeName(String type) {
@@ -115,7 +116,7 @@ public class TypeManager {
         return typeName;
     }
 
-    static String cassTsName(String type) {
+    static String classTsName(String type) {
         switch (type) {
             case "Bool":
             case "Boolean":
@@ -131,7 +132,7 @@ public class TypeManager {
         return "any";
     }
 
-    public static String cassName(String type) {
+    public static String className(String type) {
         String className;
 
         switch (type) {
@@ -219,6 +220,9 @@ public class TypeManager {
         return primitiveArrays.contains(type);
     }
 
+    public static boolean isMap(String type) {
+        return maps.contains(type);
+    }
 }
 
 

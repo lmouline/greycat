@@ -19,7 +19,6 @@ import greycat.language.Attribute;
 import greycat.language.Constant;
 import greycat.language.CustomType;
 import greycat.language.Model;
-import greycat.utility.HashHelper;
 import org.jboss.forge.roaster.Roaster;
 import org.jboss.forge.roaster.model.Visibility;
 import org.jboss.forge.roaster.model.source.JavaClassSource;
@@ -50,8 +49,8 @@ public class CustomTypeGenerator {
             if(o instanceof Attribute){
                 Attribute attribute = (Attribute) o;
                 if(TypeManager.isPrimitive(attribute.type())){
-                    TS_GET_SET.append("get "+attribute.name()+"() : "+TypeManager.cassTsName(attribute.type())+" {return this.get"+Generator.upperCaseFirstChar(attribute.name())+"();}\n");
-                    TS_GET_SET.append("set "+attribute.name()+"(p : "+TypeManager.cassTsName(attribute.type())+"){ this.set"+Generator.upperCaseFirstChar(attribute.name())+"(p);}\n");
+                    TS_GET_SET.append("get "+attribute.name()+"() : "+TypeManager.classTsName(attribute.type())+" {return this.get"+Generator.upperCaseFirstChar(attribute.name())+"();}\n");
+                    TS_GET_SET.append("set "+attribute.name()+"(p : "+TypeManager.classTsName(attribute.type())+"){ this.set"+Generator.upperCaseFirstChar(attribute.name())+"(p);}\n");
                 }
             }
         });
@@ -89,7 +88,7 @@ public class CustomTypeGenerator {
                         .setVisibility(Visibility.PUBLIC)
                         .setFinal(true)
                         .setName(constant.name())
-                        .setType(TypeManager.cassName(constant.type()))
+                        .setType(TypeManager.className(constant.type()))
                         .setLiteralInitializer(value)
                         .setStatic(true);
             } else if (o instanceof Attribute) {
@@ -117,8 +116,8 @@ public class CustomTypeGenerator {
                         .setName("get" + Generator.upperCaseFirstChar(att.name()))
                         .setVisibility(Visibility.PUBLIC)
                         .setFinal(true)
-                        .setReturnType(TypeManager.cassName(att.type()))
-                        .setBody("return (" + TypeManager.cassName(att.type()) + ") getAt(" + att.name().toUpperCase() + "_H" + ");");
+                        .setReturnType(TypeManager.className(att.type()))
+                        .setBody("return (" + TypeManager.className(att.type()) + ") getAt(" + att.name().toUpperCase() + "_H" + ");");
 
                 // setter
                 javaClass.addMethod()
@@ -128,7 +127,7 @@ public class CustomTypeGenerator {
                         .setReturnType(customType.name())
                         .setBody("setAt(" + att.name().toUpperCase() + "_H," +
                                 "greycat." + TypeManager.typeName(att.type()) + "," + att.name() + ");\nreturn this;")
-                        .addParameter(TypeManager.cassName(att.type()), att.name());
+                        .addParameter(TypeManager.className(att.type()), att.name());
 
             }
         });
