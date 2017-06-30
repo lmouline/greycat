@@ -490,7 +490,8 @@ class ClassTypeGenerator {
                     append(att.name().toUpperCase()).append(", ").append(att.name().toUpperCase()).append("_TYPE);");
 
             for (List<Object> val : att.value()) {
-                builder.append(att.name()).append(".addElement(").append(val.get(0)).append(");");
+                Object tuple1 = val.get(0);
+                builder.append(att.name()).append(".addElement(").append(tuple1).append(");");
             }
 
         } else if (TypeManager.isMap(att.type())) {
@@ -500,9 +501,38 @@ class ClassTypeGenerator {
                     append(att.name().toUpperCase()).append(", ").append(att.name().toUpperCase()).append("_TYPE);");
 
             for (List<Object> val : att.value()) {
-                builder.append(att.name()).append(".put(").append(val.get(0)).append(",").append(val.get(1)).append(");");
+                Object tuple1 = val.get(0);
+                Object tuple2 = val.get(1);
+                builder.append(att.name()).append(".put(").append(tuple1).append(",").append(tuple2).append(");");
             }
+
+        } else if (TypeManager.isMatrix(att.type())) {
+            // matrices
+            builder.append(TypeManager.className(att.type())).append(" ").append(att.name()).append(" = ");
+            builder.append("(").append(TypeManager.className(att.type())).append(")").append(" super.getOrCreate(").
+                    append(att.name().toUpperCase()).append(", ").append(att.name().toUpperCase()).append("_TYPE);");
+            for (List<Object> val : att.value()) {
+                Object row = val.get(0);
+                Object column = val.get(1);
+                Object value = val.get(2);
+                builder.append(att.name()).append(".add(").append(row).append(",").append(column).append(",").append(value).append(");");
+            }
+
+        } else if (TypeManager.isTree(att.type())) {
+            // trees
+            builder.append(TypeManager.className(att.type())).append(" ").append(att.name()).append(" = ");
+            builder.append("(").append(TypeManager.className(att.type())).append(")").append(" super.getOrCreate(").
+                    append(att.name().toUpperCase()).append(", ").append(att.name().toUpperCase()).append("_TYPE);");
+            List<Object> keys = att.value().get(0);
+            Object value = att.value().get(1).get(0);
+
+            builder.append(att.name()).append(".insert(").
+                    append("new double[] {").
+                    append(keys.toString().replace("[", "").replace("]", "")).
+                    append("}").append(",").append(value).append(");");
+
         }
+
         return builder;
 
     }
