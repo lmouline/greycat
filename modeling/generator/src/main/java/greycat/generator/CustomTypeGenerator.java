@@ -136,7 +136,7 @@ public class CustomTypeGenerator {
 
         // constructor
         MethodSource<JavaClassSource> constructor = javaClass.addMethod().setConstructor(true);
-        constructor.addParameter("greycat.struct.EGraph", "e");
+        constructor.addParameter("greycat.struct.EStructArray", "e");
         StringBuilder constructorBody = new StringBuilder();
         constructorBody.append("super(e);");
         constructor.setBody(constructorBody.toString());

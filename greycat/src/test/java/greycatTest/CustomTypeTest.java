@@ -21,7 +21,7 @@ import greycat.GraphBuilder;
 import greycat.Node;
 import greycat.plugin.TypeFactory;
 import greycat.scheduler.NoopScheduler;
-import greycat.struct.EGraph;
+import greycat.struct.EStructArray;
 import greycat.utility.HashHelper;
 import greycatTest.internal.MockStorage;
 import greycatTest.utility.GPSPosition;
@@ -36,7 +36,7 @@ public class CustomTypeTest {
         Graph g = GraphBuilder.newBuilder().withStorage(storage).withScheduler(new NoopScheduler()).build();
         g.typeRegistry().getOrCreateDeclaration("GPSPosition").setFactory(new TypeFactory() {
             @Override
-            public Object wrap(final EGraph backend) {
+            public Object wrap(final EStructArray backend) {
                 return new GPSPosition(backend);
             }
         });
@@ -55,7 +55,7 @@ public class CustomTypeTest {
         Graph g = GraphBuilder.newBuilder().withStorage(storage).withScheduler(new NoopScheduler()).build();
         g.typeRegistry().getOrCreateDeclaration("GPSPosition").setFactory(new TypeFactory() {
             @Override
-            public Object wrap(final EGraph backend) {
+            public Object wrap(final EStructArray backend) {
                 return new GPSPosition(backend);
             }
         });
@@ -85,7 +85,7 @@ public class CustomTypeTest {
         Graph g = GraphBuilder.newBuilder().withStorage(storage).withScheduler(new NoopScheduler()).build();
         g.typeRegistry().getOrCreateDeclaration("GPSPosition").setFactory(new TypeFactory() {
             @Override
-            public Object wrap(EGraph backend) {
+            public Object wrap(EStructArray backend) {
                 return new GPSPosition(backend);
             }
         });
@@ -104,7 +104,7 @@ public class CustomTypeTest {
         Graph g2 = GraphBuilder.newBuilder().withStorage(storage).withScheduler(new NoopScheduler()).build();
         g2.typeRegistry().getOrCreateDeclaration("GPSPosition").setFactory(new TypeFactory() {
             @Override
-            public Object wrap(EGraph backend) {
+            public Object wrap(EStructArray backend) {
                 return new GPSPosition(backend);
             }
         });

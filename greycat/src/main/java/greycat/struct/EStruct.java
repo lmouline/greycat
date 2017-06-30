@@ -15,18 +15,37 @@
  */
 package greycat.struct;
 
-public interface ERelation {
+import greycat.Container;
+import greycat.plugin.NodeStateCallback;
 
-    EStruct[] nodes();
+public interface EStruct extends Container {
 
-    EStruct node(int index);
+    /*
+    EStruct set(String name, byte type, Object value);
 
-    int size();
+    EStruct setAt(int key, byte type, Object value);
 
-    ERelation add(EStruct eStruct);
+    Object get(String name);
 
-    ERelation addAll(EStruct[] eStructs);
+    Object getAt(int key);
 
-    ERelation clear();
+    <A> A getWithDefault(String key, A defaultValue);
+
+    <A> A getAtWithDefault(int key, A defaultValue);
+
+    Object getOrCreate(final String key, final byte type);
+
+    Object getOrCreateAt(final int key, final byte type);
+    */
+
+    void drop();
+
+    EStructArray egraph();
+
+    void each(final NodeStateCallback callBack);
+
+    EStruct clear();
+
+    int id();
 
 }

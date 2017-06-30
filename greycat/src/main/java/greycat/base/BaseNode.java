@@ -229,12 +229,12 @@ public class BaseNode implements Node {
                     return new IntIntMapProxy(index, this, (IntIntMap) elem);
                 case Type.INT_TO_STRING_MAP:
                     return new IntStringMapProxy(index, this, (IntStringMap) elem);
-                case Type.EGRAPH:
-                    return new EGraphProxy(index, this, (EGraph) elem);
+                case Type.ESTRUCT_ARRAY:
+                    return new EStructArrayProxy(index, this, (EStructArray) elem);
                 default:
                     if (Type.isCustom(type)) {
                         final BaseCustomType ct = (BaseCustomType) elem;
-                        ct._backend = new EGraphProxy(index, this, ct._backend);
+                        ct._backend = new EStructArrayProxy(index, this, ct._backend);
                         return ct;
                     } else {
                         return elem;
@@ -907,8 +907,8 @@ public class BaseNode implements Node {
     }
 
     @Override
-    public final EGraph getEGraph(String name) {
-        return (EGraph) get(name);
+    public final EStructArray getEGraph(String name) {
+        return (EStructArray) get(name);
     }
 
     @Override

@@ -81,11 +81,11 @@ public class TypeManager {
             case "LMatrix":
                 typeName = "Type.LMATRIX";
                 break;
-            case "EGraph":
-                typeName = "Type.EGRAPH";
+            case "EStructArray":
+                typeName = "Type.ESTRUCT_ARRAY";
                 break;
-            case "ENode":
-                typeName = "Type.ENODE";
+            case "EStruct":
+                typeName = "Type.ESTRUCT";
                 break;
             case "KDTree":
                 typeName = "Type.KDTREE";
@@ -115,8 +115,7 @@ public class TypeManager {
         return typeName;
     }
 
-    public static String cassTsName(String type) {
-        String className;
+    static String cassTsName(String type) {
         switch (type) {
             case "Bool":
             case "Boolean":
@@ -178,11 +177,11 @@ public class TypeManager {
             case "LMatrix":
                 className = LMatrix.class.getCanonicalName();
                 break;
-            case "EGraph":
-                className = EGraph.class.getCanonicalName();
+            case "EStructArray":
+                className = EStructArray.class.getCanonicalName();
                 break;
-            case "ENode":
-                className = ENode.class.getCanonicalName();
+            case "EStruct":
+                className = EStruct.class.getCanonicalName();
                 break;
             case "KDTree":
                 className = KDTree.class.getCanonicalName();
