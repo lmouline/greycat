@@ -60,6 +60,9 @@ class ASuperType {
 type GPSPosition {
     att lat : Double
     att lng : Double
+
+    att i2strMap : IntToStringMap = ((1,"1"),(2,"2"))
+
 }
 
 class A {

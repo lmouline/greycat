@@ -21,6 +21,7 @@ import greycat.language.CustomType;
 import greycat.language.Model;
 import org.jboss.forge.roaster.Roaster;
 import org.jboss.forge.roaster.model.Visibility;
+import org.jboss.forge.roaster.model.source.FieldSource;
 import org.jboss.forge.roaster.model.source.JavaClassSource;
 import org.jboss.forge.roaster.model.source.JavaSource;
 import org.jboss.forge.roaster.model.source.MethodSource;
@@ -46,16 +47,16 @@ public class CustomTypeGenerator {
 
         StringBuilder TS_GET_SET = new StringBuilder();
         customType.properties().forEach(o -> {
-            if(o instanceof Attribute){
+            if (o instanceof Attribute) {
                 Attribute attribute = (Attribute) o;
-                if(TypeManager.isPrimitive(attribute.type())){
-                    TS_GET_SET.append("get "+attribute.name()+"() : "+TypeManager.classTsName(attribute.type())+" {return this.get"+Generator.upperCaseFirstChar(attribute.name())+"();}\n");
-                    TS_GET_SET.append("set "+attribute.name()+"(p : "+TypeManager.classTsName(attribute.type())+"){ this.set"+Generator.upperCaseFirstChar(attribute.name())+"(p);}\n");
+                if (TypeManager.isPrimitive(attribute.type())) {
+                    TS_GET_SET.append("get " + attribute.name() + "() : " + TypeManager.classTsName(attribute.type()) + " {return this.get" + Generator.upperCaseFirstChar(attribute.name()) + "();}\n");
+                    TS_GET_SET.append("set " + attribute.name() + "(p : " + TypeManager.classTsName(attribute.type()) + "){ this.set" + Generator.upperCaseFirstChar(attribute.name()) + "(p);}\n");
                 }
             }
         });
         //generate TS getter and setter
-        javaClass.getJavaDoc().setFullText("<pre>{@extend ts\n"+TS_GET_SET+"\n}\n</pre>");
+        javaClass.getJavaDoc().setFullText("<pre>{@extend ts\n" + TS_GET_SET + "\n}\n</pre>");
 
 
         // field for type name
@@ -75,6 +76,13 @@ public class CustomTypeGenerator {
                 .setType(int.class)
                 .setName("TYPE_HASH")
                 .setLiteralInitializer("greycat.utility.HashHelper.hash(TYPE_NAME)");
+
+        // init method
+        MethodSource<JavaClassSource> init = javaClass.addMethod()
+                .setName("init")
+                .setVisibility(Visibility.PUBLIC)
+                .setReturnTypeVoid();
+        StringBuilder initBodyBuilder = new StringBuilder();
 
         customType.properties().forEach(o -> {
             // constants
@@ -102,6 +110,15 @@ public class CustomTypeGenerator {
                         .setStringInitializer(att.name())
                         .setStatic(true);
 
+                // field attribute type
+                FieldSource<JavaClassSource> typeField = javaClass.addField()
+                        .setVisibility(Visibility.PUBLIC)
+                        .setFinal(true)
+                        .setName(att.name().toUpperCase() + "_TYPE")
+                        .setType(int.class)
+                        .setStatic(true);
+                typeField.setLiteralInitializer("greycat." + TypeManager.typeName(att.type()));
+
                 // field attribute hash
                 javaClass.addField()
                         .setVisibility(Visibility.PUBLIC)
@@ -128,6 +145,11 @@ public class CustomTypeGenerator {
                         .setBody("setAt(" + att.name().toUpperCase() + "_H," +
                                 "greycat." + TypeManager.typeName(att.type()) + "," + att.name() + ");\nreturn this;")
                         .addParameter(TypeManager.className(att.type()), att.name());
+
+                // init
+                if (att.value() != null) {
+                    initBodyBuilder.append(DefaultValueGenerator.createMethodBody(att).toString());
+                }
 
             }
         });
@@ -160,6 +182,8 @@ public class CustomTypeGenerator {
         }
         finalToString += ")\";";
         toString.setBody(finalToString);
+
+        init.setBody(initBodyBuilder.toString());
 
         return javaClass;
     }

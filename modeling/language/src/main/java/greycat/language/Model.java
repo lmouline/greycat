@@ -294,6 +294,9 @@ public class Model {
                 } else if (attDcl.typeDcl().customBuiltTypeDcl() != null) {
                     att.setType(attDcl.typeDcl().customBuiltTypeDcl().getText());
                 }
+                if (attDcl.attributeValueDcl() != null) {
+                    att.setValue(getAttributeValue(attDcl.attributeValueDcl()));
+                }
             }
             // constants
             for (GreyCatModelParser.ConstDclContext constDclCtx : customTypeDclCtx.constDcl()) {
