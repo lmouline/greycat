@@ -43,7 +43,11 @@ public class CustomTypeGenerator {
         javaClass.setPackage(packageName);
         javaClass.setName(customType.name());
 
-        javaClass.setSuperType("greycat.base.BaseCustomTypeSingle");
+        if (customType.parent() != null) {
+            javaClass.setSuperType(packageName + "." + customType.parent().name());
+        } else {
+            javaClass.setSuperType("greycat.base.BaseCustomTypeSingle");
+        }
 
         StringBuilder TS_GET_SET = new StringBuilder();
         customType.properties().forEach(o -> {

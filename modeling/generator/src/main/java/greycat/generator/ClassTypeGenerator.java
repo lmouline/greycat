@@ -16,6 +16,7 @@
 package greycat.generator;
 
 import greycat.*;
+import greycat.Type;
 import greycat.language.*;
 import greycat.language.Class;
 import greycat.language.Index;
