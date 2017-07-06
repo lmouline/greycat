@@ -192,10 +192,14 @@ class ClassTypeGenerator {
 
                 if (TypeManager.isPrimitive(att.type())) {
                     getter.setBody("return (" + TypeManager.className(att.type()) + ") super.get(" + att.name().toUpperCase() + ");");
-
                 } else {
-                    getter.setBody("return (" + TypeManager.className(att.type()) + ") super.getOrCreate(" + att.name().toUpperCase() + ", " + att.name().toUpperCase() + "_TYPE);");
+                    getter.setBody("if(super.get(" + att.name().toUpperCase() + ") == null) {return null;} return (" + TypeManager.className(att.type()) + ") super.get(" + att.name().toUpperCase() + ");");
 
+                    MethodSource<JavaClassSource> getOrCreate = javaClass.addMethod();
+                    getOrCreate.setVisibility(Visibility.PUBLIC).setFinal(true);
+                    getOrCreate.setReturnType(TypeManager.className(att.type()));
+                    getOrCreate.setName("getOrCreate" + Generator.upperCaseFirstChar(att.name()));
+                    getOrCreate.setBody("return (" + TypeManager.className(att.type()) + ") super.getOrCreate(" + att.name().toUpperCase() + ", " + att.name().toUpperCase() + "_TYPE);");
                 }
 
                 // setter

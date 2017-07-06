@@ -65,6 +65,9 @@ public class HelloModelingWorld {
                 // custom types
                 SmartCity smartCity = SmartCity.create(0, 0, graph);
                 GPSPosition pos = smartCity.getLocation();
+                Assert.assertNull(pos);
+
+                pos = smartCity.getOrCreateLocation();
                 pos.setLng(5.43d);
                 pos.setLat(3.23d);
                 System.out.println(pos);
@@ -111,7 +114,7 @@ public class HelloModelingWorld {
                 Constants.CONSTANT_TO_OVERRIDE = "new value";
 
                 // complex types
-                LongLongArrayMap llam = building.getLongToLongArrayMap();
+                LongLongArrayMap llam = building.getOrCreateLongToLongArrayMap();
                 llam.put(5, 5);
                 System.out.println(llam.get(5)[0]);
 
