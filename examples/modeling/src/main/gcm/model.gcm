@@ -15,6 +15,11 @@ class SmartCity {
 
     att name : String
     att location : GPSPosition
+
+    att x : Double = 5.1
+    att y : Double = 1.5
+    att derivedAtt : Task
+
 }
 
 class Building extends ASuperType {

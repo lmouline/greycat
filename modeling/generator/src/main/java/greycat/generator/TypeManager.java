@@ -112,7 +112,7 @@ public class TypeManager {
                 typeName = "Type.NODE";
                 break;
             default:
-                typeName = type + ".TYPE_HASH";
+                typeName = type + ".$TYPE_NAME";
         }
 
         return typeName;

@@ -78,7 +78,7 @@ public class CustomTypeGenerator {
                 .setFinal(true)
                 .setStatic(true)
                 .setType(int.class)
-                .setName("TYPE_HASH")
+                .setName("$TYPE_NAME")
                 .setLiteralInitializer("greycat.utility.HashHelper.hash(TYPE_NAME)");
 
         // init method
@@ -129,7 +129,7 @@ public class CustomTypeGenerator {
                 javaClass.addField()
                         .setVisibility(Visibility.PUBLIC)
                         .setFinal(true)
-                        .setName(att.name().toUpperCase() + "_H")
+                        .setName("$" + att.name().toUpperCase())
                         .setType(int.class)
                         .setLiteralInitializer("greycat.utility.HashHelper.hash(" + att.name().toUpperCase() + ")")
                         .setStatic(true);
@@ -140,7 +140,7 @@ public class CustomTypeGenerator {
                         .setVisibility(Visibility.PUBLIC)
                         .setFinal(true)
                         .setReturnType(TypeManager.className(att.type()))
-                        .setBody("return (" + TypeManager.className(att.type()) + ") getAt(" + att.name().toUpperCase() + "_H" + ");");
+                        .setBody("return (" + TypeManager.className(att.type()) + ") getAt($" + att.name().toUpperCase() + ");");
 
                 // setter
                 javaClass.addMethod()
@@ -148,7 +148,7 @@ public class CustomTypeGenerator {
                         .setVisibility(Visibility.PUBLIC)
                         .setFinal(true)
                         .setReturnType(customType.name())
-                        .setBody("setAt(" + att.name().toUpperCase() + "_H," +
+                        .setBody("setAt($" + att.name().toUpperCase() + " ," +
                                 "greycat." + TypeManager.typeName(att.type()) + "," + att.name() + ");\nreturn this;")
                         .addParameter(TypeManager.className(att.type()), att.name());
 

@@ -15,16 +15,16 @@
  */
 package greycat.generator;
 
-import greycat.*;
+import greycat.Graph;
 import greycat.Type;
 import greycat.language.*;
 import greycat.language.Class;
-import greycat.language.Index;
 import org.jboss.forge.roaster.Roaster;
 import org.jboss.forge.roaster.model.Visibility;
-import org.jboss.forge.roaster.model.source.*;
-
-import java.util.List;
+import org.jboss.forge.roaster.model.source.FieldSource;
+import org.jboss.forge.roaster.model.source.JavaClassSource;
+import org.jboss.forge.roaster.model.source.JavaSource;
+import org.jboss.forge.roaster.model.source.MethodSource;
 
 class ClassTypeGenerator {
 
@@ -68,6 +68,31 @@ class ClassTypeGenerator {
                 .setReturnTypeVoid();
         StringBuilder initBodyBuilder = new StringBuilder();
 
+//        // override typeAt
+//        MethodSource<JavaClassSource> typeAt = javaClass.addMethod()
+//                .setName("typeAt")
+//                .setVisibility(Visibility.PUBLIC)
+//                .setReturnType(int.class);
+//        typeAt.addParameter("int", "index");
+//        StringBuilder typeAtBodyBuilder = new StringBuilder();
+//
+//        // override getAt
+//        MethodSource<JavaClassSource> getAt = javaClass.addMethod()
+//                .setName("getAt")
+//                .setVisibility(Visibility.PUBLIC)
+//                .setReturnType(Object.class);
+//        getAt.addParameter("int", "index");
+//        StringBuilder getAtBodyBuilder = new StringBuilder();
+//
+//        // override setAt
+//        MethodSource<JavaClassSource> setAt = javaClass.addMethod()
+//                .setName("setAt")
+//                .setVisibility(Visibility.PUBLIC)
+//                .setReturnType(greycat.Node.class);
+//        setAt.addParameter("int", "index");
+//        setAt.addParameter("int", "type");
+//        setAt.addParameter("Object", "value");
+//        StringBuilder setAtBodyBuilder = new StringBuilder();
 
         // create method
         MethodSource<JavaClassSource> create = javaClass.addMethod()
@@ -137,6 +162,27 @@ class ClassTypeGenerator {
                         .setType(int.class)
                         .setStatic(true);
                 typeField.setLiteralInitializer(TypeManager.typeName(att.type()));
+
+                if (att.type().equals("Task")) {
+                    javaClass.addField()
+                            .setVisibility(Visibility.PUBLIC)
+                            .setFinal(true)
+                            .setName("$" + att.name().toUpperCase())
+                            .setType(int.class)
+                            .setLiteralInitializer("greycat.utility.HashHelper.hash(" + att.name().toUpperCase() + ");")
+                            .setStatic(true);
+
+//                    javaClass.addField()
+//                            .setVisibility(Visibility.PUBLIC)
+//                            .setName(att.name().toUpperCase() + "_VALUE")
+//                            .setType(greycat.Task.class);
+//
+//                    typeAtBodyBuilder.append("if (index == ").append(att.name().toUpperCase() + "_H").append(") {").append("return Type.TASK;").append("}");
+//                    getAtBodyBuilder.append("if (index == ").append(att.name().toUpperCase() + "_H").append(") {").append("return " + att.name().toUpperCase() + "_VALUE" + ";").append("}");
+//                    setAtBodyBuilder.append("if (type == Type.TASK && index == ").append(att.name().toUpperCase() + "_H)").append("{")
+//                            .append(att.name().toUpperCase() + "_VALUE ").append("= (greycat.Task) value;").append("return this;").append("}");
+
+                }
 
                 // getter
                 MethodSource<JavaClassSource> getter = javaClass.addMethod();
@@ -396,6 +442,15 @@ class ClassTypeGenerator {
 
         init.setBody(initBodyBuilder.toString());
 
+//        typeAtBodyBuilder.append("return super.typeAt(index);");
+//        typeAt.setBody(typeAtBodyBuilder.toString());
+//
+//        getAtBodyBuilder.append("return super.getAt(index);");
+//        getAt.setBody(getAtBodyBuilder.toString());
+//
+//        setAtBodyBuilder.append("return super.setAt(index, type, value);");
+//        setAt.setBody(setAtBodyBuilder.toString());
+
         return javaClass;
     }
 
@@ -478,7 +533,6 @@ class ClassTypeGenerator {
         }
         return oppositeBodyBuilder;
     }
-
 
 
 }
