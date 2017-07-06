@@ -66,12 +66,12 @@ class PluginClassGenerator {
             startBodyBuilder.append("});\n\n");
         }
 
-        startBodyBuilder.append("graph.addConnectHook(new greycat.Callback<greycat.Callback<Boolean>>() {");
-        startBodyBuilder.append("@Override\n");
-        startBodyBuilder.append("public void on(greycat.Callback<Boolean> result) {");
-
 
         if (model.globalIndexes().length > 0) {
+            startBodyBuilder.append("graph.addConnectHook(new greycat.Callback<greycat.Callback<Boolean>>() {");
+            startBodyBuilder.append("@Override\n");
+            startBodyBuilder.append("public void on(greycat.Callback<Boolean> result) {");
+
             startBodyBuilder.append("greycat.DeferCounter dc = graph.newCounter(" + model.globalIndexes().length + ");");
 
             for (Index idx : model.globalIndexes()) {
@@ -96,10 +96,10 @@ class PluginClassGenerator {
             startBodyBuilder.append("result.on(true);");
             startBodyBuilder.append("}");
             startBodyBuilder.append("});");
-        }
 
-        startBodyBuilder.append("}");
-        startBodyBuilder.append("});");
+            startBodyBuilder.append("}");
+            startBodyBuilder.append("});");
+        }
 
         MethodSource<JavaClassSource> startMethod = pluginClass.addMethod();
         startMethod.setReturnTypeVoid()
