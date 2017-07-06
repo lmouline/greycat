@@ -262,8 +262,8 @@ class HeapRelation implements Relation {
 
     public final void save(final Buffer buffer) {
         if (_backend != null) {
-            Base64.encodeIntToBuffer(_backend.length, buffer);
-            for (int j = 0; j < _backend.length; j++) {
+            Base64.encodeIntToBuffer(_size, buffer);
+            for (int j = 0; j < _size; j++) {
                 buffer.write(CoreConstants.CHUNK_VAL_SEP);
                 Base64.encodeLongToBuffer(_backend[j], buffer);
             }
