@@ -37,7 +37,7 @@ actionParam: STRING | NUMBER | subTask;
 subTask: '{' taskValueDcl '}';
 
 classDcl: 'class' name=IDENT parentDcl? '{' (constDcl | attributeDcl | relationDcl | referenceDcl | localIndexDcl)* '}';
-customTypeDcl: 'type' name=IDENT parentDcl? '{' (constDcl | attributeDcl | relationDcl | referenceDcl | localIndexDcl)* '}';
+customTypeDcl: 'type' name=IDENT parentDcl? '{' (constDcl | attributeDcl)* '}';
 
 parentDcl: 'extends' IDENT;
 attributeDcl: 'att' name=IDENT ':' valueTypeDcl ('=' attributeValueDcl)?;

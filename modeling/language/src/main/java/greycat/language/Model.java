@@ -248,40 +248,41 @@ public class Model {
             for (GreyCatModelParser.AttributeDclContext attDcl : customTypeDclCtx.attributeDcl()) {
                 addAttribute(newCustomType, attDcl);
             }
-            // relations
-            for (GreyCatModelParser.RelationDclContext relDcl : customTypeDclCtx.relationDcl()) {
-                addRelation(newCustomType, relDcl);
-            }
-            // references
-            for (GreyCatModelParser.ReferenceDclContext refDcl : customTypeDclCtx.referenceDcl()) {
-                addReference(newCustomType, refDcl);
-            }
-            // local indexes
-            for (GreyCatModelParser.LocalIndexDclContext localIndexDcl : customTypeDclCtx.localIndexDcl()) {
-                addLocalIndex(newCustomType, localIndexDcl);
-            }
+//            // relations
+//            for (GreyCatModelParser.RelationDclContext relDcl : customTypeDclCtx.relationDcl()) {
+//                addRelation(newCustomType, relDcl);
+//            }
+//            // references
+//            for (GreyCatModelParser.ReferenceDclContext refDcl : customTypeDclCtx.referenceDcl()) {
+//                addReference(newCustomType, refDcl);
+//            }
+//            // local indexes
+//            for (GreyCatModelParser.LocalIndexDclContext localIndexDcl : customTypeDclCtx.localIndexDcl()) {
+//                addLocalIndex(newCustomType, localIndexDcl);
+//            }
             // local constants
             for (GreyCatModelParser.ConstDclContext constDclCtx : customTypeDclCtx.constDcl()) {
                 addLocalConstant(newCustomType, constDclCtx);
             }
-            // opposite management
-            for (GreyCatModelParser.CustomTypeDclContext typeDclCtx : modelDclCtx.customTypeDcl()) {
-                String typeFqn = typeDclCtx.name.getText();
-                CustomType customType = customTypes.get(typeFqn);
+//            // opposite management
+//            for (GreyCatModelParser.CustomTypeDclContext typeDclCtx : modelDclCtx.customTypeDcl()) {
+//                String typeFqn = typeDclCtx.name.getText();
+//                CustomType customType = customTypes.get(typeFqn);
+//
+//                // relations
+//                for (GreyCatModelParser.RelationDclContext relDclCtx : typeDclCtx.relationDcl()) {
+//                    linkOppositeRelations(customType, relDclCtx);
+//                }
+//                // references
 
-                // relations
-                for (GreyCatModelParser.RelationDclContext relDclCtx : typeDclCtx.relationDcl()) {
-                    linkOppositeRelations(customType, relDclCtx);
-                }
-                // references
-                for (GreyCatModelParser.ReferenceDclContext refDclCtx : typeDclCtx.referenceDcl()) {
-                    linkOppositeReferences(customType, refDclCtx);
-                }
-                // local indexes
-                for (GreyCatModelParser.LocalIndexDclContext idxDclCtx : typeDclCtx.localIndexDcl()) {
-                    linkOppositeLocalIndexes(customType, idxDclCtx);
-                }
-            }
+//                for (GreyCatModelParser.ReferenceDclContext refDclCtx : typeDclCtx.referenceDcl()) {
+//                    linkOppositeReferences(customType, refDclCtx);
+//                }
+//                // local indexes
+//                for (GreyCatModelParser.LocalIndexDclContext idxDclCtx : typeDclCtx.localIndexDcl()) {
+//                    linkOppositeLocalIndexes(customType, idxDclCtx);
+//                }
+//            }
 
         }
     }
