@@ -77,12 +77,12 @@ class PluginClassGenerator {
             for (Index idx : model.globalIndexes()) {
                 StringBuilder paramsBuilder = new StringBuilder();
                 for (AttributeRef att : idx.attributes()) {
-                    paramsBuilder.append(idx.name() + "." + att.ref().name().toUpperCase());
+                    paramsBuilder.append(idx.name() + "." + att.ref().name().toUpperCase() + ".name");
                     paramsBuilder.append(",");
                 }
                 paramsBuilder.deleteCharAt(paramsBuilder.length() - 1);
 
-                startBodyBuilder.append("graph.declareIndex(0, " + idx.name() + ".INDEX_NAME" + ", new greycat.Callback<greycat.NodeIndex>() {");
+                startBodyBuilder.append("graph.declareIndex(0, " + idx.name() + ".META.name" + ", new greycat.Callback<greycat.NodeIndex>() {");
                 startBodyBuilder.append("@Override\n");
                 startBodyBuilder.append("public void on(greycat.NodeIndex result) {");
                 startBodyBuilder.append("dc.count();");
