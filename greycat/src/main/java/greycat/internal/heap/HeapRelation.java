@@ -53,7 +53,7 @@ class HeapRelation implements Relation {
     }
 
     @Override
-    public long[] all() {
+    public final long[] all() {
         long[] ids;
         synchronized (parent) {
             if (_backend == null) {
@@ -90,9 +90,10 @@ class HeapRelation implements Relation {
         }
     }
 
+    /*
     final long unsafe_get(int index) {
         return _backend[index];
-    }
+    }*/
 
     @Override
     public final Relation addNode(Node node) {
@@ -134,7 +135,7 @@ class HeapRelation implements Relation {
     }
 
     @Override
-    public Relation addAll(final long[] newValues) {
+    public final Relation addAll(final long[] newValues) {
         synchronized (parent) {
             int nextSize = newValues.length + _size;
             final int closePowerOfTwo = (int) Math.pow(2, Math.ceil(Math.log(nextSize) / Math.log(2)));
