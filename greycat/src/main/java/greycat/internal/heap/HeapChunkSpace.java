@@ -293,6 +293,42 @@ public class HeapChunkSpace implements ChunkSpace {
     }
 
     @Override
+    public synchronized final void delete(final byte type, final long world, final long time, final long id) {
+        final int index;
+        if (_deep_priority) {
+            index = (int) HashHelper.tripleHash(type, world, time, id, this._hashEntries);
+        } else {
+            index = (int) HashHelper.simpleTripleHash(type, world, time, id, this._hashEntries);
+        }
+        int m = this._hash.get(index);
+        int found = -1;
+        while (m != -1) {
+            if (_chunkTypes.get(m) == type
+                    && _chunkWorlds.get(m) == world
+                    && _chunkTimes.get(m) == time
+                    && _chunkIds.get(m) == id) {
+                found = m;
+                break;
+            } else {
+                m = this._hashNext.get(m);
+            }
+        }
+        if (found != -1) {
+            _chunkValues.set(found, null);
+            long markBefore = _chunkMarks.get(found);
+            if (markBefore != 0) {
+                System.err.println("Still mark deleted chunk " + markBefore);
+                do {
+                    markBefore = _chunkMarks.get(found);
+                } while (!_chunkMarks.compareAndSet(found, markBefore, 0));
+                if (markBefore != 0) {
+                    this._lru.enqueue(index);
+                }
+            }
+        }
+    }
+
+    @Override
     public final void free(Chunk chunk) {
         //NOOP
     }

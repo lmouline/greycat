@@ -28,10 +28,8 @@ public class DeleteTest {
         MockStorage storage = new MockStorage();
         Graph g = GraphBuilder.newBuilder().withScheduler(new NoopScheduler()).withStorage(storage).build();
         g.connect(null);
-
         g.save(null);
         Assert.assertEquals(0, storage.backend.size());
-
         Node n = g.newNode(0, 0);
         final long n_id = n.id();
         for (int i = 0; i < 10; i++) {

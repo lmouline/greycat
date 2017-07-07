@@ -218,13 +218,20 @@ final class MWResolver implements Resolver {
                 _space.getOrLoadAndMarkAll(timeTreeKeys, new Callback<Chunk[]>() {
                     @Override
                     public void on(final Chunk[] timeTrees) {
+                        _space.unmark(worldOrderChunk.index());
+                        _space.unmark(superTimeTreeChunk.index());
+                        _space.unmark(timeTreeChunk.index());
+                        _space.unmark(stateChunk.index());
+
                         final Buffer toDelete = _graph.newBuffer();
                         KeyHelper.keyToBuffer(toDelete, ChunkType.WORLD_ORDER_CHUNK, 0, 0, castedNode.id());
+                        _space.delete(ChunkType.WORLD_ORDER_CHUNK, 0, 0, castedNode.id());
                         for (int i = 0; i < superTimeTrees.length; i++) {
                             toDelete.write(Constants.BUFFER_SEP);
                             final SuperTimeTreeChunk stt = (SuperTimeTreeChunk) superTimeTrees[i];
                             KeyHelper.keyToBuffer(toDelete, ChunkType.SUPER_TIME_TREE_CHUNK, stt.world(), 0, castedNode.id());
                             _space.unmark(stt.index());
+                            _space.delete(ChunkType.SUPER_TIME_TREE_CHUNK, stt.world(), 0, castedNode.id());
                         }
                         for (int i = 0; i < timeTrees.length; i++) {
                             final TimeTreeChunk tt = (TimeTreeChunk) timeTrees[i];
@@ -233,27 +240,23 @@ final class MWResolver implements Resolver {
                                 public void elem(long time) {
                                     toDelete.write(Constants.BUFFER_SEP);
                                     KeyHelper.keyToBuffer(toDelete, ChunkType.STATE_CHUNK, tt.world(), time, castedNode.id());
+                                    _space.delete(ChunkType.STATE_CHUNK, tt.world(), time, castedNode.id());
                                 }
                             });
                             toDelete.write(Constants.BUFFER_SEP);
                             KeyHelper.keyToBuffer(toDelete, ChunkType.TIME_TREE_CHUNK, tt.world(), tt.time(), castedNode.id());
                             _space.unmark(tt.index());
-                            //free time!
-                            _space.unmark(worldOrderChunk.index());
-                            _space.unmark(superTimeTreeChunk.index());
-                            _space.unmark(timeTreeChunk.index());
-                            _space.unmark(stateChunk.index());
-                            _storage.remove(toDelete, new Callback<Boolean>() {
-                                @Override
-                                public void on(Boolean result) {
-                                    castedNode.cacheUnlock();
-                                    if (callback != null) {
-                                        callback.on(result);
-                                    }
-                                }
-                            });
-
+                            _space.delete(ChunkType.TIME_TREE_CHUNK, tt.world(), tt.time(), castedNode.id());
                         }
+                        _storage.remove(toDelete, new Callback<Boolean>() {
+                            @Override
+                            public void on(Boolean result) {
+                                castedNode.cacheUnlock();
+                                if (callback != null) {
+                                    callback.on(result);
+                                }
+                            }
+                        });
                     }
                 });
             }
