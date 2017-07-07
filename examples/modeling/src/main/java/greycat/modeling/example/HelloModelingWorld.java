@@ -151,25 +151,25 @@ public class HelloModelingWorld {
 
                 // derived att
 //                Task gTask = newTask().executeExpression("x + y");
-//                smartCity.DERIVEDATT_VALUE = gTask;
-//                smartCity.traverseAt(SmartCity.$DERIVEDATT, new Callback<Double>() {
-//                    public void on(Double i) {
-//                        Assert.assertEquals("6.6", i + "");
-//                    }
-//                });
-//                smartCity.traverse(SmartCity.DERIVEDATT, new Callback<Double>() {
-//                    public void on(Double i) {
-//                        Assert.assertEquals("6.6", i + "");
-//                    }
-//                });
-//
-//                Task t = newTask().attribute(SmartCity.DERIVEDATT);
-//                t.executeWith(graph, smartCity, new Callback<TaskResult>() {
-//                    @Override
-//                    public void on(TaskResult result) {
-//                        Assert.assertEquals("6.6", result.get(0) + "");
-//                    }
-//                });
+//                smartCity.DERIVEDATT.value = gTask;
+                smartCity.traverseAt(SmartCity.DERIVEDATT.hash, new Callback<Double>() {
+                    public void on(Double i) {
+                        Assert.assertEquals("6.6", i + "");
+                    }
+                });
+                smartCity.traverse(SmartCity.DERIVEDATT.name, new Callback<Double>() {
+                    public void on(Double i) {
+                        Assert.assertEquals("6.6", i + "");
+                    }
+                });
+
+                Task t = newTask().attribute(SmartCity.DERIVEDATT.name);
+                t.executeWith(graph, smartCity, new Callback<TaskResult>() {
+                    @Override
+                    public void on(TaskResult result) {
+                        Assert.assertEquals("6.6", result.get(0) + "");
+                    }
+                });
 
             }
         });

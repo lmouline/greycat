@@ -12,7 +12,7 @@ const isStatic : Boolean
 
 class SmartCity {
     const listNodeNames : Task = readIndex("nodes").name
-    const derivedAtt : Task
+    const derivedAtt : Task = executeExpression("x + y")
 
     att name : String
     att location : GPSPosition
