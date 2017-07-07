@@ -16,7 +16,7 @@
 package greycat.utility;
 
 public class MetaConst extends Meta {
-    public final Object value;
+    public Object value;
 
     public MetaConst(final String name, final int type, final int hash, final Object value) {
         super(name, type, hash);
