@@ -170,18 +170,94 @@ final class MWResolver implements Resolver {
 
     @Override
     public final void drop(final Node target, final Callback callback) {
-        final BaseNode casted = (BaseNode) target;
-        final WorldOrderChunk worldOrderChunk = (WorldOrderChunk) this._space.get(casted._index_worldOrder);
-        //TODO
+        final BaseNode castedNode = (BaseNode) target;
+        castedNode.cacheLock();
+        if (castedNode._dead) {
+            castedNode.cacheUnlock();
+            throw new RuntimeException(CoreConstants.DEAD_NODE_ERROR + " node id: " + castedNode.id());
+        }
+        final WorldOrderChunk worldOrderChunk = (WorldOrderChunk) this._space.get(castedNode._index_worldOrder);
+        final SuperTimeTreeChunk superTimeTreeChunk = (SuperTimeTreeChunk) this._space.get(castedNode._index_superTimeTree);
+        final TimeTreeChunk timeTreeChunk = (TimeTreeChunk) this._space.get(castedNode._index_timeTree);
+        final StateChunk stateChunk = (StateChunk) this._space.get(castedNode._index_stateChunk);
+        final long[] superTimeTreeKeys = new long[worldOrderChunk.size() * Constants.KEY_SIZE];
+        final int[] cursor = {0};
         worldOrderChunk.each(new LongLongMapCallBack() {
             @Override
-            public void on(long key, long value) {
-
+            public void on(final long worldKey, final long value) {
+                superTimeTreeKeys[cursor[0] * Constants.KEY_SIZE] = ChunkType.SUPER_TIME_TREE_CHUNK;
+                superTimeTreeKeys[(cursor[0] * Constants.KEY_SIZE) + 1] = worldKey;
+                superTimeTreeKeys[(cursor[0] * Constants.KEY_SIZE) + 2] = 0;
+                superTimeTreeKeys[(cursor[0] * Constants.KEY_SIZE) + 3] = target.id();
+                cursor[0]++;
             }
         });
-        //TODO
-        //final WorldOrderChunk worldOrderChunk = (WorldOrderChunk) this._space.get(casted._index_worldOrder);
-        //TODO
+        _space.getOrLoadAndMarkAll(superTimeTreeKeys, new Callback<Chunk[]>() {
+            @Override
+            public void on(final Chunk[] superTimeTrees) {
+                int sum = 0;
+                for (int i = 0; i < superTimeTrees.length; i++) {
+                    final SuperTimeTreeChunk stt = (SuperTimeTreeChunk) superTimeTrees[i];
+                    sum = sum + stt.size();
+                }
+                final long[] timeTreeKeys = new long[sum * Constants.KEY_SIZE];
+                for (int i = 0; i < superTimeTrees.length; i++) {
+                    final SuperTimeTreeChunk stt = (SuperTimeTreeChunk) superTimeTrees[i];
+                    cursor[0] = 0;
+                    stt.range(Constants.BEGINNING_OF_TIME, Constants.END_OF_TIME, stt.size(), new SuperTreeWalker() {
+                        @Override
+                        public void elem(long time, long capacity) {
+                            timeTreeKeys[cursor[0] * Constants.KEY_SIZE] = ChunkType.TIME_TREE_CHUNK;
+                            timeTreeKeys[(cursor[0] * Constants.KEY_SIZE) + 1] = stt.world();
+                            timeTreeKeys[(cursor[0] * Constants.KEY_SIZE) + 2] = time;
+                            timeTreeKeys[(cursor[0] * Constants.KEY_SIZE) + 3] = target.id();
+                            cursor[0]++;
+                        }
+                    });
+                }
+                _space.getOrLoadAndMarkAll(timeTreeKeys, new Callback<Chunk[]>() {
+                    @Override
+                    public void on(final Chunk[] timeTrees) {
+                        final Buffer toDelete = _graph.newBuffer();
+                        KeyHelper.keyToBuffer(toDelete, ChunkType.WORLD_ORDER_CHUNK, 0, 0, castedNode.id());
+                        for (int i = 0; i < superTimeTrees.length; i++) {
+                            toDelete.write(Constants.BUFFER_SEP);
+                            final SuperTimeTreeChunk stt = (SuperTimeTreeChunk) superTimeTrees[i];
+                            KeyHelper.keyToBuffer(toDelete, ChunkType.SUPER_TIME_TREE_CHUNK, stt.world(), 0, castedNode.id());
+                            _space.unmark(stt.index());
+                        }
+                        for (int i = 0; i < timeTrees.length; i++) {
+                            final TimeTreeChunk tt = (TimeTreeChunk) timeTrees[i];
+                            tt.range(Constants.BEGINNING_OF_TIME, Constants.END_OF_TIME, tt.size(), new TreeWalker() {
+                                @Override
+                                public void elem(long time) {
+                                    toDelete.write(Constants.BUFFER_SEP);
+                                    KeyHelper.keyToBuffer(toDelete, ChunkType.STATE_CHUNK, tt.world(), time, castedNode.id());
+                                }
+                            });
+                            toDelete.write(Constants.BUFFER_SEP);
+                            KeyHelper.keyToBuffer(toDelete, ChunkType.TIME_TREE_CHUNK, tt.world(), tt.time(), castedNode.id());
+                            _space.unmark(tt.index());
+                            //free time!
+                            _space.unmark(worldOrderChunk.index());
+                            _space.unmark(superTimeTreeChunk.index());
+                            _space.unmark(timeTreeChunk.index());
+                            _space.unmark(stateChunk.index());
+                            _storage.remove(toDelete, new Callback<Boolean>() {
+                                @Override
+                                public void on(Boolean result) {
+                                    castedNode.cacheUnlock();
+                                    if (callback != null) {
+                                        callback.on(result);
+                                    }
+                                }
+                            });
+
+                        }
+                    }
+                });
+            }
+        });
     }
 
     @Override
@@ -1449,7 +1525,7 @@ final class MWResolver implements Resolver {
 
 
     @Override
-    public void end(Node node) {
+    public final void end(Node node) {
         final BaseNode castedNode = (BaseNode) node;
         castedNode.cacheLock();
         if (castedNode._dead) {
