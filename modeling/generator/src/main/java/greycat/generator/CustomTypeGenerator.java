@@ -24,7 +24,6 @@ import greycat.utility.HashHelper;
 import greycat.utility.MetaConst;
 import org.jboss.forge.roaster.Roaster;
 import org.jboss.forge.roaster.model.Visibility;
-import org.jboss.forge.roaster.model.source.FieldSource;
 import org.jboss.forge.roaster.model.source.JavaClassSource;
 import org.jboss.forge.roaster.model.source.JavaSource;
 import org.jboss.forge.roaster.model.source.MethodSource;
@@ -85,13 +84,47 @@ public class CustomTypeGenerator {
                 .setReturnTypeVoid();
         StringBuilder initBodyBuilder = new StringBuilder();
 
+        // override typeAt
+        MethodSource<JavaClassSource> typeAt = javaClass.addMethod()
+                .setName("typeAt")
+                .setVisibility(Visibility.PUBLIC)
+                .setReturnType(int.class);
+        typeAt.addParameter("int", "index");
+        StringBuilder typeAtBodyBuilder = new StringBuilder();
+
+        // override getAt
+        MethodSource<JavaClassSource> getAt = javaClass.addMethod()
+                .setName("getAt")
+                .setVisibility(Visibility.PUBLIC)
+                .setReturnType(Object.class);
+        getAt.addParameter("int", "index");
+        StringBuilder getAtBodyBuilder = new StringBuilder();
+
+        // override setAt
+        MethodSource<JavaClassSource> setAt = javaClass.addMethod()
+                .setName("setAt")
+                .setVisibility(Visibility.PUBLIC)
+                .setReturnType(greycat.Container.class);
+        setAt.addParameter("int", "index");
+        setAt.addParameter("int", "type");
+        setAt.addParameter("Object", "value");
+        StringBuilder setAtBodyBuilder = new StringBuilder();
+
         customType.properties().forEach(o -> {
             // constants
             if (o instanceof Constant) {
                 Constant constant = (Constant) o;
                 String value = constant.value();
-                if (constant.type().equals("Task") && value != null) {
-                    value = "greycat.Tasks.newTask().parse(\"" + value.replaceAll("\"", "'").trim() + "\",null);";
+
+                if (constant.type().equals("Task")) {
+                    typeAtBodyBuilder.append("if (index == ").append(constant.name().toUpperCase()).append(".hash) {").append("return Type.TASK;").append("}");
+                    getAtBodyBuilder.append("if (index == ").append(constant.name().toUpperCase()).append(".hash) {").append("return " + constant.name().toUpperCase() + ".value" + ";").append("}");
+                    setAtBodyBuilder.append("if (type == Type.TASK && index == ").append(constant.name().toUpperCase() + ".hash)").append("{")
+                            .append(constant.name().toUpperCase() + ".value ").append("= (greycat.Task) value;").append("return this;").append("}");
+
+                    if (value != null) {
+                        value = "greycat.Tasks.newTask().parse(\"" + value.replaceAll("\"", "'").trim() + "\",null)";
+                    }
                 } else if (!constant.type().equals("String") && value != null) {
                     value = value.replaceAll("\"", "");
                 }
@@ -176,6 +209,15 @@ public class CustomTypeGenerator {
         toString.setBody(finalToString);
 
         init.setBody(initBodyBuilder.toString());
+
+        typeAtBodyBuilder.append("return super.typeAt(index);");
+        typeAt.setBody(typeAtBodyBuilder.toString());
+
+        getAtBodyBuilder.append("return super.getAt(index);");
+        getAt.setBody(getAtBodyBuilder.toString());
+
+        setAtBodyBuilder.append("return super.setAt(index, type, value);");
+        setAt.setBody(setAtBodyBuilder.toString());
 
         return javaClass;
     }

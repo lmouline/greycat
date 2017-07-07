@@ -66,11 +66,12 @@ class ASuperType {
 }
 
 type GPSPosition extends AGPSPosition {
+    const derivedAtt : Task = executeExpression("x + y")
+
     att lat : Double
     att lng : Double
 
     att i2strMap : IntToStringMap = ((1,"1"),(2,"2"))
-
 }
 
 type AGPSPosition {

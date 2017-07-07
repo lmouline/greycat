@@ -150,8 +150,6 @@ public class HelloModelingWorld {
 
 
                 // derived att
-//                Task gTask = newTask().executeExpression("x + y");
-//                smartCity.DERIVEDATT.value = gTask;
                 smartCity.traverseAt(SmartCity.DERIVEDATT.hash, new Callback<Double>() {
                     public void on(Double i) {
                         Assert.assertEquals("6.6", i + "");
