@@ -152,7 +152,7 @@ public class HelloModelingWorld {
                 // derived att
 //                Task gTask = newTask().executeExpression("x + y");
 //                smartCity.DERIVEDATT_VALUE = gTask;
-//                smartCity.traverseAt(SmartCity.DERIVEDATT_H, new Callback<Double>() {
+//                smartCity.traverseAt(SmartCity.$DERIVEDATT, new Callback<Double>() {
 //                    public void on(Double i) {
 //                        Assert.assertEquals("6.6", i + "");
 //                    }
@@ -162,7 +162,7 @@ public class HelloModelingWorld {
 //                        Assert.assertEquals("6.6", i + "");
 //                    }
 //                });
-
+//
 //                Task t = newTask().attribute(SmartCity.DERIVEDATT);
 //                t.executeWith(graph, smartCity, new Callback<TaskResult>() {
 //                    @Override

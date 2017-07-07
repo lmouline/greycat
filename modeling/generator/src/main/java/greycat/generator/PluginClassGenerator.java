@@ -47,7 +47,7 @@ class PluginClassGenerator {
 
         for (Class classType : model.classes()) {
             startBodyBuilder.append("\t\tgraph.nodeRegistry()\n")
-                    .append("\t\t\t.getOrCreateDeclaration(").append(classType.name()).append(".NODE_NAME").append(")").append("\n")
+                    .append("\t\t\t.getOrCreateDeclaration(").append(classType.name()).append(".META.name").append(")").append("\n")
                     .append("\t\t\t.setFactory(new NodeFactory() {\n" +
                             "\t\t\t\t\t@Override\n" +
                             "\t\t\t\t\tpublic greycat.Node create(long world, long time, long id, Graph graph) {\n" +
@@ -58,7 +58,7 @@ class PluginClassGenerator {
         }
 
         for (CustomType customType : model.customTypes()) {
-            startBodyBuilder.append("graph.typeRegistry().getOrCreateDeclaration(" + customType.name() + ".TYPE_NAME" + ").setFactory(new greycat.plugin.TypeFactory() {");
+            startBodyBuilder.append("graph.typeRegistry().getOrCreateDeclaration(" + customType.name() + ".META.name" + ").setFactory(new greycat.plugin.TypeFactory() {");
             startBodyBuilder.append("@Override\n");
             startBodyBuilder.append("public Object wrap(final greycat.struct.EStructArray backend) {");
             startBodyBuilder.append("return new " + customType.name() + "(backend);");

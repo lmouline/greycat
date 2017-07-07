@@ -20,6 +20,7 @@ import greycat.Task;
 import greycat.internal.custom.KDTree;
 import greycat.internal.custom.NDTree;
 import greycat.struct.*;
+import greycat.utility.HashHelper;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -112,7 +113,7 @@ public class TypeManager {
                 typeName = "Type.NODE";
                 break;
             default:
-                typeName = type + ".$TYPE_NAME";
+                typeName = "" + HashHelper.hash(type);
         }
 
         return typeName;
