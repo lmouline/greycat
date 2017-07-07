@@ -152,7 +152,7 @@ public class HeapChunkSpace implements ChunkSpace {
     @Override
     public final Chunk get(final long index) {
         final int casted = (int) index;
-        if(casted == -1){
+        if (casted == -1) {
             return null;
         }
         boolean valid = true;

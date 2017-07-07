@@ -1407,6 +1407,9 @@ final class MWResolver implements Resolver {
                         castedNode._world_magic = -1;
                         castedNode._time_magic = -1;
                         castedNode._super_time_magic = -1;
+                        //save updated index
+                        castedNode._index_superTimeTree = nodeSuperTimeTree.index();
+                        castedNode._index_timeTree = nodeTimeTree.index();
                     } else {
                         //save magic numbers
                         castedNode._world_magic = nodeWorldOrder.magic();
@@ -1426,9 +1429,11 @@ final class MWResolver implements Resolver {
                             if (tempNodeState != null) {
                                 this._space.unmark(stateResult.index());
                                 stateResult = tempNodeState;
+                                castedNode._index_stateChunk = stateResult.index();
+                            } else {
+                                throw new RuntimeException("GreyCat Internal Exception");
                             }
                         }
-                        castedNode._index_stateChunk = stateResult.index();
                     }
                     if (safe) {
                         nodeWorldOrder.unlock();
@@ -1559,6 +1564,7 @@ final class MWResolver implements Resolver {
             //final TimeTreeChunk superTimeTree = (TimeTreeChunk) this._space.get(castedNode._index_superTimeTree);
             final TimeTreeChunk timeTree = (TimeTreeChunk) this._space.get(castedNode._index_timeTree);
             final long subTreeCapacity = timeTree.capacity();
+            //if (true) {
             if (timeTree.size() < subTreeCapacity) {
                 //easy, just insert the new timeslot
                 castedNode._index_timeTree_offset = timeTree.insert(nodeTime);
@@ -1566,21 +1572,29 @@ final class MWResolver implements Resolver {
                     superTimeTree.setLastValue(timeTree.size());
                 } else {
                     superTimeTree.insert(timeTree.time(), timeTree.size());
-                    /*nodeWorldOrder.unlock();
-                    castedNode.cacheUnlock();
-                    throw new RuntimeException("GreyCat internal error");
-                    */
                 }
             } else {
                 //are we the last last one?
+                //if (false) {
                 if (superTimeTree.lastKey() == timeTree.time()) {
-                    TimeTreeChunk newTimeTree = (TimeTreeChunk) this._space.createAndMark(subTreeType, nodeWorld, nodeTime, nodeId);
-                    long allowedSubTreeCapacity = superTimeTree.subTreeCapacity();
-                    castedNode._index_timeTree_offset = newTimeTree.insert(nodeTime);
-                    newTimeTree.setCapacity(allowedSubTreeCapacity);
-                    superTimeTree.insert(nodeTime, allowedSubTreeCapacity);
-                    _space.unmark(castedNode._index_timeTree);
-                    castedNode._index_timeTree = newTimeTree.index();
+                    long p_found = timeTree.max();
+                    if (p_found == nodeTime) {
+                        throw new RuntimeException("GreyCat Internal Error");
+                        //noop
+                    } else if (nodeTime < p_found) {
+                        //we insert in the past
+                        castedNode._index_timeTree_offset = timeTree.insert(nodeTime);
+                        timeTree.setCapacity(subTreeCapacity + 1);
+                        superTimeTree.insert(timeTree.time(), subTreeCapacity + 1);
+                    } else {
+                        final TimeTreeChunk newTimeTree = (TimeTreeChunk) this._space.createAndMark(subTreeType, nodeWorld, nodeTime, nodeId);
+                        final long allowedSubTreeCapacity = superTimeTree.subTreeCapacity();
+                        castedNode._index_timeTree_offset = newTimeTree.insert(nodeTime);
+                        newTimeTree.setCapacity(allowedSubTreeCapacity);
+                        superTimeTree.insert(nodeTime, allowedSubTreeCapacity);
+                        _space.unmark(castedNode._index_timeTree);
+                        castedNode._index_timeTree = newTimeTree.index();
+                    }
                 } else {
                     //insertion in past, oversize tree
                     castedNode._index_timeTree_offset = timeTree.insert(nodeTime);
