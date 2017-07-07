@@ -51,7 +51,7 @@ public class GlobalIndexGenerator {
                 .setName("META")
                 .setType(greycat.utility.Meta.class)
                 .setLiteralInitializer("new greycat.utility.Meta(" + "\"" + index.name() + "\"" + ","
-                        + HashHelper.hash(index.name()) + ", "
+                        + Type.INDEX + ", "
                         + HashHelper.hash(index.name()) + ");")
                 .setStatic(true);
 
