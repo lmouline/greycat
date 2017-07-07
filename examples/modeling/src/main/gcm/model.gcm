@@ -17,6 +17,8 @@ class SmartCity {
     att name : String
     att location : GPSPosition
 
+    att taskAtt : Task
+
     att x : Double = 5.1
     att y : Double = 1.5
 
