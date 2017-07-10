@@ -35,6 +35,17 @@ public abstract class Type implements Container {
         return (Attribute) att;
     }
 
+    Annotation getOrCreateAnnotation(String name) {
+        Object annotation = properties.get(name);
+        if (annotation == null) {
+            annotation = new Annotation(name, this);
+            properties.put(name, annotation);
+        } else if (!(annotation instanceof Annotation)) {
+            throw new RuntimeException("Property name conflict annotation name conflict with " + annotation);
+        }
+        return (Annotation) annotation;
+    }
+
     Constant getOrCreateConstant(String name) {
         Object att = properties.get(name);
         if (att == null) {
