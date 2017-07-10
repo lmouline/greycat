@@ -140,19 +140,19 @@ public class TypeManager {
 
         switch (type) {
             case "Bool":
-                className = boolean.class.getCanonicalName();
+                className = Boolean.class.getCanonicalName();
                 break;
             case "String":
                 className = String.class.getCanonicalName();
                 break;
             case "Long":
-                className = long.class.getCanonicalName();
+                className = Long.class.getCanonicalName();
                 break;
             case "Int":
-                className = int.class.getCanonicalName();
+                className = Integer.class.getCanonicalName();
                 break;
             case "Double":
-                className = double.class.getCanonicalName();
+                className = Double.class.getCanonicalName();
                 break;
             case "DoubleArray":
                 className = DoubleArray.class.getCanonicalName();
