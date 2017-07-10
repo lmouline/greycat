@@ -347,7 +347,9 @@ public class CoreGraph implements Graph {
     public final void connect(final Callback<Boolean> callback) {
         final CoreGraph selfPointer = this;
         //negociate a lock
-        while (selfPointer._lock.compareAndSet(false, true)) ;
+        while (selfPointer._lock.compareAndSet(false, true)){
+            //noop
+        }
         //ok we have it, let's go
         if (_isConnected.compareAndSet(false, true)) {
             //first connect the scheduler
@@ -464,7 +466,9 @@ public class CoreGraph implements Graph {
 
     @Override
     public final void disconnect(final Callback callback) {
-        while (this._lock.compareAndSet(false, true)) ;
+        while (this._lock.compareAndSet(false, true)) {
+            //noop
+        }
         //ok we have the lock
         if (_isConnected.compareAndSet(true, false)) {
             //JS workaround for closure encapsulation and this variable
