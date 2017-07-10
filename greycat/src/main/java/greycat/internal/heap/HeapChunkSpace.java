@@ -315,12 +315,12 @@ public class HeapChunkSpace implements ChunkSpace {
             _chunkValues.set(found, null);
             long markBefore = _chunkMarks.get(found);
             if (markBefore != 0) {
-                System.err.println("Still mark deleted chunk " + markBefore);
+                //System.err.println("Still mark deleted chunk " + markBefore);
                 do {
                     markBefore = _chunkMarks.get(found);
                 } while (!_chunkMarks.compareAndSet(found, markBefore, 0));
                 if (markBefore != 0) {
-                    this._lru.enqueue(index);
+                    this._lru.enqueue(found);
                 }
             }
         }
@@ -501,11 +501,11 @@ public class HeapChunkSpace implements ChunkSpace {
                         events.get(chunkId).right().add(chunkTime);
                     } else {
                         final WorldOrderChunk wo = (WorldOrderChunk) getAndMark(ChunkType.WORLD_ORDER_CHUNK, 0, 0, chunkId);
-                        if(wo != null){
+                        if (wo != null) {
                             final Listeners l = wo.listeners();
                             unmark(wo.index());
                             if (l != null) {
-                                if(events == null){
+                                if (events == null) {
                                     events = new java.util.HashMap<Long, Tuple<Listeners, LArray>>();
                                 }
                                 LArray collector = new LArray();

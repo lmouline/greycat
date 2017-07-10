@@ -114,7 +114,6 @@ public class WSServerTest {
                 graph2.connect(new Callback<Boolean>() {
                     @Override
                     public void on(Boolean result1) {
-
                         graph2.index(0, 0, "nodes", new Callback<NodeIndex>() {
                             @Override
                             public void on(NodeIndex indexNodes) {
