@@ -21,16 +21,14 @@ import greycat.internal.custom.*;
 import greycat.internal.heap.HeapMemoryFactory;
 import greycat.plugin.*;
 import greycat.struct.*;
-import greycat.utility.HashHelper;
+import greycat.utility.*;
 import greycat.base.BaseNode;
 import greycat.internal.task.CoreActionRegistry;
 import greycat.internal.task.CoreTask;
 import greycat.TaskHook;
 import greycat.utility.Base64;
-import greycat.utility.KeyHelper;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class CoreGraph implements Graph {
@@ -682,4 +680,124 @@ public class CoreGraph implements Graph {
             }
         }
     }
+
+    @Override
+    public final void remoteNotify(final Buffer buffer) {
+        java.util.Map<Long, Tuple<Listeners, LArray>> events = null;
+        if (buffer != null) {
+            byte type = 0;
+            long world = 0;
+            long time = 0;
+            long id = 0;
+            long hash = 0;
+            int step = 0;
+            long cursor = 0;
+            long previous = 0;
+            int end = (int) buffer.length();
+            while (cursor < end) {
+                byte current = buffer.read(cursor);
+                if (current == Constants.KEY_SEP) {
+                    switch (step) {
+                        case 0:
+                            type = (byte) Base64.decodeToIntWithBounds(buffer, previous, cursor);
+                            break;
+                        case 1:
+                            world = Base64.decodeToLongWithBounds(buffer, previous, cursor);
+                            break;
+                        case 2:
+                            time = Base64.decodeToLongWithBounds(buffer, previous, cursor);
+                            break;
+                        case 3:
+                            id = Base64.decodeToLongWithBounds(buffer, previous, cursor);
+                            break;
+                        case 4:
+                            hash = Base64.decodeToLongWithBounds(buffer, previous, cursor);
+                            break;
+                    }
+                    previous = cursor + 1;
+                    if (step == 4) {
+                        step = 0;
+                        final Chunk ch = _space.getAndMark(type, world, time, id);
+                        if (ch != null) {
+                            if (!ch.sync(hash) && ch.chunkType() == ChunkType.STATE_CHUNK) {
+                                if (events != null && events.get(id) != null) {
+                                    events.get(id).right().add(time);
+                                } else {
+                                    final WorldOrderChunk wo = (WorldOrderChunk) _space.getAndMark(ChunkType.WORLD_ORDER_CHUNK, 0, 0, id);
+                                    if (wo != null) {
+                                        final Listeners l = wo.listeners();
+                                        _space.unmark(wo.index());
+                                        if (l != null) {
+                                            if (events == null) {
+                                                events = new java.util.HashMap<Long, Tuple<Listeners, LArray>>();
+                                            }
+                                            LArray collector = new LArray();
+                                            collector.add(time);
+                                            events.put(id, new Tuple<Listeners, LArray>(l, collector));
+                                        }
+                                    }
+                                }
+                            }
+                            _space.unmark(ch.index());
+                        }
+                    } else {
+                        step++;
+                    }
+                }
+                cursor++;
+            }
+            switch (step) {
+                case 0:
+                    type = (byte) Base64.decodeToIntWithBounds(buffer, previous, cursor);
+                    break;
+                case 1:
+                    world = Base64.decodeToLongWithBounds(buffer, previous, cursor);
+                    break;
+                case 2:
+                    time = Base64.decodeToLongWithBounds(buffer, previous, cursor);
+                    break;
+                case 3:
+                    id = Base64.decodeToLongWithBounds(buffer, previous, cursor);
+                    break;
+                case 4:
+                    hash = Base64.decodeToLongWithBounds(buffer, previous, cursor);
+                    break;
+            }
+            if (step == 4) {
+                //invalidate
+                final Chunk ch = _space.getAndMark(type, world, time, id);
+                if (ch != null) {
+                    if (!ch.sync(hash) && ch.chunkType() == ChunkType.STATE_CHUNK) {
+                        if (events != null && events.get(id) != null) {
+                            events.get(id).right().add(time);
+                        } else {
+                            final WorldOrderChunk wo = (WorldOrderChunk) _space.getAndMark(ChunkType.WORLD_ORDER_CHUNK, 0, 0, id);
+                            if (wo != null) {
+                                final Listeners l = wo.listeners();
+                                _space.unmark(wo.index());
+                                if (l != null) {
+                                    if (events == null) {
+                                        events = new java.util.HashMap<Long, Tuple<Listeners, LArray>>();
+                                    }
+                                    final LArray collector = new LArray();
+                                    collector.add(time);
+                                    events.put(id, new Tuple<Listeners, LArray>(l, collector));
+                                }
+                            }
+                        }
+                    }
+                    _space.unmark(ch.index());
+                }
+            }
+            //dispatch notification to local listener
+            if (events != null) {
+                final Tuple[] tuples = events.values().toArray(new Tuple[events.size()]);
+                for (int i = 0; i < tuples.length; i++) {
+                    Tuple<Listeners, LArray> tt = tuples[i];
+                    tt.left().dispatch(tt.right().all());
+                }
+            }
+        }
+    }
+
 }

@@ -212,7 +212,7 @@ public class RocksDBStorage implements Storage {
             BufferIterator it = keys.iterator();
             while (it.hasNext()) {
                 Buffer view = it.next();
-                _db.remove(view.data());
+                _db.delete(view.data());
             }
             if (callback != null) {
                 callback.on(null);
@@ -233,7 +233,7 @@ public class RocksDBStorage implements Storage {
             options.sync();
             _db.write(options, new WriteBatch());
             _db.close();
-            _options.dispose();
+            _options.close();
             _options = null;
             _db = null;
             _isConnected = false;
