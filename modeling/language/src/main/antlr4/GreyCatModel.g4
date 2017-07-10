@@ -42,7 +42,7 @@ customTypeDcl: 'type' name=IDENT parentDcl? '{' (constDcl | attributeDcl)* '}';
 parentDcl: 'extends' IDENT;
 attributeDcl: 'att' name=IDENT ':' valueTypeDcl ('=' attributeValueDcl)?;
 
-annotationDcl: '@' name=IDENT (value=STRING)?;
+annotationDcl: '@' name=IDENT ('=' value=STRING)?;
 
 valueTypeDcl: (builtInTypeDcl | customBuiltTypeDcl);
 customBuiltTypeDcl: IDENT;

@@ -16,14 +16,11 @@ package greycat.language;
  * limitations under the License.
  */
 public class Annotation {
-    private final Container parent;
-
     private final String name;
     private String value;
 
-    public Annotation(final String name, Container parent) {
+    public Annotation(final String name) {
         this.name = name;
-        this.parent = parent;
     }
 
     public final String name() {
@@ -36,5 +33,20 @@ public class Annotation {
 
     public final void setValue(final String value) {
         this.value = value;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Annotation that = (Annotation) o;
+
+        return name != null ? name.equals(that.name) : that.name == null;
+    }
+
+    @Override
+    public int hashCode() {
+        return name != null ? name.hashCode() : 0;
     }
 }
