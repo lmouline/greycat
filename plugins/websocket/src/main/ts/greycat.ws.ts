@@ -321,7 +321,6 @@ export class WSClient implements greycat.plugin.Storage {
                         console.error("Received a NOTIFY_PRINT callback with unknown hash: " + callbackPrintCode, this.callbacks);
                     }
                     break;
-
                 case WSClient.NOTIFY_PROGRESS:
                     let progressCallbackCodeView = it.next();
                     let progressCallbackView = it.next();
