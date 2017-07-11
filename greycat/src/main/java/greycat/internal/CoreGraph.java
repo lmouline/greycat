@@ -723,7 +723,7 @@ public class CoreGraph implements Graph {
                         step = 0;
                         final Chunk ch = _space.getAndMark(type, world, time, id);
                         if (ch != null) {
-                            if (!ch.sync(hash) && ch.chunkType() == ChunkType.STATE_CHUNK) {
+                            if (ch.sync(hash) && ch.chunkType() == ChunkType.STATE_CHUNK) {
                                 if (events != null && events.get(id) != null) {
                                     events.get(id).right().add(time);
                                 } else {
@@ -771,7 +771,7 @@ public class CoreGraph implements Graph {
                 //invalidate
                 final Chunk ch = _space.getAndMark(type, world, time, id);
                 if (ch != null) {
-                    if (!ch.sync(hash) && ch.chunkType() == ChunkType.STATE_CHUNK) {
+                    if (ch.sync(hash) && ch.chunkType() == ChunkType.STATE_CHUNK) {
                         if (events != null && events.get(id) != null) {
                             events.get(id).right().add(time);
                         } else {
