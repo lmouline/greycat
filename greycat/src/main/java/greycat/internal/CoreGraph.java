@@ -685,9 +685,37 @@ public class CoreGraph implements Graph {
         }
     }
 
+    private void remoteNotifyElement(final byte type, final long world, final long time, final long id, final long hash, final java.util.Map<Long, Tuple<Listeners, LArray>> events) {
+        final Chunk ch = _space.getAndMark(type, world, time, id);
+        if (ch != null) {
+            //if already in sync we do nothing
+            if (!ch.sync(hash)) {
+                _space.unmark(ch.index());
+                return;
+            }
+        }
+        //not found, or not in sync
+        if (type == ChunkType.STATE_CHUNK) {
+            final WorldOrderChunk wo = (WorldOrderChunk) _space.getAndMark(ChunkType.WORLD_ORDER_CHUNK, 0, 0, id);
+            if (wo != null) {
+                if (events != null && events.get(id) != null) {
+                    events.get(id).right().add(time);
+                } else {
+                    final Listeners l = wo.listeners();
+                    if (l != null) {
+                        LArray collector = new LArray();
+                        collector.add(time);
+                        events.put(id, new Tuple<Listeners, LArray>(l, collector));
+                    }
+                }
+                _space.unmark(wo.index());
+            }
+        }
+    }
+
     @Override
     public final void remoteNotify(final Buffer buffer) {
-        java.util.Map<Long, Tuple<Listeners, LArray>> events = null;
+        java.util.Map<Long, Tuple<Listeners, LArray>> events = new java.util.HashMap<Long, Tuple<Listeners, LArray>>();
         if (buffer != null && buffer.length() > 0) {
             byte type = 0;
             long world = 0;
@@ -721,29 +749,7 @@ public class CoreGraph implements Graph {
                     previous = cursor + 1;
                     if (step == 4) {
                         step = 0;
-                        final Chunk ch = _space.getAndMark(type, world, time, id);
-                        if (ch != null) {
-                            if (ch.sync(hash) && ch.chunkType() == ChunkType.STATE_CHUNK) {
-                                if (events != null && events.get(id) != null) {
-                                    events.get(id).right().add(time);
-                                } else {
-                                    final WorldOrderChunk wo = (WorldOrderChunk) _space.getAndMark(ChunkType.WORLD_ORDER_CHUNK, 0, 0, id);
-                                    if (wo != null) {
-                                        final Listeners l = wo.listeners();
-                                        _space.unmark(wo.index());
-                                        if (l != null) {
-                                            if (events == null) {
-                                                events = new java.util.HashMap<Long, Tuple<Listeners, LArray>>();
-                                            }
-                                            LArray collector = new LArray();
-                                            collector.add(time);
-                                            events.put(id, new Tuple<Listeners, LArray>(l, collector));
-                                        }
-                                    }
-                                }
-                            }
-                            _space.unmark(ch.index());
-                        }
+                        remoteNotifyElement(type, world, time, id, hash, events);
                     } else {
                         step++;
                     }
@@ -769,32 +775,10 @@ public class CoreGraph implements Graph {
             }
             if (step == 4) {
                 //invalidate
-                final Chunk ch = _space.getAndMark(type, world, time, id);
-                if (ch != null) {
-                    if (ch.sync(hash) && ch.chunkType() == ChunkType.STATE_CHUNK) {
-                        if (events != null && events.get(id) != null) {
-                            events.get(id).right().add(time);
-                        } else {
-                            final WorldOrderChunk wo = (WorldOrderChunk) _space.getAndMark(ChunkType.WORLD_ORDER_CHUNK, 0, 0, id);
-                            if (wo != null) {
-                                final Listeners l = wo.listeners();
-                                _space.unmark(wo.index());
-                                if (l != null) {
-                                    if (events == null) {
-                                        events = new java.util.HashMap<Long, Tuple<Listeners, LArray>>();
-                                    }
-                                    final LArray collector = new LArray();
-                                    collector.add(time);
-                                    events.put(id, new Tuple<Listeners, LArray>(l, collector));
-                                }
-                            }
-                        }
-                    }
-                    _space.unmark(ch.index());
-                }
+                remoteNotifyElement(type, world, time, id, hash, events);
             }
             //dispatch notification to local listener
-            if (events != null) {
+            if (events.size() > 0) {
                 final Tuple[] tuples = events.values().toArray(new Tuple[events.size()]);
                 for (int i = 0; i < tuples.length; i++) {
                     Tuple<Listeners, LArray> tt = tuples[i];
