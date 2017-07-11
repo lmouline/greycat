@@ -347,7 +347,7 @@ public class CoreGraph implements Graph {
     public final void connect(final Callback<Boolean> callback) {
         final CoreGraph selfPointer = this;
         //negociate a lock
-        while (selfPointer._lock.compareAndSet(false, true)){
+        while (selfPointer._lock.compareAndSet(false, true)) {
             //noop
         }
         //ok we have it, let's go
@@ -688,7 +688,7 @@ public class CoreGraph implements Graph {
     @Override
     public final void remoteNotify(final Buffer buffer) {
         java.util.Map<Long, Tuple<Listeners, LArray>> events = null;
-        if (buffer != null) {
+        if (buffer != null && buffer.length() > 0) {
             byte type = 0;
             long world = 0;
             long time = 0;

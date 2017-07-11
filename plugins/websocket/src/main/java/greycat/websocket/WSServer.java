@@ -202,7 +202,7 @@ public class WSServer implements WebSocketConnectionCallback, Callback<Buffer> {
                                 @Override
                                 public void on(TaskResult result) {
                                     //we also dispatch locally
-                                    if (result.notifications() != null) {
+                                    if (result.notifications() != null && result.notifications().length() > 0) {
                                         graph.remoteNotify(result.notifications());
                                     }
                                     end.on(result);
