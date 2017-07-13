@@ -84,7 +84,7 @@ class IndexGenerator {
                 .addParameter(LONG, "time");
         StringBuilder params = new StringBuilder();
         index.attributes().forEach(attributeRef -> {
-            find.addParameter(Helper.clazz(attributeRef.ref().type()), attributeRef.ref().name());
+            find.addParameter(clazz(attributeRef.ref().type()), attributeRef.ref().name());
             params.append(",").append(attributeRef.ref().name());
         });
         find.addParameter(ParameterizedTypeName.get(gCallback, ArrayTypeName.of(ClassName.get(packageName, index.type()))), "callback")
@@ -130,6 +130,7 @@ class IndexGenerator {
                                 .returns(VOID)
                                 .beginControlFlow("if(idx != null)")
                                 .addStatement("idx.update(toIndex)")
+                                .addStatement("idx.free()")
                                 .addStatement("callback.on(true)")
                                 .nextControlFlow("else")
                                 .addStatement("System.err.println($S)", "undeclared index " + index.name())
@@ -153,6 +154,7 @@ class IndexGenerator {
                                 .returns(VOID)
                                 .beginControlFlow("if(idx != null)")
                                 .addStatement("idx.unindex(toUnIndex)")
+                                .addStatement("idx.free()")
                                 .addStatement("callback.on(true)")
                                 .nextControlFlow("else")
                                 .addStatement("System.err.println($S)", "undeclared index " + index.name())

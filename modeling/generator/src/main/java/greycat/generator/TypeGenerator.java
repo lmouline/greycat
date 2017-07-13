@@ -46,11 +46,8 @@ class TypeGenerator {
         if (gType.name().equals("Node") || gType.name().equals("greycat.Node")) {
             return;
         }
-
-
         TypeSpec.Builder javaClass = TypeSpec.classBuilder(gType.name());
         javaClass.addModifiers(PUBLIC);
-
         if (gType.parent() != null) {
             javaClass.superclass(ClassName.get(packageName, gType.parent().name()));
         } else {
@@ -60,7 +57,6 @@ class TypeGenerator {
                 javaClass.superclass(ClassName.get(BaseNode.class));
             }
         }
-
         StringBuilder TS_GET_SET = new StringBuilder();
         gType.properties().forEach(o -> {
             if (o instanceof Attribute) {
@@ -75,7 +71,6 @@ class TypeGenerator {
         if (TS_GET_SET.length() > 0) {
             javaClass.addJavadoc("{@extend ts\n$L}\n", TS_GET_SET);
         }
-
         // constructor
         if (gType instanceof Class) {
             javaClass.addMethod(MethodSpec.constructorBuilder()
@@ -120,8 +115,8 @@ class TypeGenerator {
                     if (value != null) {
                         value = "greycat.Tasks.newTask().parse(\"" + value.replaceAll("\"", "'").trim() + "\",null)";
                     }
-                } else if (!constant.type().equals("String") && value != null) {
-                    value = value.replaceAll("\"", "");
+                } else if (constant.type().equals("String") && value != null) {
+                    value = "\""+value+"\"";
                 }
                 javaClass.addField(FieldSpec.builder(gMetaConst, constant.name().toUpperCase())
                         .addModifiers(PUBLIC, STATIC, FINAL)
@@ -372,17 +367,38 @@ class TypeGenerator {
                 final Attribute att = (Attribute) o;
                 if (att.value() != null) {
                     if (isPrimitive(att.type())) {
-                        initMethod.addStatement("setAt($1L.hash,$1L.type, $2L)", att.name().toUpperCase(), att.value().get(0).get(0));
+                        if(att.type().equals("String")){
+                            initMethod.addStatement("setAt($L.hash,$L.type, $S)", att.name().toUpperCase(), att.name().toUpperCase(), att.value().get(0).get(0));
+                        } else {
+                            initMethod.addStatement("setAt($1L.hash,$1L.type, $2L)", att.name().toUpperCase(), att.value().get(0).get(0));
+                        }
+
                     } else if (isPrimitiveArray(att.type())) {
                         StringBuilder paramBuilder = new StringBuilder();
                         att.value().forEach(objects -> {
-                            paramBuilder.append(".addElement(").append(objects.get(0)).append(")");
+                            switch (att.type()) {
+                                case "StringArray":
+                                    paramBuilder.append(".addElement(\"").append(objects.get(0)).append("\")");
+                                    break;
+                                default:
+                                    paramBuilder.append(".addElement(").append(objects.get(0)).append(")");
+                            }
                         });
                         initMethod.addStatement("(($T)getOrCreateAt($L.hash,$L.type))$L", clazz(att.type()), att.name().toUpperCase(), att.name().toUpperCase(), paramBuilder);
                     } else if (isMap(att.type())) {
                         StringBuilder paramBuilder = new StringBuilder();
                         att.value().forEach(objects -> {
-                            paramBuilder.append(".put(").append(objects.get(0)).append(",").append(objects.get(1)).append(")");
+                            switch (att.type()) {
+                                case "StringToIntMap":
+                                    paramBuilder.append(".put(\"").append(objects.get(0)).append("\",").append(objects.get(1)).append(")");
+                                    break;
+                                case "IntToStringMap":
+                                    paramBuilder.append(".put(").append(objects.get(0)).append(",\"").append(objects.get(1)).append("\")");
+                                    break;
+                                default:
+                                    paramBuilder.append(".put(").append(objects.get(0)).append(",").append(objects.get(1)).append(")");
+                            }
+
                         });
                         initMethod.addStatement("(($T)getOrCreateAt($L.hash,$L.type))$L", clazz(att.type()), att.name().toUpperCase(), att.name().toUpperCase(), paramBuilder);
                     } else if (isMatrix(att.type())) {
@@ -397,10 +413,10 @@ class TypeGenerator {
                 final Annotation annot = (Annotation) o;
                 switch (annot.name()) {
                     case "timeSensitivity":
-                        long parsedSensitivity = Long.parseLong(annot.value().get(0).get(0).toString().replace("\"", ""));
+                        long parsedSensitivity = Long.parseLong(annot.value().get(0).get(0).toString());
                         long offset = 0;
                         if (annot.value().get(0).size() == 2) {
-                            offset = Long.parseLong(annot.value().get(0).get(1).toString().replace("\"", ""));
+                            offset = Long.parseLong(annot.value().get(0).get(1).toString());
                         }
                         initMethod.addStatement("setTimeSensitivity($L, $L)", parsedSensitivity, offset);
                         break;
@@ -475,7 +491,6 @@ class TypeGenerator {
                 oppositeName = ((Reference) edge.opposite().edge()).name();
                 oppositeBodyBuilder.append("value.removeFromRelation(").append(edgeType).append(".").append(oppositeName.toUpperCase()).append(".name, this);");
                 oppositeBodyBuilder.append("value.addToRelation(").append(edgeType).append(".").append(oppositeName.toUpperCase()).append(".name, this);");
-
             } else if (edge.opposite().edge() instanceof Index) {
                 Index idx = ((Index) edge.opposite().edge());
                 oppositeName = idx.name();
@@ -491,7 +506,6 @@ class TypeGenerator {
                 }
                 indexedAttBuilder.deleteCharAt(indexedAttBuilder.length() - 1);
                 oppositeBodyBuilder.append("index.declareAttributes(null, " + indexedAttBuilder.toString() + ");");
-
                 oppositeBodyBuilder.append("}");
                 oppositeBodyBuilder.append("index.update(").append("this").append(");");
             }

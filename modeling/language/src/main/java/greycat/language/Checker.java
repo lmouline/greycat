@@ -22,7 +22,7 @@ public class Checker {
     public static void check(Model model) {
         //check that all attributes have a type
         model.classes.values().forEach(aClass -> {
-            if(aClass.name.equals("Node")){
+            if (aClass.name.equals("Node")) {
                 //noop
             } else {
                 aClass.properties().forEach(o -> {
@@ -39,8 +39,6 @@ public class Checker {
                     }
                 });
             }
-
-
         });
         model.constants.values().forEach(constant -> {
             if (constant.type().equals("Task") && constant.value() != null) {
