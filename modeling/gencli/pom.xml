@@ -62,7 +62,18 @@
                                 </transformer>
                             </transformers>
                             <outputFile>${basedir}/target/classes-npm/generator.jar</outputFile>
-                            <!--<minimizeJar>true</minimizeJar>-->
+                            <filters>
+                                <filter>
+                                    <artifact>org.jetbrains.kotlin:kotlin-compiler</artifact>
+                                    <excludes>
+                                        <exclude>jline/**</exclude>
+                                        <exclude>kotlin/**</exclude>
+                                        <exclude>com/google/gwt.dev.js/**</exclude>
+                                        <exclude>com/sun/**</exclude>
+                                        <exclude>org/jetbrains/kotlin/**</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
                         </configuration>
                     </execution>
                 </executions>
