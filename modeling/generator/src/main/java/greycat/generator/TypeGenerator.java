@@ -117,7 +117,7 @@ class TypeGenerator {
                         value = "greycat.Tasks.newTask().parse(\"" + value.replaceAll("\"", "'").trim() + "\",null)";
                     }
                 } else if (constant.type().equals("String") && value != null) {
-                    value = "\""+value+"\"";
+                    value = "\"" + value + "\"";
                 }
                 javaClass.addField(FieldSpec.builder(gMetaConst, constant.name().toUpperCase())
                         .addModifiers(PUBLIC, STATIC, FINAL)
@@ -176,7 +176,7 @@ class TypeGenerator {
                                         .addStatement("$T.arraycopy(result, 0, typedResult, 0, result.length)", jlSystem)
                                         .addStatement("callback.on(typedResult)")
                                         .nextControlFlow("else")
-                                        .addStatement("callback.on(new $T[0])",ClassName.get(packageName, resultType))
+                                        .addStatement("callback.on(new $T[0])", ClassName.get(packageName, resultType))
                                         .endControlFlow()
                                         .build())
                                 .build())
@@ -236,8 +236,7 @@ class TypeGenerator {
                         .addModifiers(PUBLIC, FINAL)
                         .returns(ClassName.get(packageName, gType.name()))
                         .addParameter(clazz(ref.type()), "value")
-                        .addStatement("(($T)this.getOrCreateAt($L.hash, greycat.Type.RELATION)).clear()", ClassName.get(greycat.struct.Relation.class), ref.name().toUpperCase())
-                        .addStatement("addToRelationAt($L.hash,value)", ref.name().toUpperCase());
+                        .addStatement("(($T)this.getOrCreateAt($L.hash, greycat.Type.RELATION)).clear().add(value.id())", ClassName.get(greycat.struct.Relation.class), ref.name().toUpperCase());
                 if (ref.opposite() != null) {
                     addTo.addStatement(createAddOppositeBody(ref.type(), ref).toString());
                 }
@@ -277,9 +276,9 @@ class TypeGenerator {
                 }
                 indexedAttBuilder.deleteCharAt(indexedAttBuilder.length() - 1);
 
-                indexMethod.addStatement("$T index = ($T) this.getAt($L.hash)", gIndex, gIndex,li.name().toUpperCase());
+                indexMethod.addStatement("$T index = ($T) this.getAt($L.hash)", gIndex, gIndex, li.name().toUpperCase());
                 indexMethod.beginControlFlow("if(index == null)");
-                indexMethod.addStatement("index = ($T) this.getOrCreateAt($L.hash,greycat.Type.INDEX)", gIndex,li.name().toUpperCase());
+                indexMethod.addStatement("index = ($T) this.getOrCreateAt($L.hash,greycat.Type.INDEX)", gIndex, li.name().toUpperCase());
                 indexMethod.addStatement("index.declareAttributes(null, $L)", indexedAttBuilder.toString());
                 indexMethod.endControlFlow();
                 indexMethod.addStatement("index.update(value)");
@@ -295,7 +294,7 @@ class TypeGenerator {
                         .returns(ClassName.get(packageName, gType.name()))
                         .addParameter(ClassName.bestGuess(Generator.upperCaseFirstChar(li.type())), "value");
 
-                unindexMethod.addStatement("$T index = ($T) this.getAt($L.hash)", gIndex, gIndex,li.name().toUpperCase());
+                unindexMethod.addStatement("$T index = ($T) this.getAt($L.hash)", gIndex, gIndex, li.name().toUpperCase());
                 unindexMethod.beginControlFlow("if(index != null)");
                 unindexMethod.addStatement("index.unindex(value)");
                 if (li.opposite() != null) {
@@ -313,7 +312,7 @@ class TypeGenerator {
                     findMethod.addParameter(ClassName.get(String.class), indexedAtt.ref().name());
                 }
                 findMethod.addParameter(ParameterizedTypeName.get(gCallback, ArrayTypeName.of(ClassName.get(packageName, li.type()))), "callback");
-                findMethod.addStatement("$T index = ($T) this.getAt($L.hash)", gIndex, gIndex,li.name().toUpperCase());
+                findMethod.addStatement("$T index = ($T) this.getAt($L.hash)", gIndex, gIndex, li.name().toUpperCase());
                 findMethod.beginControlFlow("if(index != null)");
 
                 TypeSpec findCallback = TypeSpec.anonymousClassBuilder("")
@@ -342,7 +341,7 @@ class TypeGenerator {
                         .addModifiers(PUBLIC, FINAL)
                         .addParameter(ParameterizedTypeName.get(gCallback, ArrayTypeName.of(ClassName.get(packageName, li.type()))), "callback")
                         .returns(VOID)
-                        .addStatement("$T index = ($T) this.getAt($L.hash)", gIndex, gIndex,li.name().toUpperCase())
+                        .addStatement("$T index = ($T) this.getAt($L.hash)", gIndex, gIndex, li.name().toUpperCase())
                         .beginControlFlow("if(index != null)")
                         .addStatement("index.find($L, this.world(), this.time())",
                                 TypeSpec.anonymousClassBuilder("")
@@ -373,7 +372,7 @@ class TypeGenerator {
                 final Attribute att = (Attribute) o;
                 if (att.value() != null) {
                     if (isPrimitive(att.type())) {
-                        if(att.type().equals("String")){
+                        if (att.type().equals("String")) {
                             initMethod.addStatement("setAt($L.hash,$L.type, $S)", att.name().toUpperCase(), att.name().toUpperCase(), att.value().get(0).get(0));
                         } else {
                             initMethod.addStatement("setAt($1L.hash,$1L.type, $2L)", att.name().toUpperCase(), att.value().get(0).get(0));
