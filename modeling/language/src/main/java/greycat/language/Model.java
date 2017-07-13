@@ -131,6 +131,10 @@ public class Model {
                 e.printStackTrace();
             }
         }
+        if (in.size() == 0) {
+            return;
+        }
+
         String sha1 = convertToHex(md.digest(in.getText(new Interval(0, in.size())).getBytes()));
         if (alreadyLoaded.contains(sha1)) {
             return;
@@ -365,8 +369,7 @@ public class Model {
         String name = annotationDcl.name.getText();
         final Annotation annotation = type.getOrCreateAnnotation(name);
         if (annotationDcl.value != null) {
-            String value = annotationDcl.value.getText();
-            annotation.setValue(value);
+            annotation.setValue(getAttributeValue(annotationDcl.attributeValueDcl()));
         }
     }
 

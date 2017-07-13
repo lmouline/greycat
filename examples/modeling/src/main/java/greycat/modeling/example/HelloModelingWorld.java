@@ -86,29 +86,34 @@ public class HelloModelingWorld {
                 });
 
                 // global index
+                /*
                 Buildings.declareIndex(graph, 0, new Callback<Boolean>() {
                     @Override
                     public void on(Boolean result) {
-                        Buildings.updateIndex(graph, 0, 0, building, new Callback<Boolean>() {
-                            @Override
-                            public void on(Boolean result) {
-                                Buildings.find(graph, 0, 0, "building", new Callback<Building[]>() {
-                                    @Override
-                                    public void on(Building[] result) {
-                                        System.out.println("find: found " + result.length + " building with global index");
 
-                                    }
-                                });
-                                Buildings.findAll(graph, 0, 0, new Callback<Building[]>() {
-                                    @Override
-                                    public void on(Building[] result) {
-                                        System.out.println("findAll: found " + result.length + " building with global index");
-                                    }
-                                });
+                    }
+                });*/
+
+
+                Buildings.update(building, new Callback<Boolean>() {
+                    @Override
+                    public void on(Boolean result) {
+                        Buildings.find(graph, 0, 0, "building", new Callback<Building[]>() {
+                            @Override
+                            public void on(Building[] result) {
+                                System.out.println("find: found " + result.length + " building with global index");
+
+                            }
+                        });
+                        Buildings.findAll(graph, 0, 0, new Callback<Building[]>() {
+                            @Override
+                            public void on(Building[] result) {
+                                System.out.println("findAll: found " + result.length + " building with global index");
                             }
                         });
                     }
                 });
+
 
                 // override constant
                 Constants.CONSTANT_TO_OVERRIDE = "new value";
@@ -147,7 +152,6 @@ public class HelloModelingWorld {
                         }
                     }
                 });
-
 
                 // derived att
                 smartCity.traverseAt(SmartCity.DERIVEDATT.hash, new Callback<Double>() {

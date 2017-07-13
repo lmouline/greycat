@@ -13,28 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package greycat.struct;
+package greycatTest;
 
-public interface IntArray extends ArrayStruct {
+import greycat.language.Annotation;
+import greycat.language.Checker;
+import greycat.language.Model;
+import org.junit.Assert;
+import org.junit.Test;
 
-    int get(int index);
+public class AnnotationTest {
 
-    void set(int index, int value);
-
-    void initWith(int[] values);
-
-    int[] extract();
-
-    boolean removeElement(int value);
-
-    boolean removeElementbyIndex(int index);
-
-    IntArray addElement(int value);
-
-    boolean insertElementAt(int position, int value);
-
-    boolean replaceElementby(int element, int value);
-
-    void addAll(int[] values);
+    @Test
+    public void importTest() throws Exception {
+        Model model = new Model();
+        model.parseResource("annotation.gcm", this.getClass().getClassLoader());
+        model.consolidate();
+        Checker.check(model);
+        Assert.assertEquals(1, model.classes().length);
+        Assert.assertEquals(2, ((Annotation) model.classes()[0].properties.get("timeSensitivity")).value().size());
+    }
 
 }
