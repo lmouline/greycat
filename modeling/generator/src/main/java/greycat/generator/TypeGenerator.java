@@ -21,8 +21,9 @@ import greycat.base.BaseNode;
 import greycat.language.*;
 import greycat.language.Class;
 import greycat.language.Index;
+import greycat.language.Relation;
 import greycat.language.Type;
-import greycat.struct.EStructArray;
+import greycat.struct.*;
 
 import java.util.List;
 
@@ -231,6 +232,7 @@ class TypeGenerator {
                         .addModifiers(PUBLIC, FINAL)
                         .returns(ClassName.get(packageName, gType.name()))
                         .addParameter(clazz(ref.type()), "value")
+                        .addStatement("(($T)this.getOrCreateAt($L.hash, greycat.Type.RELATION)).clear()", ClassName.get(greycat.struct.Relation.class), ref.name().toUpperCase())
                         .addStatement("addToRelationAt($L.hash,value)", ref.name().toUpperCase());
                 if (ref.opposite() != null) {
                     addTo.addStatement(createAddOppositeBody(ref.type(), ref).toString());
