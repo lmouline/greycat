@@ -271,9 +271,9 @@ class TypeGenerator {
                 }
                 indexedAttBuilder.deleteCharAt(indexedAttBuilder.length() - 1);
 
-                indexMethod.addStatement("$T index = ($T) this.getAt(META.hash)", gIndex, gIndex);
+                indexMethod.addStatement("$T index = ($T) this.getAt($L.hash)", gIndex, gIndex,li.name().toUpperCase());
                 indexMethod.beginControlFlow("if(index == null)");
-                indexMethod.addStatement("index = ($T) this.getOrCreateAt(META.hash,greycat.Type.INDEX)", gIndex);
+                indexMethod.addStatement("index = ($T) this.getOrCreateAt($L.hash,greycat.Type.INDEX)", gIndex,li.name().toUpperCase());
                 indexMethod.addStatement("index.declareAttributes(null, $L)", indexedAttBuilder.toString());
                 indexMethod.endControlFlow();
                 indexMethod.addStatement("index.update(value)");
@@ -289,7 +289,7 @@ class TypeGenerator {
                         .returns(ClassName.get(packageName, gType.name()))
                         .addParameter(ClassName.bestGuess(Generator.upperCaseFirstChar(li.type())), "value");
 
-                unindexMethod.addStatement("$T index = ($T) this.getAt(META.hash)", gIndex, gIndex);
+                unindexMethod.addStatement("$T index = ($T) this.getAt($L.hash)", gIndex, gIndex,li.name().toUpperCase());
                 unindexMethod.beginControlFlow("if(index != null)");
                 unindexMethod.addStatement("index.unindex(value)");
                 if (li.opposite() != null) {
@@ -307,7 +307,7 @@ class TypeGenerator {
                     findMethod.addParameter(ClassName.get(String.class), indexedAtt.ref().name());
                 }
                 findMethod.addParameter(ParameterizedTypeName.get(gCallback, ArrayTypeName.of(ClassName.get(packageName, li.type()))), "callback");
-                findMethod.addStatement("$T index = ($T) this.getAt(META.hash)", gIndex, gIndex);
+                findMethod.addStatement("$T index = ($T) this.getAt($L.hash)", gIndex, gIndex,li.name().toUpperCase());
                 findMethod.beginControlFlow("if(index != null)");
 
                 TypeSpec findCallback = TypeSpec.anonymousClassBuilder("")
@@ -336,7 +336,7 @@ class TypeGenerator {
                         .addModifiers(PUBLIC, FINAL)
                         .addParameter(ParameterizedTypeName.get(gCallback, ArrayTypeName.of(ClassName.get(packageName, li.type()))), "callback")
                         .returns(VOID)
-                        .addStatement("$T index = ($T) this.getAt(META.hash)", gIndex, gIndex)
+                        .addStatement("$T index = ($T) this.getAt($L.hash)", gIndex, gIndex,li.name().toUpperCase())
                         .beginControlFlow("if(index != null)")
                         .addStatement("index.find($L, this.world(), this.time())",
                                 TypeSpec.anonymousClassBuilder("")
