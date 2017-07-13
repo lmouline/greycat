@@ -19,31 +19,33 @@ import com.squareup.javapoet.*;
 import greycat.*;
 import greycat.language.*;
 import greycat.language.Class;
-import greycat.language.Index;
 import greycat.plugin.Job;
 import greycat.plugin.NodeFactory;
 import greycat.plugin.Plugin;
 import greycat.plugin.TypeFactory;
 import greycat.struct.EStructArray;
 
-import javax.lang.model.element.Modifier;
 import java.util.List;
+
+import static greycat.generator.Helper.*;
+import static com.squareup.javapoet.TypeName.*;
+import static javax.lang.model.element.Modifier.*;
 
 class PluginGenerator {
 
     static void generate(final String packageName, final String pluginName, final Model model, final List<JavaFile> collector) {
         TypeSpec.Builder javaClass = TypeSpec.classBuilder(pluginName);
-        javaClass.addModifiers(Modifier.PUBLIC);
+        javaClass.addModifiers(PUBLIC);
         javaClass.addSuperinterface(ClassName.get(Plugin.class));
 
         javaClass.addMethod(MethodSpec.methodBuilder("stop")
-                .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
+                .addModifiers(PUBLIC, FINAL)
                 .addAnnotation(Override.class)
                 .build());
 
         MethodSpec.Builder startMethod = MethodSpec.methodBuilder("start")
-                .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
-                .addParameter(ClassName.get(Graph.class), "graph")
+                .addModifiers(PUBLIC, FINAL)
+                .addParameter(gGraph, "graph")
                 .addAnnotation(Override.class);
         //Register NodeTypes
         for (Class aClass : model.classes()) {
@@ -51,12 +53,12 @@ class PluginGenerator {
                     .addSuperinterface(ClassName.get(NodeFactory.class))
                     .addMethod(MethodSpec.methodBuilder("create")
                             .addAnnotation(Override.class)
-                            .addModifiers(Modifier.PUBLIC)
-                            .addParameter(TypeName.LONG, "world")
-                            .addParameter(TypeName.LONG, "time")
-                            .addParameter(TypeName.LONG, "id")
-                            .addParameter(ClassName.get(Graph.class), "graph")
-                            .returns(ClassName.get(Node.class))
+                            .addModifiers(PUBLIC)
+                            .addParameter(LONG, "world")
+                            .addParameter(LONG, "time")
+                            .addParameter(LONG, "id")
+                            .addParameter(gGraph, "graph")
+                            .returns(gNode)
                             .addStatement("return new $T(world,time,id,graph)", ClassName.get(packageName, aClass.name()))
                             .build())
                     .build());
@@ -67,43 +69,43 @@ class PluginGenerator {
                     .addSuperinterface(ClassName.get(TypeFactory.class))
                     .addMethod(MethodSpec.methodBuilder("wrap")
                             .addAnnotation(Override.class)
-                            .addModifiers(Modifier.PUBLIC)
+                            .addModifiers(PUBLIC)
                             .addParameter(ClassName.get(EStructArray.class), "backend")
-                            .returns(TypeName.OBJECT)
+                            .returns(OBJECT)
                             .addStatement("return new $T(backend)", ClassName.get(packageName, aType.name()))
                             .build())
                     .build());
         }
         //Declare indexes
-        if (model.globalIndexes().length > 0) {
+        if (!model.indexes().isEmpty()) {
             MethodSpec.Builder onMethod = MethodSpec.methodBuilder("on")
                     .addAnnotation(Override.class)
-                    .addModifiers(Modifier.PUBLIC)
-                    .addParameter(ParameterizedTypeName.get(ClassName.get(Callback.class), TypeName.BOOLEAN.box()), "endIndexes")
-                    .returns(TypeName.VOID)
-                    .addStatement("$T waiter = graph.newCounter($L)", ClassName.get(DeferCounter.class), model.globalIndexes().length);
-            for (Index index : model.globalIndexes()) {
+                    .addModifiers(PUBLIC)
+                    .addParameter(ParameterizedTypeName.get(gCallback, BOOLEAN.box()), "endIndexes")
+                    .returns(VOID)
+                    .addStatement("$T waiter = graph.newCounter($L)", ClassName.get(DeferCounter.class), model.indexes().size());
+            model.indexes().forEach(index -> {
                 onMethod.addStatement("graph.declareIndex(0,$L.META.name,$L)", index.name(), TypeSpec.anonymousClassBuilder("")
-                        .addSuperinterface(ParameterizedTypeName.get(ClassName.get(Callback.class), ClassName.get(greycat.NodeIndex.class)))
+                        .addSuperinterface(ParameterizedTypeName.get(gCallback, gNodeIndex))
                         .addMethod(MethodSpec.methodBuilder("on")
                                 .addAnnotation(Override.class)
-                                .addModifiers(Modifier.PUBLIC)
-                                .addParameter(ClassName.get(greycat.NodeIndex.class), "idx")
+                                .addModifiers(PUBLIC)
+                                .addParameter(gNodeIndex, "idx")
                                 .addStatement("idx.free()")
                                 .addStatement("waiter.count()")
-                                .returns(TypeName.VOID).build())
+                                .returns(VOID).build())
                         .build());
-            }
+            });
             onMethod.addStatement("waiter.then($L)", TypeSpec.anonymousClassBuilder("")
                     .addSuperinterface(ClassName.get(Job.class))
                     .addMethod(MethodSpec.methodBuilder("run")
                             .addAnnotation(Override.class)
-                            .addModifiers(Modifier.PUBLIC)
+                            .addModifiers(PUBLIC)
                             .addStatement("endIndexes.on(true)")
-                            .returns(TypeName.VOID).build())
+                            .returns(VOID).build())
                     .build());
             startMethod.addStatement("graph.addConnectHook($L)", TypeSpec.anonymousClassBuilder("")
-                    .addSuperinterface(ParameterizedTypeName.get(ClassName.get(Callback.class), ParameterizedTypeName.get(ClassName.get(Callback.class), TypeName.BOOLEAN.box())))
+                    .addSuperinterface(ParameterizedTypeName.get(gCallback, ParameterizedTypeName.get(gCallback, BOOLEAN.box())))
                     .addMethod(onMethod.build())
                     .build());
         }

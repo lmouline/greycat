@@ -87,8 +87,8 @@ public class Model {
         return constants.values().toArray(new Constant[constants.size()]);
     }
 
-    public Index[] globalIndexes() {
-        return indexes.values().toArray(new Index[indexes.size()]);
+    public Collection<Index> indexes() {
+        return indexes.values();
     }
 
     public CustomType[] customTypes() {

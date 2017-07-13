@@ -21,8 +21,10 @@ import com.squareup.javapoet.TypeSpec;
 import greycat.language.Constant;
 import greycat.language.Model;
 
-import javax.lang.model.element.Modifier;
 import java.util.List;
+
+import static greycat.generator.Helper.*;
+import static javax.lang.model.element.Modifier.*;
 
 class ConstantGenerator {
     private static final String CONSTANT_CLASS_NAME = "Constants";
@@ -33,7 +35,7 @@ class ConstantGenerator {
 
     private static JavaFile generateGlobalConstant(String packageName, Constant[] globalConstants) {
         TypeSpec.Builder javaClass = TypeSpec.classBuilder(CONSTANT_CLASS_NAME);
-        javaClass.addModifiers(Modifier.PUBLIC, Modifier.FINAL);
+        javaClass.addModifiers(PUBLIC, FINAL);
         for (Constant constant : globalConstants) {
             String value = constant.value();
             if (constant.type().equals("Task") && value != null) {
@@ -41,10 +43,10 @@ class ConstantGenerator {
             } else if (!constant.type().equals("String") && value != null) {
                 value = value.replaceAll("\"", "");
             }
-            FieldSpec.Builder field = FieldSpec.builder(Helper.clazz(constant.type()), constant.name())
-                    .addModifiers(Modifier.PUBLIC, Modifier.STATIC);
+            FieldSpec.Builder field = FieldSpec.builder(clazz(constant.type()), constant.name())
+                    .addModifiers(PUBLIC, STATIC);
             if (value != null) {
-                field.addModifiers(Modifier.FINAL).initializer(value);
+                field.addModifiers(FINAL).initializer(value);
             }
             javaClass.addField(field.build());
         }

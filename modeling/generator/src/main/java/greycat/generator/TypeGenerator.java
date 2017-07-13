@@ -16,7 +16,6 @@
 package greycat.generator;
 
 import com.squareup.javapoet.*;
-import greycat.*;
 import greycat.base.BaseCustomTypeSingle;
 import greycat.base.BaseNode;
 import greycat.language.*;
@@ -25,11 +24,12 @@ import greycat.language.Index;
 import greycat.language.Type;
 import greycat.struct.EStructArray;
 import greycat.utility.HashHelper;
-import greycat.utility.Meta;
-import greycat.utility.MetaConst;
 
-import javax.lang.model.element.Modifier;
 import java.util.List;
+
+import static greycat.generator.Helper.*;
+import static com.squareup.javapoet.TypeName.*;
+import static javax.lang.model.element.Modifier.*;
 
 class TypeGenerator {
 
@@ -44,7 +44,7 @@ class TypeGenerator {
 
     private static JavaFile generateClass(String packageName, Type gType) {
         TypeSpec.Builder javaClass = TypeSpec.classBuilder(gType.name());
-        javaClass.addModifiers(Modifier.PUBLIC);
+        javaClass.addModifiers(PUBLIC);
 
         if (gType.parent() != null) {
             javaClass.superclass(ClassName.get(packageName, gType.parent().name()));
@@ -74,16 +74,16 @@ class TypeGenerator {
         // constructor
         if (gType instanceof Class) {
             javaClass.addMethod(MethodSpec.constructorBuilder()
-                    .addModifiers(Modifier.PUBLIC)
-                    .addParameter(TypeName.LONG, "p_world")
-                    .addParameter(TypeName.LONG, "p_time")
-                    .addParameter(TypeName.LONG, "p_id")
-                    .addParameter(ClassName.get(Graph.class), "p_graph")
+                    .addModifiers(PUBLIC)
+                    .addParameter(LONG, "p_world")
+                    .addParameter(LONG, "p_time")
+                    .addParameter(LONG, "p_id")
+                    .addParameter(gGraph, "p_graph")
                     .addStatement("super(p_world, p_time, p_id, p_graph)")
                     .build());
         } else if (gType instanceof CustomType) {
             javaClass.addMethod(MethodSpec.constructorBuilder()
-                    .addModifiers(Modifier.PUBLIC)
+                    .addModifiers(PUBLIC)
                     .addParameter(ClassName.get(EStructArray.class), "e")
                     .addStatement("super(e)")
                     .build());
@@ -91,23 +91,19 @@ class TypeGenerator {
 
         // init method
 
-        if(gType instanceof Class) {
+        if (gType instanceof Class) {
             javaClass.addMethod(MethodSpec.methodBuilder("create")
-                    .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
-                    .addParameter(TypeName.LONG, "p_world")
-                    .addParameter(TypeName.LONG, "p_time")
-                    .addParameter(ClassName.get(Graph.class), "p_graph")
+                    .addModifiers(PUBLIC, STATIC)
+                    .addParameter(LONG, "p_world")
+                    .addParameter(LONG, "p_time")
+                    .addParameter(gGraph, "p_graph")
                     .returns(ClassName.get(packageName, gType.name()))
                     .addStatement("return ($1T) p_graph.newTypedNode(p_world, p_time, $1T.META.name)", ClassName.get(packageName, gType.name()))
                     .build());
         }
 
-        final ClassName gMeta = ClassName.get(Meta.class);
-        final ClassName gMetaConst = ClassName.get(MetaConst.class);
-        final ClassName gCallback = ClassName.get(Callback.class);
-
         javaClass.addField(FieldSpec.builder(gMeta, "META")
-                .addModifiers(Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL)
+                .addModifiers(PUBLIC, STATIC, FINAL)
                 .initializer("new $T($S,$L,$L)", gMeta, gType.name(), HashHelper.hash(gType.name()), HashHelper.hash(gType.name()))
                 .build());
 
@@ -125,33 +121,33 @@ class TypeGenerator {
                     value = value.replaceAll("\"", "");
                 }
                 javaClass.addField(FieldSpec.builder(gMetaConst, constant.name().toUpperCase())
-                        .addModifiers(Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL)
+                        .addModifiers(PUBLIC, STATIC, FINAL)
                         .initializer("new $T($S, $L,$L, $L)", gMetaConst, constant.name(), Helper.typeName(constant.type()), HashHelper.hash(constant.name()), value)
                         .build());
             } else if (o instanceof Attribute) {
                 final Attribute att = (Attribute) o;
                 javaClass.addField(FieldSpec.builder(gMeta, att.name().toUpperCase())
-                        .addModifiers(Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL)
+                        .addModifiers(PUBLIC, STATIC, FINAL)
                         .initializer("new $T($S, $L,$L)", gMeta, att.name(), Helper.typeName(att.type()), HashHelper.hash(att.name()))
                         .build());
 
                 javaClass.addMethod(MethodSpec.methodBuilder("get" + Generator.upperCaseFirstChar(att.name()))
-                        .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
+                        .addModifiers(PUBLIC, FINAL)
                         .returns(Helper.clazz(att.type()))
                         .addStatement("return ($T) super.getAt($L.hash)", Helper.clazz(att.type()), att.name().toUpperCase())
                         .build());
 
                 if (Helper.isPrimitive(att.type())) {
                     javaClass.addMethod(MethodSpec.methodBuilder("set" + Generator.upperCaseFirstChar(att.name()))
-                            .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
-                            .addParameter(ClassName.bestGuess(Helper.className(att.type())), "value")
-                            .returns(ClassName.bestGuess(gType.name()))
+                            .addModifiers(PUBLIC, FINAL)
+                            .addParameter(clazz(att.type()), "value")
+                            .returns(clazz(gType.name()))
                             .addStatement("setAt($1L.hash,$1L.type, value)", att.name().toUpperCase())
                             .addStatement("return this")
                             .build());
                 } else {
                     javaClass.addMethod(MethodSpec.methodBuilder("getOrCreate" + Generator.upperCaseFirstChar(att.name()))
-                            .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
+                            .addModifiers(PUBLIC, FINAL)
                             .returns(Helper.clazz(att.type()))
                             .addStatement("return ($T) super.getOrCreateAt($L.hash,$L.type)", Helper.clazz(att.type()), att.name().toUpperCase(), att.name().toUpperCase())
                             .build());
@@ -161,30 +157,30 @@ class TypeGenerator {
                 String metaRelation = rel.name().toUpperCase();
                 String resultType = rel.type();
                 javaClass.addField(FieldSpec.builder(gMeta, metaRelation)
-                        .addModifiers(Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL)
+                        .addModifiers(PUBLIC, STATIC, FINAL)
                         .initializer("new $T($S, $L, $L)", gMeta, rel.name(), "greycat.Type.RELATION", HashHelper.hash(rel.name()))
                         .build());
 
                 javaClass.addMethod(MethodSpec.methodBuilder("get" + Generator.upperCaseFirstChar(rel.name()))
-                        .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
-                        .returns(TypeName.VOID)
+                        .addModifiers(PUBLIC, FINAL)
+                        .returns(VOID)
                         .addParameter(ParameterizedTypeName.get(gCallback, ArrayTypeName.of(ClassName.get(packageName, resultType))), "callback")
                         .addStatement("traverseAt($L.hash, $L)", metaRelation, TypeSpec.anonymousClassBuilder("")
-                                .addSuperinterface(ParameterizedTypeName.get(gCallback, ArrayTypeName.of(ClassName.get(Node.class))))
+                                .addSuperinterface(ParameterizedTypeName.get(gCallback, gNodeArray))
                                 .addMethod(MethodSpec.methodBuilder("on")
                                         .addAnnotation(Override.class)
-                                        .addModifiers(Modifier.PUBLIC)
-                                        .addParameter(ArrayTypeName.of(ClassName.get(Node.class)), "result")
-                                        .returns(TypeName.VOID)
+                                        .addModifiers(PUBLIC)
+                                        .addParameter(gNodeArray, "result")
+                                        .returns(VOID)
                                         .addStatement("$1T[] typedResult = new $1T[result.length]", ClassName.get(packageName, resultType))
-                                        .addStatement("$T.arraycopy(result, 0, typedResult, 0, result.length)", ClassName.get(java.lang.System.class))
+                                        .addStatement("$T.arraycopy(result, 0, typedResult, 0, result.length)", jlSystem)
                                         .addStatement("callback.on(typedResult)")
                                         .build())
                                 .build())
                         .build());
 
                 MethodSpec.Builder addTo = MethodSpec.methodBuilder("addTo" + Generator.upperCaseFirstChar(rel.name()))
-                        .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
+                        .addModifiers(PUBLIC, FINAL)
                         .returns(ClassName.get(packageName, gType.name()))
                         .addParameter(Helper.clazz(rel.type()), "value")
                         .addStatement("addToRelationAt($L.hash,value)", rel.name().toUpperCase());
@@ -195,7 +191,7 @@ class TypeGenerator {
                 javaClass.addMethod(addTo.build());
 
                 MethodSpec.Builder removeFrom = MethodSpec.methodBuilder("removeFrom" + Generator.upperCaseFirstChar(rel.name()))
-                        .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
+                        .addModifiers(PUBLIC, FINAL)
                         .returns(ClassName.get(packageName, gType.name()))
                         .addParameter(Helper.clazz(rel.type()), "value")
                         .addStatement("removeFromRelationAt($L.hash,value)", rel.name().toUpperCase());
@@ -207,25 +203,25 @@ class TypeGenerator {
 
             } else if (o instanceof Reference) {
                 Reference ref = (Reference) o;
-                String resultType = ref.type();
+                ClassName resultType = ClassName.get(packageName, ref.type());
                 javaClass.addField(FieldSpec.builder(gMeta, ref.name().toUpperCase())
-                        .addModifiers(Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL)
+                        .addModifiers(PUBLIC, STATIC, FINAL)
                         .initializer("new $T($S, $L, $L)", gMeta, ref.name(), "greycat.Type.RELATION", HashHelper.hash(ref.name()))
                         .build());
 
                 javaClass.addMethod(MethodSpec.methodBuilder("get" + Generator.upperCaseFirstChar(ref.name()))
-                        .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
-                        .returns(TypeName.VOID)
-                        .addParameter(ParameterizedTypeName.get(gCallback, ClassName.get(packageName, resultType)), "callback")
+                        .addModifiers(PUBLIC, FINAL)
+                        .returns(VOID)
+                        .addParameter(ParameterizedTypeName.get(gCallback, resultType), "callback")
                         .addStatement("traverseAt($L.hash, $L)", ref.name().toUpperCase(), TypeSpec.anonymousClassBuilder("")
-                                .addSuperinterface(ParameterizedTypeName.get(gCallback, ArrayTypeName.of(ClassName.get(Node.class))))
+                                .addSuperinterface(ParameterizedTypeName.get(gCallback, gNodeArray))
                                 .addMethod(MethodSpec.methodBuilder("on")
                                         .addAnnotation(Override.class)
-                                        .addModifiers(Modifier.PUBLIC)
-                                        .addParameter(ArrayTypeName.of(ClassName.get(Node.class)), "result")
-                                        .returns(TypeName.VOID)
+                                        .addModifiers(PUBLIC)
+                                        .addParameter(gNodeArray, "result")
+                                        .returns(VOID)
                                         .beginControlFlow("if(result != null && result.length == 1)")
-                                        .addStatement("callback.on(($T)result[0])", ClassName.get(packageName, resultType))
+                                        .addStatement("callback.on(($T)result[0])", resultType)
                                         .nextControlFlow("else")
                                         .addStatement("callback.on(null)")
                                         .endControlFlow()
@@ -234,7 +230,7 @@ class TypeGenerator {
                         .build());
 
                 MethodSpec.Builder addTo = MethodSpec.methodBuilder("set" + Generator.upperCaseFirstChar(ref.name()))
-                        .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
+                        .addModifiers(PUBLIC, FINAL)
                         .returns(ClassName.get(packageName, gType.name()))
                         .addParameter(Helper.clazz(ref.type()), "value")
                         .addStatement("addToRelationAt($L.hash,value)", ref.name().toUpperCase());
@@ -245,7 +241,7 @@ class TypeGenerator {
                 javaClass.addMethod(addTo.build());
 
                 MethodSpec.Builder removeFrom = MethodSpec.methodBuilder("removeFrom" + Generator.upperCaseFirstChar(ref.name()))
-                        .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
+                        .addModifiers(PUBLIC, FINAL)
                         .returns(ClassName.get(packageName, gType.name()))
                         .addParameter(Helper.clazz(ref.type()), "value")
                         .addStatement("removeFromRelationAt($L.hash,value)", ref.name().toUpperCase());
@@ -260,15 +256,15 @@ class TypeGenerator {
 
                 //Index field
                 javaClass.addField(FieldSpec.builder(gMeta, li.name().toUpperCase())
-                        .addModifiers(Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL)
+                        .addModifiers(PUBLIC, STATIC, FINAL)
                         .initializer("new $T($S, $L, $L)", gMeta, li.name(), "greycat.Type.INDEX", HashHelper.hash(li.name()))
                         .build());
 
                 //Index method
                 MethodSpec.Builder indexMethod = MethodSpec.methodBuilder("index" + Generator.upperCaseFirstChar(li.name()))
-                        .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
+                        .addModifiers(PUBLIC, FINAL)
                         .returns(ClassName.get(packageName, gType.name()))
-                        .addParameter(ClassName.bestGuess(Generator.upperCaseFirstChar(li.type())), "value");
+                        .addParameter(ClassName.get(packageName, li.type()), "value");
 
                 StringBuilder indexedAttBuilder = new StringBuilder();
                 for (AttributeRef attRef : li.attributes()) {
@@ -277,9 +273,9 @@ class TypeGenerator {
                 }
                 indexedAttBuilder.deleteCharAt(indexedAttBuilder.length() - 1);
 
-                indexMethod.addStatement("$T index = ($T) this.getAt(META.hash)", ClassName.get(greycat.Index.class), ClassName.get(greycat.Index.class));
+                indexMethod.addStatement("$T index = ($T) this.getAt(META.hash)", gIndex, gIndex);
                 indexMethod.beginControlFlow("if(index == null)");
-                indexMethod.addStatement("index = ($T) this.getOrCreateAt(META.hash,greycat.Type.INDEX)", ClassName.get(greycat.Index.class));
+                indexMethod.addStatement("index = ($T) this.getOrCreateAt(META.hash,greycat.Type.INDEX)", gIndex);
                 indexMethod.addStatement("index.declareAttributes(null, $S)", indexedAttBuilder.toString());
                 indexMethod.endControlFlow();
                 indexMethod.addStatement("index.update(value)");
@@ -291,11 +287,11 @@ class TypeGenerator {
 
                 //UnIndex method
                 MethodSpec.Builder unindexMethod = MethodSpec.methodBuilder("unindex" + Generator.upperCaseFirstChar(li.name()))
-                        .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
+                        .addModifiers(PUBLIC, FINAL)
                         .returns(ClassName.get(packageName, gType.name()))
                         .addParameter(ClassName.bestGuess(Generator.upperCaseFirstChar(li.type())), "value");
 
-                unindexMethod.addStatement("$T index = ($T) this.getAt(META.hash)", ClassName.get(greycat.Index.class), ClassName.get(greycat.Index.class));
+                unindexMethod.addStatement("$T index = ($T) this.getAt(META.hash)", gIndex, gIndex);
                 unindexMethod.beginControlFlow("if(index != null)");
                 unindexMethod.addStatement("index.unindex(value)");
                 if (li.opposite() != null) {
@@ -307,24 +303,24 @@ class TypeGenerator {
 
                 //Find method
                 MethodSpec.Builder findMethod = MethodSpec.methodBuilder("find" + Generator.upperCaseFirstChar(li.name()))
-                        .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
-                        .returns(TypeName.VOID);
+                        .addModifiers(PUBLIC, FINAL)
+                        .returns(VOID);
                 for (AttributeRef indexedAtt : li.attributes()) {
                     findMethod.addParameter(ClassName.get(String.class), indexedAtt.ref().name());
                 }
                 findMethod.addParameter(ParameterizedTypeName.get(gCallback, ArrayTypeName.of(ClassName.get(packageName, li.type()))), "callback");
-                findMethod.addStatement("$T index = ($T) this.getAt(META.hash)", ClassName.get(greycat.Index.class), ClassName.get(greycat.Index.class));
+                findMethod.addStatement("$T index = ($T) this.getAt(META.hash)", gIndex, gIndex);
                 findMethod.beginControlFlow("if(index != null)");
 
                 TypeSpec findCallback = TypeSpec.anonymousClassBuilder("")
-                        .addSuperinterface(ParameterizedTypeName.get(gCallback, ArrayTypeName.of(ClassName.get(Node.class))))
+                        .addSuperinterface(ParameterizedTypeName.get(gCallback, gNodeArray))
                         .addMethod(MethodSpec.methodBuilder("on")
                                 .addAnnotation(Override.class)
-                                .addModifiers(Modifier.PUBLIC)
-                                .addParameter(ArrayTypeName.of(ClassName.get(Node.class)), "result")
-                                .returns(TypeName.VOID)
+                                .addModifiers(PUBLIC)
+                                .addParameter(gNodeArray, "result")
+                                .returns(VOID)
                                 .addStatement("$1T[] typedResult = new $1T[result.length]", ClassName.get(packageName, li.type()))
-                                .addStatement("$T.arraycopy(result, 0, typedResult, 0, result.length)", ClassName.get(java.lang.System.class))
+                                .addStatement("$T.arraycopy(result, 0, typedResult, 0, result.length)", jlSystem)
                                 .addStatement("callback.on(typedResult)")
                                 .build())
                         .build();
@@ -339,21 +335,21 @@ class TypeGenerator {
 
                 //Find all method
                 javaClass.addMethod(MethodSpec.methodBuilder("findAll" + Generator.upperCaseFirstChar(li.name()))
-                        .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
+                        .addModifiers(PUBLIC, FINAL)
                         .addParameter(ParameterizedTypeName.get(gCallback, ArrayTypeName.of(ClassName.get(packageName, li.type()))), "callback")
-                        .returns(TypeName.VOID)
-                        .addStatement("$T index = ($T) this.getAt(META.hash)", ClassName.get(greycat.Index.class), ClassName.get(greycat.Index.class))
+                        .returns(VOID)
+                        .addStatement("$T index = ($T) this.getAt(META.hash)", gIndex, gIndex)
                         .beginControlFlow("if(index != null)")
                         .addStatement("index.find($L, this.world(), this.time())",
                                 TypeSpec.anonymousClassBuilder("")
-                                        .addSuperinterface(ParameterizedTypeName.get(gCallback, ArrayTypeName.of(ClassName.get(Node.class))))
+                                        .addSuperinterface(ParameterizedTypeName.get(gCallback, gNodeArray))
                                         .addMethod(MethodSpec.methodBuilder("on")
                                                 .addAnnotation(Override.class)
-                                                .addModifiers(Modifier.PUBLIC)
-                                                .addParameter(ArrayTypeName.of(ClassName.get(Node.class)), "result")
-                                                .returns(TypeName.VOID)
+                                                .addModifiers(PUBLIC)
+                                                .addParameter(gNodeArray, "result")
+                                                .returns(VOID)
                                                 .addStatement("$1T[] typedResult = new $1T[result.length]", ClassName.get(packageName, li.type()))
-                                                .addStatement("$T.arraycopy(result, 0, typedResult, 0, result.length)", ClassName.get(java.lang.System.class))
+                                                .addStatement("$T.arraycopy(result, 0, typedResult, 0, result.length)", jlSystem)
                                                 .addStatement("callback.on(typedResult)")
                                                 .build())
                                         .build())
@@ -366,8 +362,8 @@ class TypeGenerator {
         //Init method
         MethodSpec.Builder initMethod = MethodSpec.methodBuilder("init")
                 .addAnnotation(Override.class)
-                .returns(TypeName.VOID)
-                .addModifiers(Modifier.PUBLIC);
+                .returns(VOID)
+                .addModifiers(PUBLIC);
         gType.allProperties().forEach((s, o) -> {
             if (o instanceof Attribute) {
                 final Attribute att = (Attribute) o;
@@ -398,10 +394,10 @@ class TypeGenerator {
                 final Annotation annot = (Annotation) o;
                 switch (annot.name()) {
                     case "timeSensitivity":
-                        long parsedSensitivity = Long.parseLong(annot.value().get(0).get(0).toString().replace("\"",""));
+                        long parsedSensitivity = Long.parseLong(annot.value().get(0).get(0).toString().replace("\"", ""));
                         long offset = 0;
                         if (annot.value().get(0).size() == 2) {
-                            offset = Long.parseLong(annot.value().get(0).get(1).toString().replace("\"",""));
+                            offset = Long.parseLong(annot.value().get(0).get(1).toString().replace("\"", ""));
                         }
                         initMethod.addStatement("setTimeSensitivity($L, $L)", parsedSensitivity, offset);
                         break;
@@ -413,9 +409,9 @@ class TypeGenerator {
         //TypeAt method
         MethodSpec.Builder typeAtMethod = MethodSpec.methodBuilder("typeAt")
                 .addAnnotation(Override.class)
-                .addModifiers(Modifier.PUBLIC)
-                .addParameter(TypeName.INT, "index")
-                .returns(TypeName.INT);
+                .addModifiers(PUBLIC)
+                .addParameter(INT, "index")
+                .returns(INT);
         final boolean[] isFirst = {true};
         gType.allProperties().forEach((s, o) -> {
             if (o instanceof Constant) {
@@ -438,9 +434,9 @@ class TypeGenerator {
         //GetAt method
         MethodSpec.Builder getAtMethod = MethodSpec.methodBuilder("getAt")
                 .addAnnotation(Override.class)
-                .addModifiers(Modifier.PUBLIC)
-                .addParameter(TypeName.INT, "index")
-                .returns(TypeName.OBJECT);
+                .addModifiers(PUBLIC)
+                .addParameter(INT, "index")
+                .returns(OBJECT);
         isFirst[0] = true;
         gType.allProperties().forEach((s, o) -> {
             if (o instanceof Constant) {

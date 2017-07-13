@@ -16,60 +16,55 @@
 package greycat.generator;
 
 import com.squareup.javapoet.*;
-import greycat.*;
 import greycat.language.Index;
 import greycat.language.Model;
 import greycat.utility.HashHelper;
-import greycat.utility.Meta;
 
-import javax.lang.model.element.Modifier;
 import java.util.List;
 
 import static greycat.generator.Helper.*;
+import static com.squareup.javapoet.TypeName.*;
+import static javax.lang.model.element.Modifier.*;
 
 class IndexGenerator {
 
     static void generate(String packageName, Model model, List<JavaFile> collector) {
-        for (int i = 0; i < model.globalIndexes().length; i++) {
-            generate(packageName, model.globalIndexes()[i], collector);
-        }
+        model.indexes().forEach(index -> generate(packageName, index, collector));
     }
 
     static void generate(final String packageName, final Index index, final List<JavaFile> collector) {
         TypeSpec.Builder javaClass = TypeSpec.classBuilder(index.name());
-        javaClass.addModifiers(Modifier.PUBLIC);
-
+        javaClass.addModifiers(PUBLIC);
         //Meta field
         javaClass.addField(FieldSpec.builder(gMeta, "META")
-                .addModifiers(Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL)
+                .addModifiers(PUBLIC, STATIC, FINAL)
                 .initializer("new $T($S,$L,$L)", gMeta, index.name(), Helper.typeName("Index"), HashHelper.hash(index.name()))
                 .build());
-
         //FindAll method
         javaClass.addMethod(MethodSpec.methodBuilder("findAll")
-                .addModifiers(Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL)
+                .addModifiers(PUBLIC, STATIC, FINAL)
                 .returns(TypeName.VOID)
                 .addParameter(gGraph, "graph")
-                .addParameter(TypeName.LONG, "world")
-                .addParameter(TypeName.LONG, "time")
+                .addParameter(LONG, "world")
+                .addParameter(LONG, "time")
                 .addParameter(ParameterizedTypeName.get(gCallback, ArrayTypeName.of(ClassName.get(packageName, index.type()))), "callback")
                 .addStatement("graph.index(world, time, META.name, $L)", TypeSpec.anonymousClassBuilder("")
-                        .addSuperinterface(ParameterizedTypeName.get(gCallback, ClassName.get(NodeIndex.class)))
+                        .addSuperinterface(ParameterizedTypeName.get(gCallback, gNodeIndex))
                         .addMethod(MethodSpec.methodBuilder("on")
                                 .addAnnotation(Override.class)
-                                .addModifiers(Modifier.PUBLIC)
-                                .addParameter(ClassName.get(NodeIndex.class), "idx")
-                                .returns(TypeName.VOID)
+                                .addModifiers(PUBLIC)
+                                .addParameter(gNodeIndex, "idx")
+                                .returns(VOID)
                                 .beginControlFlow("if(idx != null)")
                                 .addStatement("idx.findFrom($L)", TypeSpec.anonymousClassBuilder("")
-                                        .addSuperinterface(ParameterizedTypeName.get(ClassName.get(Callback.class), ArrayTypeName.of(ClassName.get(Node.class))))
+                                        .addSuperinterface(ParameterizedTypeName.get(gCallback, gNodeArray))
                                         .addMethod(MethodSpec.methodBuilder("on")
                                                 .addAnnotation(Override.class)
-                                                .addModifiers(Modifier.PUBLIC)
-                                                .addParameter(ArrayTypeName.of(gNode), "result")
-                                                .returns(TypeName.VOID)
+                                                .addModifiers(PUBLIC)
+                                                .addParameter(gNodeArray, "result")
+                                                .returns(VOID)
                                                 .addStatement("$1T[] typedResult = new $1T[result.length]", ClassName.get(packageName, index.type()))
-                                                .addStatement("$T.arraycopy(result, 0, typedResult, 0, result.length)", ClassName.get(java.lang.System.class))
+                                                .addStatement("$T.arraycopy(result, 0, typedResult, 0, result.length)", jlSystem)
                                                 .addStatement("idx.free()")
                                                 .addStatement("callback.on(typedResult)")
                                                 .build())
@@ -80,38 +75,36 @@ class IndexGenerator {
                                 .build())
                         .build())
                 .build());
-
         //Find method
         MethodSpec.Builder find = MethodSpec.methodBuilder("find")
-                .addModifiers(Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL)
+                .addModifiers(PUBLIC, STATIC, FINAL)
                 .returns(TypeName.VOID)
                 .addParameter(gGraph, "graph")
-                .addParameter(TypeName.LONG, "world")
-                .addParameter(TypeName.LONG, "time");
-
+                .addParameter(LONG, "world")
+                .addParameter(LONG, "time");
         StringBuilder params = new StringBuilder();
         index.attributes().forEach(attributeRef -> {
             find.addParameter(Helper.clazz(attributeRef.ref().type()), attributeRef.ref().name());
             params.append(",").append(attributeRef.ref().name());
         });
-        find.addParameter(ParameterizedTypeName.get(ClassName.get(Callback.class), ArrayTypeName.of(ClassName.get(packageName, index.type()))), "callback")
+        find.addParameter(ParameterizedTypeName.get(gCallback, ArrayTypeName.of(ClassName.get(packageName, index.type()))), "callback")
                 .addStatement("graph.index(world, time, META.name, $L)", TypeSpec.anonymousClassBuilder("")
-                        .addSuperinterface(ParameterizedTypeName.get(ClassName.get(Callback.class), ClassName.get(NodeIndex.class)))
+                        .addSuperinterface(ParameterizedTypeName.get(gCallback, gNodeIndex))
                         .addMethod(MethodSpec.methodBuilder("on")
                                 .addAnnotation(Override.class)
-                                .addModifiers(Modifier.PUBLIC)
-                                .addParameter(ClassName.get(NodeIndex.class), "idx")
-                                .returns(TypeName.VOID)
+                                .addModifiers(PUBLIC)
+                                .addParameter(gNodeIndex, "idx")
+                                .returns(VOID)
                                 .beginControlFlow("if(idx != null)")
                                 .addStatement("idx.findFrom($L$L)", TypeSpec.anonymousClassBuilder("")
-                                        .addSuperinterface(ParameterizedTypeName.get(gCallback, ArrayTypeName.of(ClassName.get(Node.class))))
+                                        .addSuperinterface(ParameterizedTypeName.get(gCallback, gNodeArray))
                                         .addMethod(MethodSpec.methodBuilder("on")
                                                 .addAnnotation(Override.class)
-                                                .addModifiers(Modifier.PUBLIC)
-                                                .addParameter(ArrayTypeName.of(ClassName.get(Node.class)), "result")
+                                                .addModifiers(PUBLIC)
+                                                .addParameter(gNodeArray, "result")
                                                 .returns(TypeName.VOID)
                                                 .addStatement("$1T[] typedResult = new $1T[result.length]", ClassName.get(packageName, index.type()))
-                                                .addStatement("$T.arraycopy(result, 0, typedResult, 0, result.length)", ClassName.get(java.lang.System.class))
+                                                .addStatement("$T.arraycopy(result, 0, typedResult, 0, result.length)", jlSystem)
                                                 .addStatement("idx.free()")
                                                 .addStatement("callback.on(typedResult)")
                                                 .build())
@@ -122,20 +115,19 @@ class IndexGenerator {
                                 .build())
                         .build());
         javaClass.addMethod(find.build());
-
         //Update method
         javaClass.addMethod(MethodSpec.methodBuilder("update")
-                .addModifiers(Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL)
-                .returns(TypeName.VOID)
+                .addModifiers(PUBLIC, STATIC, FINAL)
+                .returns(VOID)
                 .addParameter(ClassName.get(packageName, index.type()), "toIndex")
-                .addParameter(ParameterizedTypeName.get(ClassName.get(Callback.class), TypeName.BOOLEAN.box()), "callback")
+                .addParameter(ParameterizedTypeName.get(gCallback, BOOLEAN.box()), "callback")
                 .addStatement("toIndex.graph().index(toIndex.world(), toIndex.time(), META.name, $L)", TypeSpec.anonymousClassBuilder("")
-                        .addSuperinterface(ParameterizedTypeName.get(ClassName.get(Callback.class), ClassName.get(NodeIndex.class)))
+                        .addSuperinterface(ParameterizedTypeName.get(gCallback, gNodeIndex))
                         .addMethod(MethodSpec.methodBuilder("on")
                                 .addAnnotation(Override.class)
-                                .addModifiers(Modifier.PUBLIC)
-                                .addParameter(ClassName.get(NodeIndex.class), "idx")
-                                .returns(TypeName.VOID)
+                                .addModifiers(PUBLIC)
+                                .addParameter(gNodeIndex, "idx")
+                                .returns(VOID)
                                 .beginControlFlow("if(idx != null)")
                                 .addStatement("idx.update(toIndex)")
                                 .addStatement("callback.on(true)")
@@ -146,20 +138,19 @@ class IndexGenerator {
                                 .build())
                         .build())
                 .build());
-
         //Remove method
         javaClass.addMethod(MethodSpec.methodBuilder("remove")
-                .addModifiers(Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL)
-                .returns(TypeName.VOID)
+                .addModifiers(PUBLIC, STATIC, FINAL)
+                .returns(VOID)
                 .addParameter(ClassName.get(packageName, index.type()), "toUnIndex")
-                .addParameter(ParameterizedTypeName.get(ClassName.get(Callback.class), TypeName.BOOLEAN.box()), "callback")
+                .addParameter(ParameterizedTypeName.get(gCallback, BOOLEAN.box()), "callback")
                 .addStatement("toUnIndex.graph().index(toUnIndex.world(), toUnIndex.time(), META.name, $L)", TypeSpec.anonymousClassBuilder("")
-                        .addSuperinterface(ParameterizedTypeName.get(ClassName.get(Callback.class), ClassName.get(NodeIndex.class)))
+                        .addSuperinterface(ParameterizedTypeName.get(gCallback, gNodeIndex))
                         .addMethod(MethodSpec.methodBuilder("on")
                                 .addAnnotation(Override.class)
-                                .addModifiers(Modifier.PUBLIC)
-                                .addParameter(ClassName.get(NodeIndex.class), "idx")
-                                .returns(TypeName.VOID)
+                                .addModifiers(PUBLIC)
+                                .addParameter(gNodeIndex, "idx")
+                                .returns(VOID)
                                 .beginControlFlow("if(idx != null)")
                                 .addStatement("idx.unindex(toUnIndex)")
                                 .addStatement("callback.on(true)")
@@ -170,7 +161,6 @@ class IndexGenerator {
                                 .build())
                         .build())
                 .build());
-
         collector.add(JavaFile.builder(packageName, javaClass.build()).build());
     }
 

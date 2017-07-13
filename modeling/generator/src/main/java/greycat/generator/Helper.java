@@ -18,15 +18,13 @@ package greycat.generator;
 import com.squareup.javapoet.ArrayTypeName;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.TypeName;
-import greycat.Callback;
-import greycat.Graph;
-import greycat.Node;
-import greycat.Task;
+import greycat.*;
 import greycat.internal.custom.KDTree;
 import greycat.internal.custom.NDTree;
 import greycat.struct.*;
 import greycat.utility.HashHelper;
 import greycat.utility.Meta;
+import greycat.utility.MetaConst;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -34,12 +32,15 @@ import java.util.Set;
 
 public class Helper {
 
-    public static final ClassName gCallback = ClassName.get(Callback.class);
-    public static final ClassName gNode = ClassName.get(Node.class);
-    public static final TypeName gNodeArray = ArrayTypeName.of(ClassName.get(Node.class));
-    public static final ClassName gMeta = ClassName.get(Meta.class);
-    public static final ClassName gGraph = ClassName.get(Graph.class);
-
+    static final ClassName gCallback = ClassName.get(Callback.class);
+    static final ClassName gNode = ClassName.get(Node.class);
+    static final TypeName gNodeArray = ArrayTypeName.of(ClassName.get(Node.class));
+    static final ClassName gMeta = ClassName.get(Meta.class);
+    static final ClassName gMetaConst = ClassName.get(MetaConst.class);
+    static final ClassName gGraph = ClassName.get(Graph.class);
+    static final ClassName gIndex = ClassName.get(Index.class);
+    static final ClassName gNodeIndex = ClassName.get(NodeIndex.class);
+    static final ClassName jlSystem = ClassName.get(java.lang.System.class);
 
     private static Set<String> primitives = new HashSet<String>(Arrays.asList("Bool", "Boolean", "String", "Long", "Int", "Integer", "Double"));
     private static Set<String> primitiveArrays = new HashSet<String>(Arrays.asList("BoolArray", "BooleanArray", "StringArray", "LongArray", "IntArray", "IntegerArray", "DoubleArray"));
