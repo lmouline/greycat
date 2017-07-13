@@ -171,9 +171,13 @@ class TypeGenerator {
                                         .addModifiers(PUBLIC)
                                         .addParameter(gNodeArray, "result")
                                         .returns(VOID)
+                                        .beginControlFlow("if(result != null)")
                                         .addStatement("$1T[] typedResult = new $1T[result.length]", ClassName.get(packageName, resultType))
                                         .addStatement("$T.arraycopy(result, 0, typedResult, 0, result.length)", jlSystem)
                                         .addStatement("callback.on(typedResult)")
+                                        .nextControlFlow("else")
+                                        .addStatement("callback.on(new $T[0])",ClassName.get(packageName, resultType))
+                                        .endControlFlow()
                                         .build())
                                 .build())
                         .build());
