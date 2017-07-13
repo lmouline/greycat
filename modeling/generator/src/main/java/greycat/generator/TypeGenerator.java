@@ -58,20 +58,20 @@ class TypeGenerator {
                 javaClass.superclass(ClassName.get(BaseNode.class));
             }
         }
-        StringBuilder TS_GET_SET = new StringBuilder();
+        CodeBlock.Builder tsGetSet = CodeBlock.builder();
+        tsGetSet.addStatement("{@extend ts");
         gType.properties().forEach(o -> {
             if (o instanceof Attribute) {
                 Attribute attribute = (Attribute) o;
                 if (isPrimitive(attribute.type())) {
-                    TS_GET_SET.append("get " + attribute.name() + "() : " + classTsName(attribute.type()) + " {return this.get" + Generator.upperCaseFirstChar(attribute.name()) + "();}\n");
-                    TS_GET_SET.append("set " + attribute.name() + "(p : " + classTsName(attribute.type()) + "){ this.set" + Generator.upperCaseFirstChar(attribute.name()) + "(p);}\n");
+                    tsGetSet.addStatement("get $L(): $L { return this.get$L();}", attribute.name(), classTsName(attribute.type()), Generator.upperCaseFirstChar(attribute.name()));
+                    tsGetSet.addStatement("set $L(p: $L){ this.set$L(p);}", attribute.name(), classTsName(attribute.type()), Generator.upperCaseFirstChar(attribute.name()));
                 }
             }
         });
-        //generate TS getter and setter
-        if (TS_GET_SET.length() > 0) {
-            javaClass.addJavadoc("{@extend ts\n$L}\n", TS_GET_SET);
-        }
+        tsGetSet.addStatement("}");
+        javaClass.addJavadoc(tsGetSet.build());
+
         // constructor
         if (gType instanceof Class) {
             javaClass.addMethod(MethodSpec.constructorBuilder()
@@ -379,39 +379,36 @@ class TypeGenerator {
                         }
 
                     } else if (isPrimitiveArray(att.type())) {
-                        StringBuilder paramBuilder = new StringBuilder();
+                        final CodeBlock.Builder paramBuilder = CodeBlock.builder();
                         att.value().forEach(objects -> {
                             switch (att.type()) {
                                 case "StringArray":
-                                    paramBuilder.append(".addElement(\"").append(objects.get(0)).append("\")");
+                                    paramBuilder.add(".addElement($S)", objects.get(0));
                                     break;
                                 default:
-                                    paramBuilder.append(".addElement(").append(objects.get(0)).append(")");
+                                    paramBuilder.add(".addElement($L)", objects.get(0));
                             }
                         });
-                        initMethod.addStatement("(($T)getOrCreateAt($L.hash,$L.type))$L", clazz(att.type()), att.name().toUpperCase(), att.name().toUpperCase(), paramBuilder);
+                        initMethod.addStatement("(($T)getOrCreateAt($L.hash,$L.type))$L", clazz(att.type()), att.name().toUpperCase(), att.name().toUpperCase(), paramBuilder.build());
                     } else if (isMap(att.type())) {
-                        StringBuilder paramBuilder = new StringBuilder();
+                        final CodeBlock.Builder paramBuilder = CodeBlock.builder();
                         att.value().forEach(objects -> {
                             switch (att.type()) {
                                 case "StringToIntMap":
-                                    paramBuilder.append(".put(\"").append(objects.get(0)).append("\",").append(objects.get(1)).append(")");
+                                    paramBuilder.add(".put($S,$L)", objects.get(0), objects.get(1));
                                     break;
                                 case "IntToStringMap":
-                                    paramBuilder.append(".put(").append(objects.get(0)).append(",\"").append(objects.get(1)).append("\")");
+                                    paramBuilder.add(".put($L,$S)", objects.get(0), objects.get(1));
                                     break;
                                 default:
-                                    paramBuilder.append(".put(").append(objects.get(0)).append(",").append(objects.get(1)).append(")");
+                                    paramBuilder.add(".put($L,$L)", objects.get(0), objects.get(1));
                             }
-
                         });
-                        initMethod.addStatement("(($T)getOrCreateAt($L.hash,$L.type))$L", clazz(att.type()), att.name().toUpperCase(), att.name().toUpperCase(), paramBuilder);
+                        initMethod.addStatement("(($T)getOrCreateAt($L.hash,$L.type))$L", clazz(att.type()), att.name().toUpperCase(), att.name().toUpperCase(), paramBuilder.build());
                     } else if (isMatrix(att.type())) {
-                        StringBuilder paramBuilder = new StringBuilder();
-                        att.value().forEach(objects -> {
-                            paramBuilder.append(".add(").append(objects.get(0)).append(",").append(objects.get(1)).append(",").append(objects.get(2)).append(")");
-                        });
-                        initMethod.addStatement("(($T)getOrCreateAt($L.hash,$L.type))$L", clazz(att.type()), att.name().toUpperCase(), att.name().toUpperCase(), paramBuilder);
+                        final CodeBlock.Builder paramBuilder = CodeBlock.builder();
+                        att.value().forEach(objects -> paramBuilder.add(".add($L,$L,$L)", objects.get(0), objects.get(1), objects.get(2)));
+                        initMethod.addStatement("(($T)getOrCreateAt($L.hash,$L.type))$L", clazz(att.type()), att.name().toUpperCase(), att.name().toUpperCase(), paramBuilder.build());
                     }
                 }
             } else if (o instanceof Annotation) {

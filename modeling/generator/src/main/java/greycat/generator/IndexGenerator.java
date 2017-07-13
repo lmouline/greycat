@@ -84,9 +84,7 @@ class IndexGenerator {
                 .addParameter(LONG, "time");
         StringBuilder params = new StringBuilder();
         index.attributes().forEach(attributeRef -> {
-            //find.addParameter(clazz(attributeRef.ref().type()), attributeRef.ref().name());
             find.addParameter(ClassName.get(String.class), attributeRef.ref().name());
-
             params.append(",").append(attributeRef.ref().name());
         });
         find.addParameter(ParameterizedTypeName.get(gCallback, ArrayTypeName.of(ClassName.get(packageName, index.type()))), "callback")
