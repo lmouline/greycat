@@ -274,7 +274,7 @@ class TypeGenerator {
                 indexMethod.addStatement("$T index = ($T) this.getAt(META.hash)", gIndex, gIndex);
                 indexMethod.beginControlFlow("if(index == null)");
                 indexMethod.addStatement("index = ($T) this.getOrCreateAt(META.hash,greycat.Type.INDEX)", gIndex);
-                indexMethod.addStatement("index.declareAttributes(null, $S)", indexedAttBuilder.toString());
+                indexMethod.addStatement("index.declareAttributes(null, $L)", indexedAttBuilder.toString());
                 indexMethod.endControlFlow();
                 indexMethod.addStatement("index.update(value)");
                 if (li.opposite() != null) {
