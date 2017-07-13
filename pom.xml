@@ -110,9 +110,9 @@
         <module>modeling/gencli</module>
 
         <!--Examples-->
-
+        <!--
         <module>examples/modeling</module>
-
+        -->
 
     </modules>
 
