@@ -49,7 +49,7 @@
     <properties>
         <java2typescript.plugin.version>91</java2typescript.plugin.version>
         <header.path>${basedir}/HEADER</header.path>
-        <undertow.version>1.4.17.Final</undertow.version>
+        <undertow.version>1.4.18.Final</undertow.version>
     </properties>
 
     <developers>
