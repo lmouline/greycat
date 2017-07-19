@@ -125,7 +125,7 @@
                         <configuration>
                             <repositoryId>datathings.oss.snapshots</repositoryId>
                             <url>${project.distributionManagement.snapshotRepository.url}</url>
-                            <generatePom>true</generatePom>
+                            <generatePom>false</generatePom>
                             <artifactId>${project.artifactId}</artifactId>
                             <groupId>${project.groupId}</groupId>
                             <version>${project.version}</version>
