@@ -145,7 +145,7 @@ public class Generator {
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            gcVersion = greycatTgz != null ? greycatTgz.getAbsolutePath() : tgzVersion;
+            gcVersion = greycatTgz != null ? greycatTgz.getAbsolutePath().replace('\\','/') : tgzVersion;
         }
 
         if (projectVersion.contains("SNAPSHOT")) {
