@@ -210,7 +210,7 @@ public class Generator {
                     "  \"license\":\"UNLICENSED\"," +
                     "  \"dependencies\": {\n" +
                     "    \"greycat\": \"" + gcVersion + "\",\n" +
-                    "    \"" + packageName + "\": \"" + new File(modelWeb, packageName + "-" + projectVersion + ".tgz").getAbsolutePath() + "\"\n" +
+                    "    \"" + packageName + "\": \"" + new File(modelWeb, packageName + "-" + projectVersion + ".tgz").getAbsolutePath().replace('\\','/') + "\"\n" +
                     "  },\n" +
                     "  \"devDependencies\": {\n" +
                     "    \"typescript\": \"2.4.1\",\n" +
