@@ -132,7 +132,7 @@
                                 while (project_version.split('\\.').length != 3) { project_version += '.0' }
                                 def j2ts_version = "${java2typescript.plugin.version}".replaceAll("-SNAPSHOT", "")
 
-                                def greycatPtr = new File("${gbasedir}/../../greycat/target/greycat-${project_version}.tgz").canonicalPath
+                                def greycatPtr = new File("${gbasedir}/../../greycat/target/greycat-${project_version}.tgz").canonicalPath.replace('\\','/')
 
                                 while (j2ts_version.split('\\.').length != 3) { j2ts_version += '.0' }
                                 ant.replace(file: "${gbasedir}/target/classes-npm/package.json", token: "GREYCAT_VERSION_D", value: greycatPtr)
