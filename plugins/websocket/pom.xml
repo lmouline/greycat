@@ -82,7 +82,7 @@
                                 while (project_version.split('\\.').length != 3) {
                                     project_version += '.0'
                                 }
-                                def greycatPtr = new File("${gbasedir}/../../greycat/target/greycat-${project_version}.tgz").canonicalPath
+                                def greycatPtr = new File("${gbasedir}/../../greycat/target/greycat-${project_version}.tgz").canonicalPath.replace('\\','/')
                                 def j2ts_version = "${java2typescript.plugin.version}".replaceAll("-SNAPSHOT", "")
                                 while (j2ts_version.split('\\.').length != 3) {
                                     j2ts_version += '.0'
