@@ -68,14 +68,21 @@ public class NodeValueTest {
                 g.lookup(0, 0, nodeValue.id(), new Callback<Node>() {
                     @Override
                     public void on(Node result) {
-                        System.out.println(result);
+                        Assert.assertNotNull(result);
+                    }
+                });
+
+                g.lookupBatch(new long[]{0}, new long[]{0}, new long[]{nodeValue.id()}, new Callback<Node[]>() {
+                    @Override
+                    public void on(Node[] result) {
+                        Assert.assertNotNull(result[0]);
                     }
                 });
 
                 parent.traverse("sub", new Callback<Node[]>() {
                     @Override
                     public void on(Node[] result) {
-                        System.out.println(result);
+                        Assert.assertNotNull(result[0]);
                     }
                 });
 

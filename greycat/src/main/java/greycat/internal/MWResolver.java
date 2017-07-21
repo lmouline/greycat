@@ -579,13 +579,19 @@ final class MWResolver implements Resolver {
                                                         isEmpty[0] = true;
                                                         for (int i = 0; i < idsSize; i++) {
                                                             if (theNodeTimeTrees[i] != null) {
-                                                                final long closestTime = ((TimeTreeChunk) theNodeTimeTrees[i]).previousOrEqual(times[i]);
+                                                                final int closestTimeOffset = ((TimeTreeChunk) theNodeTimeTrees[i]).previousOrEqualOffset(times[i]);
+                                                                final long closestTime = ((TimeTreeChunk) theNodeTimeTrees[i]).getKey(closestTimeOffset);
                                                                 if (closestTime == Constants.NULL_LONG) {
                                                                     keys[i * Constants.KEY_SIZE] = -1; //skip
                                                                 } else {
                                                                     isEmpty[0] = false;
-                                                                    keys[(i * Constants.KEY_SIZE)] = ChunkType.STATE_CHUNK;
-                                                                    keys[(i * Constants.KEY_SIZE) + 2] = closestTime;
+                                                                    if (((WorldOrderChunk) theNodeWorldOrders[i]).type() == NodeValueType) {
+                                                                        keys[i * Constants.KEY_SIZE] = -1;
+                                                                        keys[(i * Constants.KEY_SIZE) + 2] = closestTimeOffset;
+                                                                    } else {
+                                                                        keys[(i * Constants.KEY_SIZE)] = ChunkType.STATE_CHUNK;
+                                                                        keys[(i * Constants.KEY_SIZE) + 2] = closestTime;
+                                                                    }
                                                                 }
                                                             } else {
                                                                 keys[i * Constants.KEY_SIZE] = -1; //skip
@@ -601,6 +607,9 @@ final class MWResolver implements Resolver {
                                                                         lookupAll_end(finalResult, callback, idsSize, theNodeWorldOrders, theNodeSuperTimeTrees, theNodeTimeTrees, null);
                                                                     } else {
                                                                         for (int i = 0; i < idsSize; i++) {
+                                                                            if (theObjectChunks[i] == null && ((WorldOrderChunk) theNodeWorldOrders[i]).type() == NodeValueType) {
+                                                                                theObjectChunks[i] = ((TimeTreeEmbeddedChunk) theNodeTimeTrees[i]).state((int) keys[(i * Constants.KEY_SIZE) + 2]);
+                                                                            }
                                                                             if (theObjectChunks[i] != null) {
                                                                                 WorldOrderChunk castedNodeWorldOrder = (WorldOrderChunk) theNodeWorldOrders[i];
                                                                                 int extraCode = (int) castedNodeWorldOrder.type();
