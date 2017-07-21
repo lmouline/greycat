@@ -112,12 +112,21 @@ class TypeGenerator {
             if (o instanceof Constant) {
                 Constant constant = (Constant) o;
                 String value = constant.value();
-                if (constant.type().equals("Task")) {
-                    if (value != null) {
-                        value = "greycat.Tasks.newTask().parse(\"" + value.replaceAll("\"", "'").trim() + "\",null)";
+                if (value != null) {
+                    switch (constant.type()) {
+                        case "Task":
+                            value = "greycat.Tasks.newTask().parse(\"" + value.replaceAll("\"", "'").trim() + "\",null)";
+                            break;
+                        case "Long":
+                            value = value + "L";
+                            break;
+                        case "Double":
+                            value = value + "d";
+                            break;
+                        case "String":
+                            value = "\"" + value + "\"";
+                            break;
                     }
-                } else if (constant.type().equals("String") && value != null) {
-                    value = "\"" + value + "\"";
                 }
                 javaClass.addField(FieldSpec.builder(ParameterizedTypeName.get(gMetaConst, clazz(constant.type())), constant.name().toUpperCase())
                         .addModifiers(PUBLIC, STATIC, FINAL)
