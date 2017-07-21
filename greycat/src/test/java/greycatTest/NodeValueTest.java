@@ -54,6 +54,37 @@ public class NodeValueTest {
     }
 
     @Test
+    public void testRelation() {
+        Graph g = GraphBuilder.newBuilder().withScheduler(new NoopScheduler()).build();
+        g.connect(new Callback<Boolean>() {
+            @Override
+            public void on(Boolean result) {
+                NodeValue nodeValue = (NodeValue) g.newTypedNode(0, 0, CoreNodeValue.NAME);
+                nodeValue.setValue(42.5d);
+
+                Node parent = g.newNode(0, 0);
+                parent.addToRelation("sub", nodeValue);
+
+                g.lookup(0, 0, nodeValue.id(), new Callback<Node>() {
+                    @Override
+                    public void on(Node result) {
+                        System.out.println(result);
+                    }
+                });
+
+                parent.traverse("sub", new Callback<Node[]>() {
+                    @Override
+                    public void on(Node[] result) {
+                        System.out.println(result);
+                    }
+                });
+
+            }
+        });
+    }
+
+
+    @Test
     public void testNull() {
         Graph g = GraphBuilder.newBuilder().withScheduler(new NoopScheduler()).build();
         g.connect(new Callback<Boolean>() {
