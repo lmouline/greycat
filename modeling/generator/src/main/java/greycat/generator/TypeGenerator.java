@@ -341,7 +341,7 @@ class TypeGenerator {
                 li.attributes().forEach(attributeRef -> params.append(",").append(attributeRef.ref().name()));
                 findMethod.addStatement("index.find($L, this.world(), this.time() $L)", findCallback, params.toString());
                 findMethod.nextControlFlow("else");
-                findMethod.addStatement("callback.on(null)");
+                findMethod.addStatement("callback.on(new $T[0])", ClassName.get(packageName, li.type()));
                 findMethod.endControlFlow();
                 javaClass.addMethod(findMethod.build());
 
@@ -366,7 +366,7 @@ class TypeGenerator {
                                                 .build())
                                         .build())
                         .nextControlFlow("else")
-                        .addStatement("callback.on(null)")
+                        .addStatement("callback.on(new $T[0])", ClassName.get(packageName, li.type()))
                         .endControlFlow().build());
             }
         });
