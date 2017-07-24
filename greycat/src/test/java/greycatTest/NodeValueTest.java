@@ -81,7 +81,7 @@ public class NodeValueTest {
                     public void on(Node[] result) {
                         Assert.assertNotNull(result[0]);
                         NodeValue nd= (NodeValue) result[0];
-                        System.out.println(nd);
+                        Assert.assertEquals(nd.getValue()+"","42.5");
                         Assert.assertNotNull(nd.getValue());
                     }
                 });
@@ -91,16 +91,17 @@ public class NodeValueTest {
                     public void on(Node[] result) {
                         Assert.assertNotNull(result[0]);
                         NodeValue nd= (NodeValue) result[0];
-                        System.out.println(nd);
+                        Assert.assertEquals(nd.getValue()+"","42.5");
                         Assert.assertNotNull(nd);
                     }
                 });
+
 
                 TaskContext ctx=traverse.prepare(g, parent, new Callback<TaskResult>() {
                     @Override
                     public void on(TaskResult result) {
                         NodeValue nd= (NodeValue) result.get(0);
-                        System.out.println(nd);
+                        Assert.assertEquals(nd.getValue()+"","42.5");
                         Assert.assertNotNull(nd);
                     }
                 });
