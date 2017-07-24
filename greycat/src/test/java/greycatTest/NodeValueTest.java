@@ -80,6 +80,9 @@ public class NodeValueTest {
                     @Override
                     public void on(Node[] result) {
                         Assert.assertNotNull(result[0]);
+                        NodeValue nd= (NodeValue) result[0];
+                        System.out.println(nd);
+                        Assert.assertNotNull(nd.getValue());
                     }
                 });
 
@@ -87,6 +90,9 @@ public class NodeValueTest {
                     @Override
                     public void on(Node[] result) {
                         Assert.assertNotNull(result[0]);
+                        NodeValue nd= (NodeValue) result[0];
+                        System.out.println(nd);
+                        Assert.assertNotNull(nd);
                     }
                 });
 
