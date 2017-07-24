@@ -421,17 +421,15 @@ class TypeGenerator {
                         initMethod.addStatement("setTimeSensitivity($L, $L)", parsedSensitivity, offset);
                         break;
                 }
-            } else if(o instanceof Index) {
-                Index idx = (Index)o;
-                    initMethod.addStatement("$1T $2LIndex = ($1T) this.getOrCreateAt($3L.hash,greycat.Type.INDEX)", gIndex, idx.name(), idx.name().toUpperCase());
-                if(idx.attributes().size() > 0) {
-                    StringBuilder indexedAttBuilder = new StringBuilder();
-                    for (AttributeRef attRef : idx.attributes()) {
-                        indexedAttBuilder.append(idx.type() + "." + attRef.ref().name().toUpperCase() + ".name");
-                        indexedAttBuilder.append(",");
-                    }
-                    indexedAttBuilder.deleteCharAt(indexedAttBuilder.length() - 1);
-                    initMethod.addStatement("$LIndex.declareAttributes(null, $L)", idx.name(), indexedAttBuilder.toString());
+            } else if (o instanceof Index) {
+                Index idx = (Index) o;
+                initMethod.addStatement("$1T $2LIndex = ($1T) this.getOrCreateAt($3L.hash,greycat.Type.INDEX)", gIndex, idx.name(), idx.name().toUpperCase());
+                if (idx.attributes().size() > 0) {
+                    CodeBlock.Builder declareIndexinit = CodeBlock.builder();
+                    idx.attributes().forEach(attributeRef -> {
+                        declareIndexinit.add(", $T.$L.name", clazz(idx.type()), attributeRef.ref().name().toUpperCase());
+                    });
+                    initMethod.addStatement("$LIndex.declareAttributes(null$L)", idx.name(), declareIndexinit.build());
                 }
             }
         });
