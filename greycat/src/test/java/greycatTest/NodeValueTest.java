@@ -28,6 +28,8 @@ public class NodeValueTest {
     /**
      * @ignore ts
      */
+
+    /*
     @Test
     public void test() {
         Graph g = GraphBuilder.newBuilder().withScheduler(new NoopScheduler()).build();
@@ -53,9 +55,7 @@ public class NodeValueTest {
                 System.out.println(size / timeSecond);
             }
         });
-    }
-
-    private static Task traverse=newTask().traverse("sub").setAsVar("v1").readVar("v1").log("{{result}}");
+    }*/
 
     @Test
     public void testRelation() {
@@ -96,6 +96,7 @@ public class NodeValueTest {
                     }
                 });
 
+                Task traverse=newTask().traverse("sub").setAsVar("v1").readVar("v1")/*.print("{{result}}")*/;
                 parent.traverse("sub", new Callback<Node[]>() {
                     @Override
                     public void on(Node[] result) {
