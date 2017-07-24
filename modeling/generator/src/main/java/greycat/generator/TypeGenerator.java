@@ -278,18 +278,7 @@ class TypeGenerator {
                         .returns(ClassName.get(packageName, gType.name()))
                         .addParameter(ClassName.get(packageName, li.type()), "value");
 
-                StringBuilder indexedAttBuilder = new StringBuilder();
-                for (AttributeRef attRef : li.attributes()) {
-                    indexedAttBuilder.append(li.type() + "." + attRef.ref().name().toUpperCase() + ".name");
-                    indexedAttBuilder.append(",");
-                }
-                indexedAttBuilder.deleteCharAt(indexedAttBuilder.length() - 1);
-
                 indexMethod.addStatement("$T index = ($T) this.getAt($L.hash)", gIndex, gIndex, li.name().toUpperCase());
-                indexMethod.beginControlFlow("if(index == null)");
-                indexMethod.addStatement("index = ($T) this.getOrCreateAt($L.hash,greycat.Type.INDEX)", gIndex, li.name().toUpperCase());
-                indexMethod.addStatement("index.declareAttributes(null, $L)", indexedAttBuilder.toString());
-                indexMethod.endControlFlow();
                 indexMethod.addStatement("index.update(value)");
                 if (li.opposite() != null) {
                     indexMethod.addCode(createAddOppositeBody(li.type(), li).toString());
@@ -304,12 +293,12 @@ class TypeGenerator {
                         .addParameter(ClassName.bestGuess(Generator.upperCaseFirstChar(li.type())), "value");
 
                 unindexMethod.addStatement("$T index = ($T) this.getAt($L.hash)", gIndex, gIndex, li.name().toUpperCase());
-                unindexMethod.beginControlFlow("if(index != null)");
+                //unindexMethod.beginControlFlow("if(index != null)");
                 unindexMethod.addStatement("index.unindex(value)");
                 if (li.opposite() != null) {
                     unindexMethod.addCode(createRemoveOppositeBody(li.type(), li).toString());
                 }
-                unindexMethod.endControlFlow();
+                //unindexMethod.endControlFlow();
                 unindexMethod.addStatement("return this");
                 javaClass.addMethod(unindexMethod.build());
 
@@ -431,6 +420,18 @@ class TypeGenerator {
                         }
                         initMethod.addStatement("setTimeSensitivity($L, $L)", parsedSensitivity, offset);
                         break;
+                }
+            } else if(o instanceof Index) {
+                Index idx = (Index)o;
+                    initMethod.addStatement("$1T $2LIndex = ($1T) this.getOrCreateAt($3L.hash,greycat.Type.INDEX)", gIndex, idx.name(), idx.name().toUpperCase());
+                if(idx.attributes().size() > 0) {
+                    StringBuilder indexedAttBuilder = new StringBuilder();
+                    for (AttributeRef attRef : idx.attributes()) {
+                        indexedAttBuilder.append(idx.type() + "." + attRef.ref().name().toUpperCase() + ".name");
+                        indexedAttBuilder.append(",");
+                    }
+                    indexedAttBuilder.deleteCharAt(indexedAttBuilder.length() - 1);
+                    initMethod.addStatement("$LIndex.declareAttributes(null, $L)", idx.name(), indexedAttBuilder.toString());
                 }
             }
         });
