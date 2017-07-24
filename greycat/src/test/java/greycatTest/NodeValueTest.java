@@ -76,6 +76,16 @@ public class NodeValueTest {
                     }
                 });
 
+                g.lookupAll(0,0, new long[]{nodeValue.id()}, new Callback<Node[]>() {
+                    @Override
+                    public void on(Node[] result) {
+                        Assert.assertNotNull(result[0]);
+                        NodeValue nd= (NodeValue) result[0];
+                        Assert.assertEquals(nd.getValue()+"","42.5");
+                        Assert.assertNotNull(nd.getValue());
+                    }
+                });
+
                 g.lookupBatch(new long[]{0}, new long[]{0}, new long[]{nodeValue.id()}, new Callback<Node[]>() {
                     @Override
                     public void on(Node[] result) {
