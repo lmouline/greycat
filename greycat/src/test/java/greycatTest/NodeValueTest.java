@@ -55,7 +55,7 @@ public class NodeValueTest {
         });
     }
 
-    private static Task traverse=newTask().traverse("sub");
+    private static Task traverse=newTask().traverse("sub").setAsVar("v1").readVar("v1").log("{{result}}");
 
     @Test
     public void testRelation() {
