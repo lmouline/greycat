@@ -2,11 +2,12 @@
   
 <h1 align="center">
   <img src="https://github.com/datathings/greycat/raw/master/logo.png" alt="GreyCat logo">
+  <br />
+  <a href="greycat.ai">greycat.ai</a>
 </h1>
 
-[![GitHub version][img-version-badge]][badge-version]
 [![Join the chat at https://gitter.im/datathings/greycat](https://badges.gitter.im/datathings/greycat.svg)](https://gitter.im/datathings/greycat?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-[![Build Status](https://travis-ci.org/datathings/greycat.svg?branch=master)](https://travis-ci.org/datathings/greycat)
+[![Build Status](https://travis-ci.org/datathings/greycat.svg?branch=master)](https://travis-ci.org/datathings/greycat) 
  
 > The GreyCat escaped the quantum box by evaluating all many-worlds alternatives...now let's see how he can help you do the same with your data and critical business analytics!
 
