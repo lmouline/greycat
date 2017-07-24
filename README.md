@@ -3,7 +3,7 @@
 <h1 align="center">
   <img src="https://github.com/datathings/greycat/raw/master/logo.png" alt="GreyCat logo">
   <br />
-  <a href="http//greycat.ai">greycat.ai</a>
+  <a href="http://greycat.ai">greycat.ai</a>
 </h1>
 
 [![Join the chat at https://gitter.im/datathings/greycat](https://badges.gitter.im/datathings/greycat.svg)](https://gitter.im/datathings/greycat?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
