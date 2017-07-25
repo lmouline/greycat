@@ -96,7 +96,7 @@ public class NodeValueTest {
                     }
                 });
 
-                Task traverse=newTask().traverse("sub").setAsVar("v1").readVar("v1")/*.print("{{result}}")*/;
+                Task traverse=newTask().traverse("sub").setAsVar("v1").readVar("v1").timepoints(Constants.BEGINNING_OF_TIME_STR, Constants.END_OF_TIME_STR);
                 parent.traverse("sub", new Callback<Node[]>() {
                     @Override
                     public void on(Node[] result) {
@@ -107,13 +107,10 @@ public class NodeValueTest {
                     }
                 });
 
-
                 TaskContext ctx=traverse.prepare(g, parent, new Callback<TaskResult>() {
                     @Override
                     public void on(TaskResult result) {
-                        NodeValue nd= (NodeValue) result.get(0);
-                        Assert.assertEquals(nd.getValue()+"","42.5");
-                        Assert.assertNotNull(nd);
+                        Assert.assertEquals(result.size(),1);
                     }
                 });
                 traverse.executeUsing(ctx);
