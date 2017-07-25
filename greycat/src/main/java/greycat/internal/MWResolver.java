@@ -1901,7 +1901,12 @@ final class MWResolver implements Resolver {
             timeTreeKeys[i * 3] = collectedWorlds[i];
             timeTreeKeys[i * 3 + 1] = collectedSuperTimes[i];
             timeTreeKeys[i * 3 + 2] = node.id();
-            types[i] = ChunkType.TIME_TREE_CHUNK;
+            if(objectWorldOrder.type() == NodeValueType){
+                types[i] = ChunkType.TIME_TREE_DVALUE_CHUNK;
+            } else {
+                types[i] = ChunkType.TIME_TREE_CHUNK;
+            }
+
         }
         getOrLoadAndMarkAll(types, timeTreeKeys, new Callback<Chunk[]>() {
             @Override

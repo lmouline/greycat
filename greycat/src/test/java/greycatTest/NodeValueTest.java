@@ -56,7 +56,6 @@ public class NodeValueTest {
             }
         });
     }*/
-
     @Test
     public void testRelation() {
         Graph g = GraphBuilder.newBuilder().withScheduler(new NoopScheduler()).build();
@@ -76,12 +75,12 @@ public class NodeValueTest {
                     }
                 });
 
-                g.lookupAll(0,0, new long[]{nodeValue.id()}, new Callback<Node[]>() {
+                g.lookupAll(0, 0, new long[]{nodeValue.id()}, new Callback<Node[]>() {
                     @Override
                     public void on(Node[] result) {
                         Assert.assertNotNull(result[0]);
-                        NodeValue nd= (NodeValue) result[0];
-                        Assert.assertEquals(nd.getValue()+"","42.5");
+                        NodeValue nd = (NodeValue) result[0];
+                        Assert.assertEquals(nd.getValue() + "", "42.5");
                         Assert.assertNotNull(nd.getValue());
                     }
                 });
@@ -90,27 +89,36 @@ public class NodeValueTest {
                     @Override
                     public void on(Node[] result) {
                         Assert.assertNotNull(result[0]);
-                        NodeValue nd= (NodeValue) result[0];
-                        Assert.assertEquals(nd.getValue()+"","42.5");
+                        NodeValue nd = (NodeValue) result[0];
+                        Assert.assertEquals(nd.getValue() + "", "42.5");
                         Assert.assertNotNull(nd.getValue());
                     }
                 });
 
-                Task traverse=newTask().traverse("sub").setAsVar("v1").readVar("v1").timepoints(Constants.BEGINNING_OF_TIME_STR, Constants.END_OF_TIME_STR);
                 parent.traverse("sub", new Callback<Node[]>() {
                     @Override
                     public void on(Node[] result) {
                         Assert.assertNotNull(result[0]);
-                        NodeValue nd= (NodeValue) result[0];
-                        Assert.assertEquals(nd.getValue()+"","42.5");
+                        NodeValue nd = (NodeValue) result[0];
+                        Assert.assertEquals(nd.getValue() + "", "42.5");
                         Assert.assertNotNull(nd);
                     }
                 });
 
-                TaskContext ctx=traverse.prepare(g, parent, new Callback<TaskResult>() {
+                /*
+                nodeValue.timepoints(Constants.BEGINNING_OF_TIME, Constants.END_OF_TIME, new Callback<long[]>() {
+                    @Override
+                    public void on(long[] result) {
+                        System.out.println(result);
+                    }
+                });
+*/
+
+                Task traverse = newTask().traverse("sub").setAsVar("v1").readVar("v1").timepoints(Constants.BEGINNING_OF_TIME_STR, Constants.END_OF_TIME_STR);
+                TaskContext ctx = traverse.prepare(g, parent, new Callback<TaskResult>() {
                     @Override
                     public void on(TaskResult result) {
-                        Assert.assertEquals(result.size(),1);
+                        Assert.assertEquals(result.size(), 1);
                     }
                 });
                 traverse.executeUsing(ctx);
@@ -118,8 +126,6 @@ public class NodeValueTest {
             }
         });
     }
-
-
 
     @Test
     public void testNull() {
