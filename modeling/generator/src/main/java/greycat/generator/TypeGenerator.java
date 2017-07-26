@@ -415,8 +415,8 @@ class TypeGenerator {
                     case "timeSensitivity":
                         long parsedSensitivity = Long.parseLong(annot.value().get(0).get(0).toString());
                         long offset = 0;
-                        if (annot.value().get(0).size() == 2) {
-                            offset = Long.parseLong(annot.value().get(0).get(1).toString());
+                        if (annot.value().size() == 2) {
+                            offset = Long.parseLong(annot.value().get(1).get(0).toString());
                         }
                         initMethod.addStatement("setTimeSensitivity($L, $L)", parsedSensitivity, offset);
                         break;
