@@ -956,12 +956,12 @@ public class BaseNode implements Node {
 
     public final Node createClone() {
         final WorldOrderChunk worldOrderChunk = (WorldOrderChunk) _graph.space().get(_index_worldOrder);
-        final int type = (int) worldOrderChunk.type();
+        final long type = worldOrderChunk.type();
         final Node cloned;
-        if (type == -1) {
+        if (type == Constants.NULL_LONG) {
             cloned = _graph.newNode(_world, _time);
         } else {
-            cloned = _graph.newTypedNodeFrom(_world, _time, type);
+            cloned = _graph.newTypedNodeFrom(_world, _time, (int)type);
         }
         final StateChunk clonedStateChunk = (StateChunk) _resolver.resolveState(cloned);
         final StateChunk currentStateChunk = (StateChunk) _resolver.resolveState(this);
