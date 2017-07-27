@@ -1107,10 +1107,14 @@ final class MWResolver implements Resolver {
                                         }
                                         _space.unmark(objectWorldOrder.index());
                                         for (int i = 0; i < timeTrees.length; i++) {
-                                            _space.unmark(timeTrees[i].index());
+                                            if (timeTrees[i] != null) {
+                                                _space.unmark(timeTrees[i].index());
+                                            }
                                         }
                                         for (int i = 0; i < superTimeTrees.length; i++) {
-                                            _space.unmark(superTimeTrees[i].index());
+                                            if (superTimeTrees[i] != null) {
+                                                _space.unmark(superTimeTrees[i].index());
+                                            }
                                         }
                                         getOrLoadAndMarkAll(call_types3, call_keys3, new Callback<Chunk[]>() {
                                             @Override
@@ -1901,7 +1905,7 @@ final class MWResolver implements Resolver {
             timeTreeKeys[i * 3] = collectedWorlds[i];
             timeTreeKeys[i * 3 + 1] = collectedSuperTimes[i];
             timeTreeKeys[i * 3 + 2] = node.id();
-            if(objectWorldOrder.type() == NodeValueType){
+            if (objectWorldOrder.type() == NodeValueType) {
                 types[i] = ChunkType.TIME_TREE_DVALUE_CHUNK;
             } else {
                 types[i] = ChunkType.TIME_TREE_CHUNK;
