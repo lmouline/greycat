@@ -169,7 +169,7 @@ public class Generator {
                 "    \"greycat\": \"" + gcVersion + "\"\n" +
                 "  },\n" +
                 "  \"devDependencies\": {\n" +
-                "    \"typescript\": \"2.4.1\"\n" +
+                "    \"typescript\": \"2.4.2\"\n" +
                 "  }" +
                 "}";
         try {
@@ -213,7 +213,7 @@ public class Generator {
                     "    \"" + packageName + "\": \"" + new File(modelWeb, packageName + "-" + projectVersion + ".tgz").getAbsolutePath().replace('\\','/') + "\"\n" +
                     "  },\n" +
                     "  \"devDependencies\": {\n" +
-                    "    \"typescript\": \"2.4.1\",\n" +
+                    "    \"typescript\": \"2.4.2\",\n" +
                     "    \"ts-node\": \"3.0.4\"\n" +
                     "  }" +
                     "}").getBytes());
