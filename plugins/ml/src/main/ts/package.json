@@ -1,5 +1,5 @@
 {
-  "name": "greycat-ml",
+  "name": "@greycat/greycat-ml",
   "homepage": "https://github.com/datathings/greycat",
   "description": "Machine learning package for GreyCat",
   "version": "GREYCAT_VERSION",

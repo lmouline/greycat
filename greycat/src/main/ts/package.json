@@ -1,5 +1,5 @@
 {
-  "name": "greycat",
+  "name": "@greycat/greycat",
   "homepage": "https://github.com/datathings/greycat",
   "version": "GREYCAT_VERSION",
   "main": "greycat.js",
