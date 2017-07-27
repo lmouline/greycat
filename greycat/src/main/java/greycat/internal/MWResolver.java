@@ -946,7 +946,11 @@ final class MWResolver implements Resolver {
                                     call_keys2[i * 3] = worldCollector.get((int) tempSuperTimeCollector.getValue(i));
                                     call_keys2[i * 3 + 1] = tempSuperTimeCollector.getKey(i);
                                     call_keys2[i * 3 + 2] = id;
-                                    call_types2[i] = ChunkType.TIME_TREE_CHUNK;
+                                    if (objectWorldOrder.type() == NodeValueType) {
+                                        call_types2[i] = ChunkType.TIME_TREE_DVALUE_CHUNK;
+                                    } else {
+                                        call_types2[i] = ChunkType.TIME_TREE_CHUNK;
+                                    }
                                 }
                             } else {
                                 final LMap tempSuperTimeCollectorCapacity = new LMap(true);
@@ -984,7 +988,11 @@ final class MWResolver implements Resolver {
                                     call_keys2[write_cursor * 3] = worldCollector.get((int) tempSuperTimeCollector.getValue(i));
                                     call_keys2[write_cursor * 3 + 1] = tempSuperTimeCollector.getKey(i);
                                     call_keys2[write_cursor * 3 + 2] = id;
-                                    call_types2[write_cursor] = ChunkType.TIME_TREE_CHUNK;
+                                    if (objectWorldOrder.type() == NodeValueType) {
+                                        call_types2[write_cursor] = ChunkType.TIME_TREE_DVALUE_CHUNK;
+                                    } else {
+                                        call_types2[write_cursor] = ChunkType.TIME_TREE_CHUNK;
+                                    }
                                     write_cursor++;
                                 }
                             }
@@ -1104,6 +1112,10 @@ final class MWResolver implements Resolver {
                                             call_keys3[i * 3 + 1] = result[i].time();
                                             call_keys3[i * 3 + 2] = id;
                                             call_types3[i] = ChunkType.STATE_CHUNK;
+                                            if (objectWorldOrder.type() == NodeValueType) {
+                                                call_types3[i] = -1;
+                                                result[i]._index_timeTree_offset = ((TimeTreeDValueChunk) timeTrees[i]).previousOrEqualOffset(result[i].time());
+                                            }
                                         }
                                         _space.unmark(objectWorldOrder.index());
                                         for (int i = 0; i < timeTrees.length; i++) {
@@ -1120,7 +1132,11 @@ final class MWResolver implements Resolver {
                                             @Override
                                             public void on(Chunk[] stateChunks) {
                                                 for (int i = 0; i < firmLimit; i++) {
-                                                    result[i]._index_stateChunk = stateChunks[i].index();
+                                                    if (stateChunks[i] != null) {
+                                                        result[i]._index_stateChunk = stateChunks[i].index();
+                                                    } else {
+                                                        result[i]._index_stateChunk = -1;
+                                                    }
                                                 }
                                                 callback.on(result);
                                             }
