@@ -14,7 +14,7 @@
 /// limitations under the License.
 ///
 
-import * as greycat from "greycat";
+import * as greycat from "@greycat/greycat";
 import * as jre from "j2ts-jre";
 
 export class WSClient implements greycat.plugin.Storage {

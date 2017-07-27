@@ -6,7 +6,7 @@
   "main": "greycat.ml.js",
   "typings": "greycat.ml.d.ts",
   "dependencies": {
-    "greycat": "GREYCAT_VERSION_D",
+    "@greycat/greycat": "GREYCAT_VERSION_D",
     "j2ts-jre": "J2TS_VERSION"
   },
   "repository": {
