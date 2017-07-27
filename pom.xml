@@ -109,11 +109,6 @@
         <module>modeling/gradleplugin</module>
         <module>modeling/gencli</module>
 
-        <!--Examples-->
-        <!--
-        <module>examples/modeling</module>
-        -->
-
     </modules>
 
     <dependencies>
