@@ -7,7 +7,7 @@
   "typings": "greycat.ml.d.ts",
   "dependencies": {
     "@greycat/greycat": "GREYCAT_VERSION_D",
-    "j2ts-jre": "J2TS_VERSION"
+    "@greycat/j2ts-jre": "J2TS_VERSION"
   },
   "repository": {
     "type": "git",
