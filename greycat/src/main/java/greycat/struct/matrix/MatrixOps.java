@@ -320,4 +320,15 @@ public class MatrixOps {
         }
         return result;
     }
+
+    public static void print(DMatrix matA, String name){
+        System.out.println("Matrix "+name);
+        for(int i=0;i<matA.rows();i++){
+            for(int j=0;j<matA.columns();j++){
+                System.out.print(matA.get(i,j)+"\t");
+            }
+            System.out.println();
+        }
+        System.out.println();
+    }
 }
