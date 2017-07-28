@@ -26,7 +26,6 @@ before_install:
 - npm -v
 - echo "@greycat:registry=https://registry.datathings.com/repository/npm-public/" > ~/.npmrc
 - echo "//registry.datathings.com/repository/npm-public/:_authToken=${env.DT_TOKEN}" > ~/.npmrc
-- more ~/.npmrc
 install: mvn clean
 script: mvn clean install
 after_success:
