@@ -278,7 +278,7 @@ public class GaussianENode {
         return covtemp;
     }
 
-    public DMatrix getPearson() {
+    public DMatrix getCorrelation() {
         if (!initCov()) {
             return null;
         }
