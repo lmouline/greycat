@@ -28,4 +28,4 @@ before_install:
 install: mvn clean
 script: mvn clean install
 after_success:
-- '[[ $TRAVIS_BRANCH == "master" ]] && { mvn -P dev clean install --settings etc/deploy-settings.xml -DskipTests=true -B ; };'
+- '[[ $TRAVIS_BRANCH == "master" ]] && { mvn -P dev clean deploy --settings etc/deploy-settings.xml -DskipTests=true -B ; };'
