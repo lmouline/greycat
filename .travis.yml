@@ -24,7 +24,7 @@ before_install:
   install $TRAVIS_NODE_VERSION
 - node -v
 - npm -v
-- printf "@greycat:registry=https://registry.datathings.com/repository/npm-public/\n//registry.datathings.com/repository/npm-public/:_authToken=${NPM_TOKEN}" >> ~/.npmrc
+- printf "@greycat:registry=https://registry.datathings.com/repository/npm-public/\n//registry.datathings.com/repository/npm-public/:_authToken=${DT_TOKEN}" >> ~/.npmrc
 install: mvn clean
 script: mvn clean install
 after_success:
