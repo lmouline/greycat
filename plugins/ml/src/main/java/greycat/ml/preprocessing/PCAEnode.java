@@ -39,7 +39,7 @@ public class PCAEnode {
     public static String PERCENT_AT_BEST_DIM = "percentAtBestDim";
 
     public static String THRESHOLD = "threshold";
-    public static double THRESHOLD_DEF = 92;
+    public static double THRESHOLD_DEF = 92.0;
 
     public static double EPS = 1e-30;
 
