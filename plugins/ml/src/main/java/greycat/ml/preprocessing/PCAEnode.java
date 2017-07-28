@@ -140,8 +140,20 @@ public class PCAEnode {
         return (int) _backend.get(BEST_DIM);
     }
 
-    public double percentRetained() {
+    public double getPercentRetained() {
         return (double) _backend.get(PERCENT_AT_BEST_DIM);
+    }
+
+
+    public void print(String pcaName){
+        DoubleArray _information = (DoubleArray) _backend.getOrCreate(DIM_INFORMATION, Type.DOUBLE_ARRAY);
+        System.out.println("");
+        System.out.println("PCA "+pcaName);
+        for(int i=0;i<_information.size();i++){
+            System.out.println("Dim\t"+i+": "+_information.get(i));
+        }
+        System.out.println("Best dim: "+getBestDim()+" percent retained: "+getPercentRetained());
+        System.out.println("");
     }
 
 
