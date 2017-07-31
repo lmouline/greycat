@@ -31,7 +31,6 @@ import java.util.concurrent.CountDownLatch;
 public class WSServerTest {
 
     public static void main(String[] args) {
-
         WSServer graphServer = new WSServer(GraphBuilder.newBuilder().withMemorySize(10000), 8050);
         graphServer.addHandler("hello", new ResourceHandler(new ClassPathResourceManager(WSServerTest.class.getClassLoader(), "hello")).addWelcomeFiles("index.html").setDirectoryListingEnabled(true));
         graphServer.start();
