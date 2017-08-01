@@ -142,7 +142,14 @@ public class PCAWrapper {
         System.out.println("PCA " + pcaName);
         if (fullinfo) {
             for (int i = 0; i < _information.size(); i++) {
-                System.out.println("Dim\t" + i + ": " + _information.get(i));
+                System.out.println("Dim " + i + ": " + _information.get(i));
+            }
+
+            System.out.println("");
+            System.out.println("Space density");
+            DoubleArray density= (DoubleArray) _backend.get(SPACE_DENSITY_INFORMATION);
+            for (int i = 0; i < density.size(); i++) {
+                System.out.println("Dim " + i + ": " + density.get(i));
             }
         }
         System.out.println("Best dim: " + getBestDim() + " percent retained: " + getPercentRetained());
