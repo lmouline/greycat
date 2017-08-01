@@ -29,6 +29,7 @@ public class PCAWrapper {
     public static String MATRIX_V_ORIGIN = "matrixVOrigin";
     public static String MATRIX_V_TRANS = "matrixVTrans";
     public static String SINGULAR_VALUES = "singularValues";
+    public static String SPACE_DENSITY_INFORMATION = "spaceDensityInformation";
 
     public static String ORIGINAL_DIM = "originalDim";
     public static String BEST_DIM = "bestDim";
@@ -82,7 +83,6 @@ public class PCAWrapper {
         }
 
 
-
         DoubleArray _information = (DoubleArray) _backend.getOrCreate(DIM_INFORMATION, Type.DOUBLE_ARRAY);
         _information.init(svector.length + 1);
 
@@ -111,9 +111,9 @@ public class PCAWrapper {
         _information.set(svector.length, 100);
 
         if (xi == 0) {
-            for(int i=0;i<_information.size();i++){
-                if(_information.get(i)>=threshold){
-                    xi=i;
+            for (int i = 0; i < _information.size(); i++) {
+                if (_information.get(i) >= threshold) {
+                    xi = i;
                     break;
                 }
             }
@@ -145,16 +145,16 @@ public class PCAWrapper {
     }
 
 
-    public void print(String pcaName, boolean fullinfo){
+    public void print(String pcaName, boolean fullinfo) {
         DoubleArray _information = (DoubleArray) _backend.getOrCreate(DIM_INFORMATION, Type.DOUBLE_ARRAY);
         System.out.println("");
-        System.out.println("PCA "+pcaName);
-        if(fullinfo) {
+        System.out.println("PCA " + pcaName);
+        if (fullinfo) {
             for (int i = 0; i < _information.size(); i++) {
                 System.out.println("Dim\t" + i + ": " + _information.get(i));
             }
         }
-        System.out.println("Best dim: "+getBestDim()+" percent retained: "+getPercentRetained());
+        System.out.println("Best dim: " + getBestDim() + " percent retained: " + getPercentRetained());
     }
 
 
@@ -174,13 +174,30 @@ public class PCAWrapper {
 
         _backend.set(SELECTED_DIM, Type.INT, dim);
 
-        DoubleArray eigenvalues= _backend.getDoubleArray(SINGULAR_VALUES);
+        DoubleArray eigenvalues = _backend.getDoubleArray(SINGULAR_VALUES);
 
         for (int i = 0; i < dim; i++) {
             //double v=Math.sqrt(eigenvalues.get(i));
             for (int j = 0; j < origin_dim; j++) {
                 v_trans.set(i, j, v_origin.get(i, j));
             }
+        }
+    }
+
+    public void setDataSetSize(long datasetSize) {
+        DoubleArray spaceInfo = (DoubleArray) _backend.getOrCreate(SPACE_DENSITY_INFORMATION, Type.DOUBLE_ARRAY);
+        int origin_dim = (int) _backend.get(ORIGINAL_DIM);
+
+        if (origin_dim <= 0 || origin_dim > origin_dim) {
+            throw new RuntimeException("Please set the PCA correlation matrix before using this");
+        }
+        spaceInfo.init(origin_dim+1);
+        double power=datasetSize;
+        spaceInfo.set(0,power);
+
+        for(int i=1;i<=origin_dim;i++){
+            spaceInfo.set(i,power);
+            power=power/2;
         }
     }
 
@@ -191,9 +208,9 @@ public class PCAWrapper {
             throw new RuntimeException("Please set dimension first before calling PCA");
         }
 
-        DMatrix v = VolatileDMatrix.wrap(data, data.length,1);
+        DMatrix v = VolatileDMatrix.wrap(data, data.length, 1);
 
-        DMatrix res = MatrixOps.multiply( _matrixV,v);
+        DMatrix res = MatrixOps.multiply(_matrixV, v);
         return res.column(0);
     }
 
@@ -205,7 +222,7 @@ public class PCAWrapper {
             throw new RuntimeException("Please set dimension first before calling PCA");
         }
 
-        return MatrixOps.multiply(_matrixV,initial);
+        return MatrixOps.multiply(_matrixV, initial);
     }
 
     public double[] inverseConvertVector(double[] data) {
@@ -215,7 +232,7 @@ public class PCAWrapper {
         }
 
 
-        DMatrix v = VolatileDMatrix.wrap(data, data.length,1);
+        DMatrix v = VolatileDMatrix.wrap(data, data.length, 1);
         DMatrix res = MatrixOps.multiplyTranspose(TransposeType.TRANSPOSE, _matrixV, TransposeType.NOTRANSPOSE, v);
         return res.column(0);
     }
