@@ -17,9 +17,9 @@ package greycatMLTest.preprocessing;
 
 import greycat.*;
 import greycat.ml.MLPlugin;
-import greycat.ml.preprocessing.PCAEnode;
+import greycat.ml.preprocessing.PCAWrapper;
 import greycat.ml.profiling.Gaussian;
-import greycat.ml.profiling.GaussianENode;
+import greycat.ml.profiling.GaussianWrapper;
 import greycat.struct.DMatrix;
 import greycat.struct.EStructArray;
 import greycat.struct.matrix.MatrixOps;
@@ -80,8 +80,8 @@ public class TestPCAENode {
 
                 EStructArray hostarray = (EStructArray) host.getOrCreate("ml", Type.ESTRUCT_ARRAY);
 
-                GaussianENode gaussianNode = new GaussianENode(hostarray.newEStruct());
-                PCAEnode pca = new PCAEnode(hostarray.newEStruct());
+                GaussianWrapper gaussianNode = new GaussianWrapper(hostarray.newEStruct());
+                PCAWrapper pca = new PCAWrapper(hostarray.newEStruct());
 
 
 

@@ -25,7 +25,7 @@ import greycat.struct.matrix.SVDDecompose;
 import greycat.struct.matrix.TransposeType;
 import greycat.struct.matrix.VolatileDMatrix;
 
-public class PCAEnode {
+public class PCAWrapper {
     public static String MATRIX_V_ORIGIN = "matrixVOrigin";
     public static String MATRIX_V_TRANS = "matrixVTrans";
     public static String SINGULAR_VALUES = "singularValues";
@@ -45,12 +45,12 @@ public class PCAEnode {
 
     EStruct _backend;
 
-    public PCAEnode(EStruct backend) {
+    public PCAWrapper(EStruct backend) {
         this._backend = backend;
     }
 
 
-    public PCAEnode setCorrelation(DMatrix correlation) {
+    public PCAWrapper setCorrelation(DMatrix correlation) {
         if (correlation == null || correlation.rows() != correlation.columns() || correlation.rows() == 0) {
             throw new RuntimeException("Correlation Matrix can't be empty");
         }
