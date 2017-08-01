@@ -790,9 +790,11 @@ final class MWResolver implements Resolver {
                                                                     } else {
                                                                         for (int i = 0; i < idsSize; i++) {
                                                                             int timeOffset = -1;
-                                                                            if (theObjectChunks[i] == null && ((WorldOrderChunk) theNodeWorldOrders[i]).type() == NodeValueType) {
-                                                                                timeOffset = (int) keys[(i * Constants.KEY_SIZE) + 2];
-                                                                                theObjectChunks[i] = ((TimeTreeEmbeddedChunk) theNodeTimeTrees[i]).state(timeOffset);
+                                                                            if(theNodeWorldOrders[i] != null){
+                                                                                if (theObjectChunks[i] == null && ((WorldOrderChunk) theNodeWorldOrders[i]).type() == NodeValueType) {
+                                                                                    timeOffset = (int) keys[(i * Constants.KEY_SIZE) + 2];
+                                                                                    theObjectChunks[i] = ((TimeTreeEmbeddedChunk) theNodeTimeTrees[i]).state(timeOffset);
+                                                                                }
                                                                             }
                                                                             if (theObjectChunks[i] != null) {
                                                                                 WorldOrderChunk castedNodeWorldOrder = (WorldOrderChunk) theNodeWorldOrders[i];

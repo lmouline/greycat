@@ -3,6 +3,7 @@ package greycat.websocket;
 import greycat.*;
 import greycat.scheduler.NoopScheduler;
 import greycatTest.internal.MockStorage;
+import org.junit.Assert;
 
 import static greycat.Tasks.newTask;
 
@@ -18,13 +19,11 @@ public class MiniAccessControl {
         master.declareIndex(0, "nodes", new Callback<NodeIndex>() {
             @Override
             public void on(NodeIndex nodesIndex) {
-                Node priv = master.newNode(0, 0);
-                priv.setGroup(2);//protected
+                Node priv = master.newNode(0, 0).setGroup(1);
                 priv.set("name", Type.STRING, "private");
                 nodesIndex.update(priv);
 
-                Node pub = master.newNode(0, 0);
-                pub.setGroup(0);//protected
+                Node pub = master.newNode(0, 0).setGroup(0);
                 pub.set("name", Type.STRING, "public");
                 nodesIndex.update(pub);
 
@@ -33,11 +32,17 @@ public class MiniAccessControl {
 
         master.save(null);
 
-        MiniFilteredStorage mac = new MiniFilteredStorage(raw_storage);
+        MiniFilteredStorage mac = new MiniFilteredStorage(raw_storage, new int[]{1});
 
         Graph g = GraphBuilder.newBuilder().withScheduler(new NoopScheduler()).withStorage(mac).build();
         g.connect(null);
-        newTask().travelInTime("0").readIndex("nodes").log("{{result}}").execute(g, null);
+        newTask().travelInTime("0").readIndex("nodes").flat().execute(g, new Callback<TaskResult>() {
+            @Override
+            public void on(TaskResult result) {
+                Assert.assertEquals(1, result.size());
+                Assert.assertEquals("{\"world\":0,\"time\":0,\"id\":3,\"name\":\"public\"}", result.get(0).toString());
+            }
+        });
 
     }
 
