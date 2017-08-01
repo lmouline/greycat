@@ -77,7 +77,6 @@ public class PCAWrapper {
     private int retainDynamic(double[] svector) {
 
         double totalenergy = 0;
-
         for (double aSvector : svector) {
             totalenergy += aSvector;
         }
@@ -85,7 +84,6 @@ public class PCAWrapper {
 
         DoubleArray _information = (DoubleArray) _backend.getOrCreate(DIM_INFORMATION, Type.DOUBLE_ARRAY);
         _information.init(svector.length + 1);
-
         double threshold = _backend.getWithDefault(THRESHOLD, THRESHOLD_DEF);
 
 
@@ -99,13 +97,10 @@ public class PCAWrapper {
 
             previoust = t;
             t = svector[i] * svector[i] / (svector[i - 1] * svector[i - 1]);
-
             _information.set(i, (integrator * 100) / totalenergy);
-
             if (t / previoust < 0.85 && xi == 0 && i != 1 && _information.get(i) >= threshold) {
                 xi = i;
             }
-
             integrator += svector[i];
         }
         _information.set(svector.length, 100);
@@ -118,12 +113,8 @@ public class PCAWrapper {
                 }
             }
         }
-
-
         _backend.set(BEST_DIM, Type.INT, xi);
         _backend.set(PERCENT_AT_BEST_DIM, Type.DOUBLE, _information.get(xi));
-
-
         return xi;
     }
 
@@ -191,13 +182,13 @@ public class PCAWrapper {
         if (origin_dim <= 0 || origin_dim > origin_dim) {
             throw new RuntimeException("Please set the PCA correlation matrix before using this");
         }
-        spaceInfo.init(origin_dim+1);
-        double power=datasetSize;
-        spaceInfo.set(0,power);
+        spaceInfo.init(origin_dim + 1);
+        double power = datasetSize;
+        spaceInfo.set(0, power);
 
-        for(int i=1;i<=origin_dim;i++){
-            spaceInfo.set(i,power);
-            power=power/2;
+        for (int i = 1; i <= origin_dim; i++) {
+            spaceInfo.set(i, power);
+            power = power / 2;
         }
     }
 
