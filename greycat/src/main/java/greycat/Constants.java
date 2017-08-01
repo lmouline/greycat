@@ -65,19 +65,12 @@ public class Constants {
      */
     public static final byte CHUNK_SEP = '|';
 
-    /*
+    /**
      * {@native ts
-     * public static CHUNK_ENODE_SEP : number = "$".charCodeAt(0);
+     * public static CHUNK_META_SEP : number = "$".charCodeAt(0);
      * }
      */
-    //public static final byte CHUNK_ENODE_SEP = '$';
-
-    /*
-     * {@native ts
-     * public static CHUNK_ESEP : number = "%".charCodeAt(0);
-     * }
-     */
-    //public static final byte CHUNK_ESEP = '%';
+    public static final byte CHUNK_META_SEP = '$';
 
     /**
      * {@native ts
