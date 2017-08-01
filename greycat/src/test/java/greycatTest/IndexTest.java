@@ -50,6 +50,38 @@ public class IndexTest {
         });
     }
 
+
+    //@Test
+    public void testLocalIndex() {
+        Graph g = GraphBuilder.newBuilder().withScheduler(new NoopScheduler()).build();
+        g.connect(new Callback<Boolean>() {
+            @Override
+            public void on(Boolean result) {
+                Task t = newTask()
+                        .createNode()
+                        .setAsVar("container")
+                        .declareLocalIndex("files", "name")
+                        .createNode()
+                        .setAttribute("name", Type.STRING, "myFile")
+                        .setAsVar("file")
+                        .readVar("container")
+                        .addVarTo("files", "file")
+                        .traverse("files")
+                        .log("Files: {{result}}")
+                        .readVar("container")
+                        .traverse("files", "myFile")
+                        .log("MyFile: {{result}}");
+                t.execute(g, new Callback<TaskResult>() {
+                    @Override
+                    public void on(TaskResult result) {
+                        System.out.println("res:" + result.get(0));
+                        Assert.assertTrue(result.get(0) != null);
+                    }
+                });
+            }
+        });
+    }
+
 }
 
 
