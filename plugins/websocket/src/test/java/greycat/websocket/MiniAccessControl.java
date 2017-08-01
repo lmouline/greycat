@@ -1,3 +1,18 @@
+/**
+ * Copyright 2017 The GreyCat Authors.  All rights reserved.
+ * <p>
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package greycat.websocket;
 
 import greycat.*;
@@ -41,6 +56,18 @@ public class MiniAccessControl {
             public void on(TaskResult result) {
                 Assert.assertEquals(1, result.size());
                 Assert.assertEquals("{\"world\":0,\"time\":0,\"id\":3,\"name\":\"public\"}", result.get(0).toString());
+            }
+        });
+
+        Node priv2 = g.newNode(0, 0).setGroup(1);
+        priv2.set("name", Type.STRING, "private2");
+
+        g.save(null);
+
+        master.lookup(0, 0, priv2.id(), new Callback<Node>() {
+            @Override
+            public void on(Node result) {
+                Assert.assertNull(result);
             }
         });
 
