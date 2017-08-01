@@ -961,7 +961,7 @@ public class BaseNode implements Node {
         if (type == Constants.NULL_LONG) {
             cloned = _graph.newNode(_world, _time);
         } else {
-            cloned = _graph.newTypedNodeFrom(_world, _time, (int)type);
+            cloned = _graph.newTypedNodeFrom(_world, _time, (int) type);
         }
         final StateChunk clonedStateChunk = (StateChunk) _resolver.resolveState(cloned);
         final StateChunk currentStateChunk = (StateChunk) _resolver.resolveState(this);
@@ -1079,5 +1079,20 @@ public class BaseNode implements Node {
         ((WorldOrderChunk) this._graph.space().get(_index_worldOrder)).unlisten(registrationID);
     }
 
+    @Override
+    public final Node setGroup(int group_id) {
+        this._graph.space().get(_index_worldOrder).setGroup(group_id);
+        this._graph.space().get(_index_superTimeTree).setGroup(group_id);
+        this._graph.space().get(_index_timeTree).setGroup(group_id);
+        if (_index_stateChunk != -1) {
+            this._graph.space().get(_index_stateChunk).setGroup(group_id);
+        }
+        return this;
+    }
+
+    @Override
+    public int group() {
+        return this._graph.space().get(_index_worldOrder).group();
+    }
 
 }

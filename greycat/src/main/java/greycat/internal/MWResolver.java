@@ -1600,6 +1600,8 @@ final class MWResolver implements Resolver {
             superTimeTree.setEnd(alignedTime);
         } else {
             SuperTimeTreeChunk newSuperTimeTree = (SuperTimeTreeChunk) this._space.createAndMark(ChunkType.SUPER_TIME_TREE_CHUNK, nodeWorld, 0, castedNode.id());
+            newSuperTimeTree.setGroup(nodeWorldOrder.group());
+
             newSuperTimeTree.setEnd(alignedTime);
             //insert into node world order
             nodeWorldOrder.put(nodeWorld, alignedTime);
@@ -1719,6 +1721,8 @@ final class MWResolver implements Resolver {
                         superTimeTree.insert(timeTree.time(), subTreeCapacity + 1);
                     } else {
                         final TimeTreeChunk newTimeTree = (TimeTreeChunk) this._space.createAndMark(subTreeType, nodeWorld, nodeTime, nodeId);
+                        newTimeTree.setGroup(nodeWorldOrder.group());
+
                         final long allowedSubTreeCapacity = superTimeTree.subTreeCapacity();
                         castedNode._index_timeTree_offset = newTimeTree.insert(nodeTime);
                         newTimeTree.setCapacity(allowedSubTreeCapacity);
@@ -1736,10 +1740,14 @@ final class MWResolver implements Resolver {
         } else {
             //create a new node superTimeTree
             SuperTimeTreeChunk newSuperTimeTree = (SuperTimeTreeChunk) this._space.createAndMark(ChunkType.SUPER_TIME_TREE_CHUNK, nodeWorld, 0, nodeId);
+            newSuperTimeTree.setGroup(nodeWorldOrder.group());
+
             long subTreeCapacity = superTimeTree.subTreeCapacity();
             newSuperTimeTree.insert(nodeTime, subTreeCapacity);
             //create a new node timeTree
             TimeTreeChunk newTimeTree = (TimeTreeChunk) this._space.createAndMark(subTreeType, nodeWorld, nodeTime, nodeId);
+            newTimeTree.setGroup(nodeWorldOrder.group());
+
             castedNode._index_timeTree_offset = newTimeTree.insert(nodeTime);
             newTimeTree.setCapacity(subTreeCapacity);
             //insert into node world order
