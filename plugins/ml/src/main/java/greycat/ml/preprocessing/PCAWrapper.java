@@ -194,8 +194,8 @@ public class PCAWrapper {
         spaceInfo.set(0, power);
 
         for (int i = 1; i <= origin_dim; i++) {
-            spaceInfo.set(i, power);
             power = power / 2;
+            spaceInfo.set(i, power);
         }
     }
 
