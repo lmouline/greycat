@@ -51,7 +51,7 @@ public class IndexTest {
     }
 
 
-    //@Test
+    @Test
     public void testLocalIndex() {
         Graph g = GraphBuilder.newBuilder().withScheduler(new NoopScheduler()).build();
         g.connect(new Callback<Boolean>() {
@@ -67,14 +67,14 @@ public class IndexTest {
                         .readVar("container")
                         .addVarTo("files", "file")
                         .traverse("files")
-                        .log("Files: {{result}}")
+                        //.log("Files: {{result}}")
                         .readVar("container")
-                        .traverse("files", "myFile")
-                        .log("MyFile: {{result}}");
+                        .traverse("files", "myFile");
+                        //.log("MyFile: {{result}}");
                 t.execute(g, new Callback<TaskResult>() {
                     @Override
                     public void on(TaskResult result) {
-                        System.out.println("res:" + result.get(0));
+                        //System.out.println("res:" + result.get(0));
                         Assert.assertTrue(result.get(0) != null);
                     }
                 });
