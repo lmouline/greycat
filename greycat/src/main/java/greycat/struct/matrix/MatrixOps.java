@@ -333,4 +333,7 @@ public class MatrixOps {
         System.out.println("");
     }
 
+    public static DMatrix cloneMatrix(DMatrix source) {
+        return VolatileDMatrix.cloneFrom(source);
+    }
 }
