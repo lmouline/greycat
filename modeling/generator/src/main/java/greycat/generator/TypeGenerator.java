@@ -197,7 +197,7 @@ class TypeGenerator {
                         .addParameter(clazz(rel.type()), "value")
                         .addStatement("addToRelationAt($L.hash,value)", rel.name().toUpperCase());
                 if (rel.opposite() != null) {
-                    addTo.addCode(createAddOppositeBlock(rel.type(), rel).build());
+                    addTo.addCode(createAddOppositeBlock(rel.type(), rel, ClassName.get(packageName, gType.name())).build());
                 }
                 addTo.addStatement("return this");
                 javaClass.addMethod(addTo.build());
@@ -247,7 +247,7 @@ class TypeGenerator {
                         .addParameter(clazz(ref.type()), "value")
                         .addStatement("(($T)this.getOrCreateAt($L.hash, greycat.Type.RELATION)).clear().add(value.id())", ClassName.get(greycat.struct.Relation.class), ref.name().toUpperCase());
                 if (ref.opposite() != null) {
-                    addTo.addCode(createAddOppositeBlock(ref.type(), ref).build());
+                    addTo.addCode(createAddOppositeBlock(ref.type(), ref, ClassName.get(packageName, gType.name())).build());
                 }
                 addTo.addStatement("return this");
                 javaClass.addMethod(addTo.build());
@@ -275,15 +275,15 @@ class TypeGenerator {
                 //Index method
                 MethodSpec.Builder indexMethod = MethodSpec.methodBuilder("index" + Generator.upperCaseFirstChar(li.name()))
                         .addModifiers(PUBLIC, FINAL)
-                        .returns(ClassName.get(packageName, gType.name()))
-                        .addParameter(ClassName.get(packageName, li.type()), "value");
+                        .addParameter(ClassName.get(packageName, li.type()), "value")
+                        .addParameter(ParameterizedTypeName.get(gCallback, ClassName.get(packageName, gType.name())), "callback");
 
+                indexMethod.addStatement("$T self = this", ClassName.get(packageName, gType.name()));
                 indexMethod.addStatement("$T index = ($T) this.getAt($L.hash)", gIndex, gIndex, li.name().toUpperCase());
                 indexMethod.addStatement("index.update(value)");
                 if (li.opposite() != null) {
-                    indexMethod.addCode(createAddOppositeBlock(li.type(), li).build());
+                    indexMethod.addCode(createAddOppositeBlock(li.type(), li, ClassName.get(packageName, gType.name())).build());
                 }
-                indexMethod.addStatement("return this");
                 javaClass.addMethod(indexMethod.build());
 
                 //UnIndex method
@@ -489,17 +489,42 @@ class TypeGenerator {
     }
 
 
-    public static CodeBlock.Builder createAddOppositeBlock(String edgeType, Edge edge) {
+    public static CodeBlock.Builder createAddOppositeBlock(String edgeType, Edge edge, ClassName className) {
         CodeBlock.Builder addBlock = CodeBlock.builder();
         if (edge.opposite() != null) {
             if (edge.opposite().edge() instanceof Relation) {
-                String oppositeName = ((Relation) edge.opposite().edge()).name();
+                String oppositeName = edge.opposite().edge().name();
                 addBlock.addStatement("value.addToRelation($L.$L.name, $L)", edgeType, oppositeName.toUpperCase(), "this");
 
             } else if (edge.opposite().edge() instanceof Reference) {
-                String oppositeName = ((Reference) edge.opposite().edge()).name();
-                addBlock.addStatement("value.removeFromRelation($L.$L.name, $L)", edgeType, oppositeName.toUpperCase(), "this");
-                addBlock.addStatement("value.addToRelation($L.$L.name, $L)", edgeType, oppositeName.toUpperCase(), "this");
+                String oppositeName = edge.opposite().edge().name();
+                String metaRelation = edge.name().toUpperCase();
+
+                CodeBlock.Builder removeFromOther = CodeBlock.builder();
+                if (edge instanceof Index) {
+                    removeFromOther.addStatement("$T index = ($T) result.getAt($L.hash)", gIndex, gIndex, metaRelation)
+                            .beginControlFlow("if(index != null)")
+                            .addStatement("index.unindex(value)")
+                            .endControlFlow();
+                } else {
+                    removeFromOther.addStatement("result.removeFromRelationAt($L.hash, $L)", metaRelation, "value");
+                }
+
+                addBlock.addStatement("value.get$L($L)", Generator.upperCaseFirstChar(oppositeName), TypeSpec.anonymousClassBuilder("")
+                        .addSuperinterface(ParameterizedTypeName.get(gCallback, className))
+                        .addMethod(MethodSpec.methodBuilder("on")
+                                .addAnnotation(Override.class)
+                                .addModifiers(PUBLIC)
+                                .addParameter(className, "result")
+                                .returns(VOID)
+                                .beginControlFlow("if(result != null)")
+                                .addCode(removeFromOther.build())
+                                .endControlFlow()
+                                .addStatement("value.getRelation($L.$L.name).clear()", edgeType, oppositeName.toUpperCase())
+                                .addStatement("value.addToRelation($L.$L.name, $L)", edgeType, oppositeName.toUpperCase(), "self")
+                                .addStatement("callback.on(self)")
+                                .build())
+                        .build());
 
             } else if (edge.opposite().edge() instanceof Index) {
                 Index idx = ((Index) edge.opposite().edge());
