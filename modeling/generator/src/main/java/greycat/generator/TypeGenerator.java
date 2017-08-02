@@ -193,7 +193,6 @@ class TypeGenerator {
 
                 MethodSpec.Builder addTo = MethodSpec.methodBuilder("addTo" + Generator.upperCaseFirstChar(rel.name()))
                         .addModifiers(PUBLIC, FINAL)
-                        .returns(ClassName.get(packageName, gType.name()))
                         .addParameter(clazz(rel.type()), "value")
                         .addParameter(ParameterizedTypeName.get(gCallback, ClassName.get(packageName, gType.name())), "callback")
                         .addStatement("$T self = this", ClassName.get(packageName, gType.name()))
@@ -201,7 +200,6 @@ class TypeGenerator {
                 if (rel.opposite() != null) {
                     addTo.addCode(createAddOppositeBlock(rel.type(), rel, ClassName.get(packageName, gType.name())).build());
                 }
-                addTo.addStatement("return this");
                 javaClass.addMethod(addTo.build());
 
                 MethodSpec.Builder removeFrom = MethodSpec.methodBuilder("removeFrom" + Generator.upperCaseFirstChar(rel.name()))
@@ -245,7 +243,6 @@ class TypeGenerator {
 
                 MethodSpec.Builder addTo = MethodSpec.methodBuilder("set" + Generator.upperCaseFirstChar(ref.name()))
                         .addModifiers(PUBLIC, FINAL)
-                        .returns(ClassName.get(packageName, gType.name()))
                         .addParameter(clazz(ref.type()), "value")
                         .addParameter(ParameterizedTypeName.get(gCallback, ClassName.get(packageName, gType.name())), "callback")
                         .addStatement("$T self = this", ClassName.get(packageName, gType.name()))
@@ -253,7 +250,6 @@ class TypeGenerator {
                 if (ref.opposite() != null) {
                     addTo.addCode(createAddOppositeBlock(ref.type(), ref, ClassName.get(packageName, gType.name())).build());
                 }
-                addTo.addStatement("return this");
                 javaClass.addMethod(addTo.build());
 
                 MethodSpec.Builder removeFrom = MethodSpec.methodBuilder("removeFrom" + Generator.upperCaseFirstChar(ref.name()))
