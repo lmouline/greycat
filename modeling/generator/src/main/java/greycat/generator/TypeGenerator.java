@@ -195,6 +195,8 @@ class TypeGenerator {
                         .addModifiers(PUBLIC, FINAL)
                         .returns(ClassName.get(packageName, gType.name()))
                         .addParameter(clazz(rel.type()), "value")
+                        .addParameter(ParameterizedTypeName.get(gCallback, ClassName.get(packageName, gType.name())), "callback")
+                        .addStatement("$T self = this", ClassName.get(packageName, gType.name()))
                         .addStatement("addToRelationAt($L.hash,value)", rel.name().toUpperCase());
                 if (rel.opposite() != null) {
                     addTo.addCode(createAddOppositeBlock(rel.type(), rel, ClassName.get(packageName, gType.name())).build());
@@ -245,6 +247,8 @@ class TypeGenerator {
                         .addModifiers(PUBLIC, FINAL)
                         .returns(ClassName.get(packageName, gType.name()))
                         .addParameter(clazz(ref.type()), "value")
+                        .addParameter(ParameterizedTypeName.get(gCallback, ClassName.get(packageName, gType.name())), "callback")
+                        .addStatement("$T self = this", ClassName.get(packageName, gType.name()))
                         .addStatement("(($T)this.getOrCreateAt($L.hash, greycat.Type.RELATION)).clear().add(value.id())", ClassName.get(greycat.struct.Relation.class), ref.name().toUpperCase());
                 if (ref.opposite() != null) {
                     addTo.addCode(createAddOppositeBlock(ref.type(), ref, ClassName.get(packageName, gType.name())).build());
