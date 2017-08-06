@@ -38,11 +38,11 @@ import java.util.*;
 
 public class WSServer implements WebSocketConnectionCallback, Callback<Buffer> {
 
-    private final GraphBuilder builder;
+    protected final GraphBuilder builder;
     private final int port;
     private Undertow server;
 
-    private Set<WebSocketChannel> peers;
+    protected Set<WebSocketChannel> peers;
     protected Map<String, HttpHandler> handlers;
 
     public static void attach(GraphBuilder storage, int port) {
@@ -112,12 +112,16 @@ public class WSServer implements WebSocketConnectionCallback, Callback<Buffer> {
         }
     }
 
-    private class PeerInternalListener extends AbstractReceiveListener {
+    protected class PeerInternalListener extends AbstractReceiveListener {
 
         private final Graph graph;
 
         PeerInternalListener(Graph p_graph) {
             graph = p_graph;
+        }
+
+        public Graph graph() {
+            return graph;
         }
 
         @Override
@@ -134,7 +138,7 @@ public class WSServer implements WebSocketConnectionCallback, Callback<Buffer> {
         }
 
         @Override
-        protected final void onClose(WebSocketChannel webSocketChannel, StreamSourceFrameChannel channel) throws IOException {
+        protected void onClose(WebSocketChannel webSocketChannel, StreamSourceFrameChannel channel) throws IOException {
             peers.remove(webSocketChannel);
             graph.disconnect(new Callback<Boolean>() {
                 @Override
