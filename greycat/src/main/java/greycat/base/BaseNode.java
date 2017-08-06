@@ -636,6 +636,8 @@ public class BaseNode implements Node {
         builder.append(time());
         builder.append(",\"id\":");
         builder.append(id());
+        builder.append(",\"group\":");
+        builder.append(group());
         final NodeState state = this._resolver.resolveState(this);
         if (state != null) {
             state.each(new NodeStateCallback() {

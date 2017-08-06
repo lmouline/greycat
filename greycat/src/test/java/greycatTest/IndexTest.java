@@ -39,10 +39,10 @@ public class IndexTest {
                 t.execute(g, new Callback<TaskResult>() {
                     @Override
                     public void on(TaskResult result) {
-                        Assert.assertEquals("{\"result\":[{\"world\":0,\"time\":-9007199254740990,\"id\":2,\"name\":\"sensor_1\"}]}", result.toString());
+                        Assert.assertEquals("{\"result\":[{\"world\":0,\"time\":-9007199254740990,\"id\":2,\"group\":0,\"name\":\"sensor_1\"}]}", result.toString());
 
                         newTask().readIndex("nodes", "sensor_1").unindexFrom("nodes").readIndex("nodes").execute(g, result2 -> {
-                            Assert.assertEquals("{\"result\":[{\"world\":0,\"time\":-9007199254740990,\"id\":3,\"name\":\"sensor_2\"}]}", result2.toString());
+                            Assert.assertEquals("{\"result\":[{\"world\":0,\"time\":-9007199254740990,\"id\":3,\"group\":0,\"name\":\"sensor_2\"}]}", result2.toString());
                         });
                     }
                 });
