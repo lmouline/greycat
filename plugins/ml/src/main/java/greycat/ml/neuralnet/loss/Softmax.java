@@ -45,7 +45,7 @@ class Softmax implements Loss {
     }
 
     @Override
-    public DMatrix forward(ExMatrix logprobs, ExMatrix targetOutput) {
+    public DMatrix forward(DMatrix logprobs, DMatrix targetOutput) {
         MatrixOps.testDim(logprobs,targetOutput);
         int targetIndex = getTargetIndex(targetOutput);
         VolatileDMatrix probs = getSoftmaxProbs(logprobs, 1.0);
@@ -54,7 +54,7 @@ class Softmax implements Loss {
     }
 
 
-    public static VolatileDMatrix getSoftmaxProbs(ExMatrix logprobs, double temperature) {
+    public static VolatileDMatrix getSoftmaxProbs(DMatrix logprobs, double temperature) {
         VolatileDMatrix probs = VolatileDMatrix.empty(logprobs.rows(), logprobs.columns());
         int loglen = logprobs.length();
         if (temperature != 1.0) {
@@ -79,7 +79,7 @@ class Softmax implements Loss {
         return probs;
     }
 
-    private static int getTargetIndex(ExMatrix targetOutput) {
+    private static int getTargetIndex(DMatrix targetOutput) {
         int len = targetOutput.length();
         for (int i = 0; i < len; i++) {
             if (targetOutput.unsafeGet(i) == 1.0) {

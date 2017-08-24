@@ -66,6 +66,14 @@ public class Losses {
         }
     }
 
+    public static void processAVGErr(DMatrix err, int counter){
+        for(int i=0;i<err.rows();i++){
+            for(int j=0;j<err.columns();j++){
+                err.set(i,j,err.get(i,j)/counter);
+            }
+        }
+    }
+
     public static void inverseNormalizeError(DMatrix error, double[] std) {
         for (int j = 0; j < error.rows(); j++) {
             double factor = std[j] * std[j];

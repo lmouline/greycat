@@ -21,5 +21,5 @@ import greycat.struct.DMatrix;
 public interface Loss {
     void backward(ExMatrix actualOutput, ExMatrix targetOutput);
 
-    DMatrix forward(ExMatrix actualOutput, ExMatrix targetOutput);
+    DMatrix forward(DMatrix actualOutput, DMatrix targetOutput);
 }

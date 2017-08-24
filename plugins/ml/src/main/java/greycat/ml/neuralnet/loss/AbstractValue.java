@@ -47,7 +47,7 @@ public class AbstractValue implements Loss {
     }
 
     @Override
-    public DMatrix forward(ExMatrix actualOutput, ExMatrix targetOutput) {
+    public DMatrix forward(DMatrix actualOutput, DMatrix targetOutput) {
         MatrixOps.testDim(actualOutput, targetOutput);
         DMatrix res = VolatileDMatrix.empty(actualOutput.rows(), actualOutput.columns());
         int len = targetOutput.length();

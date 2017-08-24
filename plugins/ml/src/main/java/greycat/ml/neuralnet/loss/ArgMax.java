@@ -42,7 +42,7 @@ class ArgMax implements Loss {
     //if actual arg max = target arg max -> 0
     //else there is a loss -> 1
     @Override
-    public DMatrix forward(ExMatrix actualOutput, ExMatrix targetOutput) {
+    public DMatrix forward(DMatrix actualOutput, DMatrix targetOutput) {
         MatrixOps.testDim(actualOutput, targetOutput);
         double maxActual;
         double maxTarget;

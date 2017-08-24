@@ -37,14 +37,12 @@ class MultiDimensionalBinary implements Loss {
     }
 
     @Override
-    public DMatrix forward(ExMatrix actualOutput, ExMatrix targetOutput) {
+    public DMatrix forward(DMatrix actualOutput, DMatrix targetOutput) {
         MatrixOps.testDim(actualOutput,targetOutput);
         DMatrix res = VolatileDMatrix.empty(actualOutput.rows(), actualOutput.columns());
-        DMatrix wa=actualOutput.getW();
-        DMatrix wt=targetOutput.getW();
         int len= actualOutput.length();
         for(int i=0;i<len;i++){
-            if ((wt.unsafeGet(i) >= 0.5 && wa.unsafeGet(i) < 0.5) || (wt.unsafeGet(i) < 0.5 && wa.unsafeGet(i) >= 0.5) ){
+            if ((targetOutput.unsafeGet(i) >= 0.5 && actualOutput.unsafeGet(i) < 0.5) || (targetOutput.unsafeGet(i) < 0.5 && actualOutput.unsafeGet(i) >= 0.5) ){
                 res.unsafeSet(i,1);
             }
         }
