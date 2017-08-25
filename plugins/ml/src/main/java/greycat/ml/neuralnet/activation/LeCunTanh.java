@@ -15,13 +15,13 @@
  */
 package greycat.ml.neuralnet.activation;
 
-class Tanh implements Activation {
+class LeCunTanh implements Activation {
 
-    private static Tanh static_unit = null;
+    private static LeCunTanh static_unit = null;
 
-    public static Tanh instance() {
+    public static LeCunTanh instance() {
         if (static_unit == null) {
-            static_unit = new Tanh();
+            static_unit = new LeCunTanh();
         }
         return static_unit;
     }
@@ -36,22 +36,12 @@ class Tanh implements Activation {
      */
     @Override
     public double forward(double x) {
-        return Math.tanh(x);
+        return 1.7159 * Math.tanh(2 * x / 3);
     }
 
     @Override
     public double backward(double x, double fct) {
-        return 1 - fct * fct;
+        return 1.143933333333333 * (1 - (fct * fct / 2.94431281));
     }
-
-    /**
-     * {@native ts
-     * return (Math.exp(x) + Math.exp(-x)) / 2;
-     * }
-     */
-    private static double cosh(double x) {
-        return Math.cosh(x);
-    }
-
 
 }

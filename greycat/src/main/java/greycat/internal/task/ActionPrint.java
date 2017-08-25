@@ -37,7 +37,7 @@ class ActionPrint implements Action {
         } else {
             ctx.append(ctx.template(_name));
         }
-        ctx.continueTask();
+         ctx.continueTask();
     }
 
     @Override

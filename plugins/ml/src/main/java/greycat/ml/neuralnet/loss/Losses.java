@@ -24,7 +24,6 @@ public class Losses {
     public static final int SOFTMAX = 2;
     public static final int ARGMAX = 3;
     public static final int MULTI_DIM_BINARY = 4;
-    public static final int MEAN_SQUARED_ERROR = 5;
 
     public static final int DEFAULT = SUM_OF_SQUARES;
 
@@ -40,8 +39,6 @@ public class Losses {
                 return ArgMax.instance();
             case MULTI_DIM_BINARY:
                 return MultiDimensionalBinary.instance();
-            case MEAN_SQUARED_ERROR:
-                return MSE.instance();
         }
         return getUnit(DEFAULT);
     }
@@ -58,10 +55,11 @@ public class Losses {
         return res;
     }
 
-    public static void processRMSErr(DMatrix err, int counter){
+
+    public static void processRMSE(DMatrix err, int counter){
         for(int i=0;i<err.rows();i++){
             for(int j=0;j<err.columns();j++){
-                err.set(i,j,Math.sqrt(err.get(i,j)/counter));
+                err.set(i,j,Math.sqrt(err.get(i,j)*2/counter));
             }
         }
     }
